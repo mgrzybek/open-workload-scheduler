@@ -1,0 +1,12 @@
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+cmake_install.cmake
+Makefile
+ows.xcodeproj
+ows.build
+build
+Debug
+Release
+.DS_Store
+.svn
