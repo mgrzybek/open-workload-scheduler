@@ -63,11 +63,7 @@ add_executable(client src/client.cpp
 
 add_executable(shell src/shell.cpp
 	src/config.cpp
-	src/database.cpp
-	src/domain.cpp
-	src/job.cpp
 	src/node.cpp
-	src/router.cpp
 	src/rpc_client.cpp
 	src/thrift/ows_rpc.cpp
 	src/thrift/model_constants.cpp
@@ -76,12 +72,7 @@ add_executable(shell src/shell.cpp
 	src/shell.h
 	src/common.h
 	src/config.h
-	src/database.h
-	src/day.h
-	src/domain.h
-	src/job.h
 	src/node.h
-	src/router.h
 	src/rpc_client.h
 	src/thrift/model_constants.h
 	src/thrift/model_types.h
@@ -100,6 +91,8 @@ link_directories (
 	/opt/local/lib/mysql
 	/usr/lib
 	/usr/lib/mysql
+
+	/Users/mathieu/Developpements/c/libcli
 )
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -116,6 +109,8 @@ include_directories(
 	/opt/local/include/thrift
 	/usr/include
 	/usr/include/mysql
+
+	/Users/mathieu/Developpements/c/libcli
 )
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -164,7 +159,6 @@ target_link_libraries(shell
 	curl
 	dl
 	pthread
-	sqlite3
 	ssl
 	z
 
@@ -173,5 +167,6 @@ target_link_libraries(shell
 	/opt/local/lib/libboost_regex.a
 	/opt/local/lib/libboost_thread-mt.a
 	/opt/local/lib/libboost_filesystem.a
-	/opt/local/lib/mysql5/mysql/libmysqld.a
+
+	/Users/mathieu/Developpements/c/libcli/libcli.so
 )
