@@ -91,8 +91,8 @@ uint32_t t_node::write(::apache::thrift::protocol::TProtocol* oprot) const {
   return xfer;
 }
 
-const char* t_job::ascii_fingerprint = "833E26B080399F3EA767DBE2EC895541";
-const uint8_t t_job::binary_fingerprint[16] = {0x83,0x3E,0x26,0xB0,0x80,0x39,0x9F,0x3E,0xA7,0x67,0xDB,0xE2,0xEC,0x89,0x55,0x41};
+const char* t_job::ascii_fingerprint = "4817A224DB85D09E8165B925BFFBCB75";
+const uint8_t t_job::binary_fingerprint[16] = {0x48,0x17,0xA2,0x24,0xDB,0x85,0xD0,0x9E,0x81,0x65,0xB9,0x25,0xBF,0xFB,0xCB,0x75};
 
 uint32_t t_job::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -145,6 +145,16 @@ uint32_t t_job::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 4:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          int32_t ecast0;
+          xfer += iprot->readI32(ecast0);
+          this->state = (e_job_state::type)ecast0;
+          this->__isset.state = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 5:
         if (ftype == ::apache::thrift::protocol::T_I16) {
           xfer += iprot->readI16(this->id);
           isset_id = true;
@@ -152,7 +162,7 @@ uint32_t t_job::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 5:
+      case 6:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->name);
           isset_name = true;
@@ -160,7 +170,7 @@ uint32_t t_job::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 6:
+      case 7:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->node_name);
           isset_node_name = true;
@@ -168,7 +178,7 @@ uint32_t t_job::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 7:
+      case 8:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->domain);
           isset_domain = true;
@@ -176,7 +186,7 @@ uint32_t t_job::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 8:
+      case 9:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readString(this->cmd_line);
           isset_cmd_line = true;
@@ -184,7 +194,7 @@ uint32_t t_job::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 9:
+      case 10:
         if (ftype == ::apache::thrift::protocol::T_I16) {
           xfer += iprot->readI16(this->weight);
           isset_weight = true;
@@ -192,18 +202,18 @@ uint32_t t_job::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 10:
+      case 11:
         if (ftype == ::apache::thrift::protocol::T_LIST) {
           {
             this->prv.clear();
-            uint32_t _size0;
-            ::apache::thrift::protocol::TType _etype3;
-            iprot->readListBegin(_etype3, _size0);
-            this->prv.resize(_size0);
-            uint32_t _i4;
-            for (_i4 = 0; _i4 < _size0; ++_i4)
+            uint32_t _size1;
+            ::apache::thrift::protocol::TType _etype4;
+            iprot->readListBegin(_etype4, _size1);
+            this->prv.resize(_size1);
+            uint32_t _i5;
+            for (_i5 = 0; _i5 < _size1; ++_i5)
             {
-              xfer += iprot->readI16(this->prv[_i4]);
+              xfer += iprot->readI16(this->prv[_i5]);
             }
             iprot->readListEnd();
           }
@@ -212,18 +222,18 @@ uint32_t t_job::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 11:
+      case 12:
         if (ftype == ::apache::thrift::protocol::T_LIST) {
           {
             this->nxt.clear();
-            uint32_t _size5;
-            ::apache::thrift::protocol::TType _etype8;
-            iprot->readListBegin(_etype8, _size5);
-            this->nxt.resize(_size5);
-            uint32_t _i9;
-            for (_i9 = 0; _i9 < _size5; ++_i9)
+            uint32_t _size6;
+            ::apache::thrift::protocol::TType _etype9;
+            iprot->readListBegin(_etype9, _size6);
+            this->nxt.resize(_size6);
+            uint32_t _i10;
+            for (_i10 = 0; _i10 < _size6; ++_i10)
             {
-              xfer += iprot->readI16(this->nxt[_i9]);
+              xfer += iprot->readI16(this->nxt[_i10]);
             }
             iprot->readListEnd();
           }
@@ -274,45 +284,50 @@ uint32_t t_job::write(::apache::thrift::protocol::TProtocol* oprot) const {
     xfer += oprot->writeI16(this->return_code);
     xfer += oprot->writeFieldEnd();
   }
-  xfer += oprot->writeFieldBegin("id", ::apache::thrift::protocol::T_I16, 4);
+  if (this->__isset.state) {
+    xfer += oprot->writeFieldBegin("state", ::apache::thrift::protocol::T_I32, 4);
+    xfer += oprot->writeI32((int32_t)this->state);
+    xfer += oprot->writeFieldEnd();
+  }
+  xfer += oprot->writeFieldBegin("id", ::apache::thrift::protocol::T_I16, 5);
   xfer += oprot->writeI16(this->id);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("name", ::apache::thrift::protocol::T_STRING, 5);
+  xfer += oprot->writeFieldBegin("name", ::apache::thrift::protocol::T_STRING, 6);
   xfer += oprot->writeString(this->name);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("node_name", ::apache::thrift::protocol::T_STRING, 6);
+  xfer += oprot->writeFieldBegin("node_name", ::apache::thrift::protocol::T_STRING, 7);
   xfer += oprot->writeString(this->node_name);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("domain", ::apache::thrift::protocol::T_STRING, 7);
+  xfer += oprot->writeFieldBegin("domain", ::apache::thrift::protocol::T_STRING, 8);
   xfer += oprot->writeString(this->domain);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("cmd_line", ::apache::thrift::protocol::T_STRING, 8);
+  xfer += oprot->writeFieldBegin("cmd_line", ::apache::thrift::protocol::T_STRING, 9);
   xfer += oprot->writeString(this->cmd_line);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("weight", ::apache::thrift::protocol::T_I16, 9);
+  xfer += oprot->writeFieldBegin("weight", ::apache::thrift::protocol::T_I16, 10);
   xfer += oprot->writeI16(this->weight);
   xfer += oprot->writeFieldEnd();
   if (this->__isset.prv) {
-    xfer += oprot->writeFieldBegin("prv", ::apache::thrift::protocol::T_LIST, 10);
+    xfer += oprot->writeFieldBegin("prv", ::apache::thrift::protocol::T_LIST, 11);
     {
       xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I16, this->prv.size());
-      std::vector<integer> ::const_iterator _iter10;
-      for (_iter10 = this->prv.begin(); _iter10 != this->prv.end(); ++_iter10)
+      std::vector<integer> ::const_iterator _iter11;
+      for (_iter11 = this->prv.begin(); _iter11 != this->prv.end(); ++_iter11)
       {
-        xfer += oprot->writeI16((*_iter10));
+        xfer += oprot->writeI16((*_iter11));
       }
       xfer += oprot->writeListEnd();
     }
     xfer += oprot->writeFieldEnd();
   }
   if (this->__isset.nxt) {
-    xfer += oprot->writeFieldBegin("nxt", ::apache::thrift::protocol::T_LIST, 11);
+    xfer += oprot->writeFieldBegin("nxt", ::apache::thrift::protocol::T_LIST, 12);
     {
       xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I16, this->nxt.size());
-      std::vector<integer> ::const_iterator _iter11;
-      for (_iter11 = this->nxt.begin(); _iter11 != this->nxt.end(); ++_iter11)
+      std::vector<integer> ::const_iterator _iter12;
+      for (_iter12 = this->nxt.begin(); _iter12 != this->nxt.end(); ++_iter12)
       {
-        xfer += oprot->writeI16((*_iter11));
+        xfer += oprot->writeI16((*_iter12));
       }
       xfer += oprot->writeListEnd();
     }

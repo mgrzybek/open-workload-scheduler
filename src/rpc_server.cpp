@@ -152,6 +152,10 @@ void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const std::string& running_n
 	_return = this->domain->get_jobs(running_node.c_str());
 }
 
+void	ows_rpcHandler::get_ready_jobs(rpc::v_jobs& _return, const std::string& running_node) {
+	_return = this->domain->get_ready_rpc_jobs(running_node.c_str());
+}
+
 bool	ows_rpcHandler::add_job(const rpc::t_job& j) {
 	v_job_ids	pj;
 	v_job_ids	nj;

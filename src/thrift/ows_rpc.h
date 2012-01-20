@@ -18,6 +18,7 @@ class ows_rpcIf {
   virtual void reach_master(t_route& _return) = 0;
   virtual bool add_node(const std::string& running_node, const t_node& node) = 0;
   virtual void get_jobs(v_jobs& _return, const std::string& running_node) = 0;
+  virtual void get_ready_jobs(v_jobs& _return, const std::string& running_node) = 0;
   virtual bool add_job(const t_job& j) = 0;
   virtual bool remove_job(const t_job& j) = 0;
   virtual bool update_job_state(const t_job& j, const e_job_state::type js) = 0;
@@ -38,6 +39,9 @@ class ows_rpcNull : virtual public ows_rpcIf {
     return _return;
   }
   void get_jobs(v_jobs& /* _return */, const std::string& /* running_node */) {
+    return;
+  }
+  void get_ready_jobs(v_jobs& /* _return */, const std::string& /* running_node */) {
     return;
   }
   bool add_job(const t_job& /* j */) {
@@ -458,6 +462,106 @@ class ows_rpc_get_jobs_presult {
 };
 
 
+class ows_rpc_get_ready_jobs_args {
+ public:
+
+  ows_rpc_get_ready_jobs_args() : running_node("") {
+  }
+
+  virtual ~ows_rpc_get_ready_jobs_args() throw() {}
+
+  std::string running_node;
+
+  bool operator == (const ows_rpc_get_ready_jobs_args & rhs) const
+  {
+    if (!(running_node == rhs.running_node))
+      return false;
+    return true;
+  }
+  bool operator != (const ows_rpc_get_ready_jobs_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ows_rpc_get_ready_jobs_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ows_rpc_get_ready_jobs_pargs {
+ public:
+
+
+  virtual ~ows_rpc_get_ready_jobs_pargs() throw() {}
+
+  const std::string* running_node;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ows_rpc_get_ready_jobs_result__isset {
+  _ows_rpc_get_ready_jobs_result__isset() : success(false), e(false) {}
+  bool success;
+  bool e;
+} _ows_rpc_get_ready_jobs_result__isset;
+
+class ows_rpc_get_ready_jobs_result {
+ public:
+
+  ows_rpc_get_ready_jobs_result() {
+  }
+
+  virtual ~ows_rpc_get_ready_jobs_result() throw() {}
+
+  v_jobs success;
+  e_job e;
+
+  _ows_rpc_get_ready_jobs_result__isset __isset;
+
+  bool operator == (const ows_rpc_get_ready_jobs_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(e == rhs.e))
+      return false;
+    return true;
+  }
+  bool operator != (const ows_rpc_get_ready_jobs_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ows_rpc_get_ready_jobs_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ows_rpc_get_ready_jobs_presult__isset {
+  _ows_rpc_get_ready_jobs_presult__isset() : success(false), e(false) {}
+  bool success;
+  bool e;
+} _ows_rpc_get_ready_jobs_presult__isset;
+
+class ows_rpc_get_ready_jobs_presult {
+ public:
+
+
+  virtual ~ows_rpc_get_ready_jobs_presult() throw() {}
+
+  v_jobs* success;
+  e_job e;
+
+  _ows_rpc_get_ready_jobs_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
 class ows_rpc_add_job_args {
  public:
 
@@ -834,6 +938,9 @@ class ows_rpcClient : virtual public ows_rpcIf {
   void get_jobs(v_jobs& _return, const std::string& running_node);
   void send_get_jobs(const std::string& running_node);
   void recv_get_jobs(v_jobs& _return);
+  void get_ready_jobs(v_jobs& _return, const std::string& running_node);
+  void send_get_ready_jobs(const std::string& running_node);
+  void recv_get_ready_jobs(v_jobs& _return);
   bool add_job(const t_job& j);
   void send_add_job(const t_job& j);
   bool recv_add_job();
@@ -862,6 +969,7 @@ class ows_rpcProcessor : virtual public ::apache::thrift::TProcessor {
   void process_reach_master(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_jobs(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_ready_jobs(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_job(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_remove_job(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_update_job_state(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -873,6 +981,7 @@ class ows_rpcProcessor : virtual public ::apache::thrift::TProcessor {
     processMap_["reach_master"] = &ows_rpcProcessor::process_reach_master;
     processMap_["add_node"] = &ows_rpcProcessor::process_add_node;
     processMap_["get_jobs"] = &ows_rpcProcessor::process_get_jobs;
+    processMap_["get_ready_jobs"] = &ows_rpcProcessor::process_get_ready_jobs;
     processMap_["add_job"] = &ows_rpcProcessor::process_add_job;
     processMap_["remove_job"] = &ows_rpcProcessor::process_remove_job;
     processMap_["update_job_state"] = &ows_rpcProcessor::process_update_job_state;
@@ -938,6 +1047,18 @@ class ows_rpcMultiface : virtual public ows_rpcIf {
         return;
       } else {
         ifaces_[i]->get_jobs(_return, running_node);
+      }
+    }
+  }
+
+  void get_ready_jobs(v_jobs& _return, const std::string& running_node) {
+    uint32_t sz = ifaces_.size();
+    for (uint32_t i = 0; i < sz; ++i) {
+      if (i == sz - 1) {
+        ifaces_[i]->get_ready_jobs(_return, running_node);
+        return;
+      } else {
+        ifaces_[i]->get_ready_jobs(_return, running_node);
       }
     }
   }

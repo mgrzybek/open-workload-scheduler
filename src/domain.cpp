@@ -273,7 +273,7 @@ bool	Domain::update_job(const Job* j) {
 
 bool	Domain::remove_job(const Job* j) {
 	std::string		query;
-	const char*			running_node = j->get_node_name();
+	const char*		running_node = j->get_node_name();
 	v_queries		queries;
 
 	this->updates_mutex.lock();
@@ -485,6 +485,61 @@ v_jobs	Domain::get_ready_jobs(const char* running_node) {
 		delete job;
 
 		job = new Job((Domain*)this, boost::lexical_cast<int>(job_row[0]), *this->name, job_row[3], job_row[2], (const int)boost::lexical_cast<int>(job_row[4]));
+		jobs_list.push_back(*job);
+	}
+
+	delete job;
+	jobs_matrix->clear();
+	delete jobs_matrix;
+
+	return jobs_list;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+rpc::v_jobs	Domain::get_ready_rpc_jobs(const char* running_node) {
+	std::string			query("SELECT job_id,job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM ");
+	v_v_row*			jobs_matrix;
+	rpc::v_jobs			jobs_list;
+	rpc::t_job*			job	= NULL;
+
+	std::string			buf_name;
+	std::string			buf_node_name;
+	std::string			buf_cmd_line;
+#ifdef USE_SQLITE
+	Sqlite*				database;
+#endif
+
+#ifdef USE_MYSQL
+	query += running_node;
+	query += ".get_ready_job;";
+
+	jobs_matrix = this->database.query_full_result(query.c_str());
+#endif
+#ifdef USE_SQLITE
+	database = this->get_database(running_node);
+
+	if ( database == NULL )
+		return jobs_list;
+
+	query += "get_ready_job;";
+	jobs_matrix = this->get_database(running_node)->query_full_result(&query);
+#endif
+
+	if ( jobs_matrix == NULL )
+		return jobs_list;
+
+	BOOST_FOREACH(v_row job_row, *jobs_matrix) {
+		delete job;
+
+		job = new rpc::t_job();
+
+		job->id			= boost::lexical_cast<int>(job_row[0]);
+		job->name		= job_row[1];
+		job->node_name	= job_row[3];
+		job->cmd_line	= job_row[2];
+		job->weight		= boost::lexical_cast<int>(job_row[4]);
+
 		jobs_list.push_back(*job);
 	}
 

@@ -103,6 +103,7 @@ public:
 
 	// Jobs methods
 	void get_jobs(rpc::v_jobs& _return, const std::string& running_node);
+	void get_ready_jobs(rpc::v_jobs& _return, const std::string& running_node);
 	bool add_job(const rpc::t_job& j);
 	bool remove_job(const rpc::t_job& j);
 	bool update_job_state(const rpc::t_job& j, const rpc::e_job_state::type js);

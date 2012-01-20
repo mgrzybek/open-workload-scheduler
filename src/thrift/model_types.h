@@ -75,10 +75,11 @@ class t_node {
 };
 
 typedef struct _t_job__isset {
-  _t_job__isset() : start_time(false), stop_time(false), return_code(false), prv(false), nxt(false) {}
+  _t_job__isset() : start_time(false), stop_time(false), return_code(false), state(false), prv(false), nxt(false) {}
   bool start_time;
   bool stop_time;
   bool return_code;
+  bool state;
   bool prv;
   bool nxt;
 } _t_job__isset;
@@ -86,8 +87,8 @@ typedef struct _t_job__isset {
 class t_job {
  public:
 
-  static const char* ascii_fingerprint; // = "833E26B080399F3EA767DBE2EC895541";
-  static const uint8_t binary_fingerprint[16]; // = {0x83,0x3E,0x26,0xB0,0x80,0x39,0x9F,0x3E,0xA7,0x67,0xDB,0xE2,0xEC,0x89,0x55,0x41};
+  static const char* ascii_fingerprint; // = "4817A224DB85D09E8165B925BFFBCB75";
+  static const uint8_t binary_fingerprint[16]; // = {0x48,0x17,0xA2,0x24,0xDB,0x85,0xD0,0x9E,0x81,0x65,0xB9,0x25,0xBF,0xFB,0xCB,0x75};
 
   t_job() : start_time(0), stop_time(0), return_code(0), id(0), name(""), node_name(""), domain(""), cmd_line(""), weight(0) {
   }
@@ -97,6 +98,7 @@ class t_job {
   int64_t start_time;
   int64_t stop_time;
   integer return_code;
+  e_job_state::type state;
   integer id;
   std::string name;
   std::string node_name;
@@ -121,6 +123,10 @@ class t_job {
     if (__isset.return_code != rhs.__isset.return_code)
       return false;
     else if (__isset.return_code && !(return_code == rhs.return_code))
+      return false;
+    if (__isset.state != rhs.__isset.state)
+      return false;
+    else if (__isset.state && !(state == rhs.state))
       return false;
     if (!(id == rhs.id))
       return false;

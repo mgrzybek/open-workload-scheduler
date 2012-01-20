@@ -639,14 +639,14 @@ uint32_t ows_rpc_get_jobs_result::read(::apache::thrift::protocol::TProtocol* ip
         if (ftype == ::apache::thrift::protocol::T_LIST) {
           {
             this->success.clear();
-            uint32_t _size12;
-            ::apache::thrift::protocol::TType _etype15;
-            iprot->readListBegin(_etype15, _size12);
-            this->success.resize(_size12);
-            uint32_t _i16;
-            for (_i16 = 0; _i16 < _size12; ++_i16)
+            uint32_t _size13;
+            ::apache::thrift::protocol::TType _etype16;
+            iprot->readListBegin(_etype16, _size13);
+            this->success.resize(_size13);
+            uint32_t _i17;
+            for (_i17 = 0; _i17 < _size13; ++_i17)
             {
-              xfer += this->success[_i16].read(iprot);
+              xfer += this->success[_i17].read(iprot);
             }
             iprot->readListEnd();
           }
@@ -685,10 +685,10 @@ uint32_t ows_rpc_get_jobs_result::write(::apache::thrift::protocol::TProtocol* o
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_LIST, 0);
     {
       xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, this->success.size());
-      std::vector<t_job> ::const_iterator _iter17;
-      for (_iter17 = this->success.begin(); _iter17 != this->success.end(); ++_iter17)
+      std::vector<t_job> ::const_iterator _iter18;
+      for (_iter18 = this->success.begin(); _iter18 != this->success.end(); ++_iter18)
       {
-        xfer += (*_iter17).write(oprot);
+        xfer += (*_iter18).write(oprot);
       }
       xfer += oprot->writeListEnd();
     }
@@ -727,14 +727,227 @@ uint32_t ows_rpc_get_jobs_presult::read(::apache::thrift::protocol::TProtocol* i
         if (ftype == ::apache::thrift::protocol::T_LIST) {
           {
             (*(this->success)).clear();
-            uint32_t _size18;
-            ::apache::thrift::protocol::TType _etype21;
-            iprot->readListBegin(_etype21, _size18);
-            (*(this->success)).resize(_size18);
-            uint32_t _i22;
-            for (_i22 = 0; _i22 < _size18; ++_i22)
+            uint32_t _size19;
+            ::apache::thrift::protocol::TType _etype22;
+            iprot->readListBegin(_etype22, _size19);
+            (*(this->success)).resize(_size19);
+            uint32_t _i23;
+            for (_i23 = 0; _i23 < _size19; ++_i23)
             {
-              xfer += (*(this->success))[_i22].read(iprot);
+              xfer += (*(this->success))[_i23].read(iprot);
+            }
+            iprot->readListEnd();
+          }
+          this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->e.read(iprot);
+          this->__isset.e = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t ows_rpc_get_ready_jobs_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+  bool isset_running_node = false;
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->running_node);
+          isset_running_node = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  if (!isset_running_node)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  return xfer;
+}
+
+uint32_t ows_rpc_get_ready_jobs_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("ows_rpc_get_ready_jobs_args");
+  xfer += oprot->writeFieldBegin("running_node", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->running_node);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t ows_rpc_get_ready_jobs_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("ows_rpc_get_ready_jobs_pargs");
+  xfer += oprot->writeFieldBegin("running_node", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString((*(this->running_node)));
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t ows_rpc_get_ready_jobs_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 0:
+        if (ftype == ::apache::thrift::protocol::T_LIST) {
+          {
+            this->success.clear();
+            uint32_t _size24;
+            ::apache::thrift::protocol::TType _etype27;
+            iprot->readListBegin(_etype27, _size24);
+            this->success.resize(_size24);
+            uint32_t _i28;
+            for (_i28 = 0; _i28 < _size24; ++_i28)
+            {
+              xfer += this->success[_i28].read(iprot);
+            }
+            iprot->readListEnd();
+          }
+          this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->e.read(iprot);
+          this->__isset.e = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t ows_rpc_get_ready_jobs_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+
+  uint32_t xfer = 0;
+
+  xfer += oprot->writeStructBegin("ows_rpc_get_ready_jobs_result");
+
+  if (this->__isset.success) {
+    xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_LIST, 0);
+    {
+      xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, this->success.size());
+      std::vector<t_job> ::const_iterator _iter29;
+      for (_iter29 = this->success.begin(); _iter29 != this->success.end(); ++_iter29)
+      {
+        xfer += (*_iter29).write(oprot);
+      }
+      xfer += oprot->writeListEnd();
+    }
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.e) {
+    xfer += oprot->writeFieldBegin("e", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->e.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  }
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t ows_rpc_get_ready_jobs_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 0:
+        if (ftype == ::apache::thrift::protocol::T_LIST) {
+          {
+            (*(this->success)).clear();
+            uint32_t _size30;
+            ::apache::thrift::protocol::TType _etype33;
+            iprot->readListBegin(_etype33, _size30);
+            (*(this->success)).resize(_size30);
+            uint32_t _i34;
+            for (_i34 = 0; _i34 < _size30; ++_i34)
+            {
+              xfer += (*(this->success))[_i34].read(iprot);
             }
             iprot->readListEnd();
           }
@@ -1157,9 +1370,9 @@ uint32_t ows_rpc_update_job_state_args::read(::apache::thrift::protocol::TProtoc
         break;
       case 2:
         if (ftype == ::apache::thrift::protocol::T_I32) {
-          int32_t ecast23;
-          xfer += iprot->readI32(ecast23);
-          this->js = (e_job_state::type)ecast23;
+          int32_t ecast35;
+          xfer += iprot->readI32(ecast35);
+          this->js = (e_job_state::type)ecast35;
           isset_js = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -1632,6 +1845,67 @@ void ows_rpcClient::recv_get_jobs(v_jobs& _return)
     throw result.e;
   }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "get_jobs failed: unknown result");
+}
+
+void ows_rpcClient::get_ready_jobs(v_jobs& _return, const std::string& running_node)
+{
+  send_get_ready_jobs(running_node);
+  recv_get_ready_jobs(_return);
+}
+
+void ows_rpcClient::send_get_ready_jobs(const std::string& running_node)
+{
+  int32_t cseqid = 0;
+  oprot_->writeMessageBegin("get_ready_jobs", ::apache::thrift::protocol::T_CALL, cseqid);
+
+  ows_rpc_get_ready_jobs_pargs args;
+  args.running_node = &running_node;
+  args.write(oprot_);
+
+  oprot_->writeMessageEnd();
+  oprot_->getTransport()->writeEnd();
+  oprot_->getTransport()->flush();
+}
+
+void ows_rpcClient::recv_get_ready_jobs(v_jobs& _return)
+{
+
+  int32_t rseqid = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TMessageType mtype;
+
+  iprot_->readMessageBegin(fname, mtype, rseqid);
+  if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
+    ::apache::thrift::TApplicationException x;
+    x.read(iprot_);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+    throw x;
+  }
+  if (mtype != ::apache::thrift::protocol::T_REPLY) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  if (fname.compare("get_ready_jobs") != 0) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  ows_rpc_get_ready_jobs_presult result;
+  result.success = &_return;
+  result.read(iprot_);
+  iprot_->readMessageEnd();
+  iprot_->getTransport()->readEnd();
+
+  if (result.__isset.success) {
+    // _return pointer has now been filled
+    return;
+  }
+  if (result.__isset.e) {
+    throw result.e;
+  }
+  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "get_ready_jobs failed: unknown result");
 }
 
 bool ows_rpcClient::add_job(const t_job& j)
@@ -2107,6 +2381,63 @@ void ows_rpcProcessor::process_get_jobs(int32_t seqid, ::apache::thrift::protoco
 
   if (eventHandler_.get() != NULL) {
     eventHandler_->postWrite(ctx, "ows_rpc.get_jobs", bytes);
+  }
+}
+
+void ows_rpcProcessor::process_get_ready_jobs(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+{
+  void* ctx = NULL;
+  if (eventHandler_.get() != NULL) {
+    ctx = eventHandler_->getContext("ows_rpc.get_ready_jobs", callContext);
+  }
+  ::apache::thrift::TProcessorContextFreer freer(eventHandler_.get(), ctx, "ows_rpc.get_ready_jobs");
+
+  if (eventHandler_.get() != NULL) {
+    eventHandler_->preRead(ctx, "ows_rpc.get_ready_jobs");
+  }
+
+  ows_rpc_get_ready_jobs_args args;
+  args.read(iprot);
+  iprot->readMessageEnd();
+  uint32_t bytes = iprot->getTransport()->readEnd();
+
+  if (eventHandler_.get() != NULL) {
+    eventHandler_->postRead(ctx, "ows_rpc.get_ready_jobs", bytes);
+  }
+
+  ows_rpc_get_ready_jobs_result result;
+  try {
+    iface_->get_ready_jobs(result.success, args.running_node);
+    result.__isset.success = true;
+  } catch (e_job &e) {
+    result.e = e;
+    result.__isset.e = true;
+  } catch (const std::exception& e) {
+    if (eventHandler_.get() != NULL) {
+      eventHandler_->handlerError(ctx, "ows_rpc.get_ready_jobs");
+    }
+
+    ::apache::thrift::TApplicationException x(e.what());
+    oprot->writeMessageBegin("get_ready_jobs", ::apache::thrift::protocol::T_EXCEPTION, seqid);
+    x.write(oprot);
+    oprot->writeMessageEnd();
+    oprot->getTransport()->writeEnd();
+    oprot->getTransport()->flush();
+    return;
+  }
+
+  if (eventHandler_.get() != NULL) {
+    eventHandler_->preWrite(ctx, "ows_rpc.get_ready_jobs");
+  }
+
+  oprot->writeMessageBegin("get_ready_jobs", ::apache::thrift::protocol::T_REPLY, seqid);
+  result.write(oprot);
+  oprot->writeMessageEnd();
+  bytes = oprot->getTransport()->writeEnd();
+  oprot->getTransport()->flush();
+
+  if (eventHandler_.get() != NULL) {
+    eventHandler_->postWrite(ctx, "ows_rpc.get_ready_jobs", bytes);
   }
 }
 

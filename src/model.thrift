@@ -48,16 +48,17 @@ struct	t_job {
 	1: optional i64		start_time,
 	2: optional i64		stop_time,
 	3: optional integer	return_code,
+	4: optional e_job_state	state,
 
-	4: required integer	id,
-	5: required string	name,
-	6: required string	node_name,
-	7: required string	domain,
-	8: required string	cmd_line,
-	9: required integer	weight,
+	5: required integer	id,
+	6: required string	name,
+	7: required string	node_name,
+	8: required string	domain,
+	9: required string	cmd_line,
+	10: required integer	weight,
 
-	10: optional v_job_ids	prv,
-	11: optional v_job_ids	nxt,
+	11: optional v_job_ids	prv,
+	12: optional v_job_ids	nxt,
 }
 
 typedef list<t_job> v_jobs
@@ -106,6 +107,9 @@ service ows_rpc {
 	 * Jobs
 	 */
 	v_jobs	get_jobs(
+			1: required string	running_node
+	) throws (1:e_job e);
+	v_jobs	get_ready_jobs(
 			1: required string	running_node
 	) throws (1:e_job e);
 	bool	add_job(

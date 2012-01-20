@@ -42,6 +42,11 @@ class ows_rpcHandler : virtual public ows_rpcIf {
     printf("get_jobs\n");
   }
 
+  void get_ready_jobs(v_jobs& _return, const std::string& running_node) {
+    // Your implementation goes here
+    printf("get_ready_jobs\n");
+  }
+
   bool add_job(const t_job& j) {
     // Your implementation goes here
     printf("add_job\n");
