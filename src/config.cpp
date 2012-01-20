@@ -108,7 +108,7 @@ std::string*	Config::get_param(const char* field) {
 	if ( it == this->config_options.end() )
 		return NULL;
 
-	return &(*it).second;
+	return &it->second;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
