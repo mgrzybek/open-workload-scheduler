@@ -141,6 +141,7 @@ public:
 	 * @return				: the jobs' list
 	 */
 	v_jobs				get_ready_jobs(const char* running_node);
+	rpc::v_jobs			get_ready_rpc_jobs(const char* running_node);
 
 	/*
 	 *
