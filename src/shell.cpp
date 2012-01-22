@@ -31,7 +31,7 @@ int		main (int argc, char* const argv[]) {
 	char*		config_file		= NULL;
 	bool		debug_mode		= false;
 //	bool		check_mode		= false;
-	Config		conf_params;
+//	Config		conf_params;
 	v_args		line;
 
 	cli_def		*cli;
@@ -41,6 +41,7 @@ int		main (int argc, char* const argv[]) {
 	 *
 	 * Read the config file (-f option)
 	 */
+
 	if ( argc < 3 ) {
 		usage();
 		return EXIT_FAILURE;
@@ -71,78 +72,100 @@ int		main (int argc, char* const argv[]) {
 	/*
 	 * Let's start the shell stuff
 	 */
-/*	std::cout << "OWS Shell" << std::endl;
-	while (1) {
-		line = process_cli("> ");
-
-		if ( line[0].compare("connect") == 0) {
-			line.erase(line.begin());
-			connect(&line, &conf_params);
-		}
-
-		if ( line[0].compare("quit") == 0 )
-			break;
-	}
-*/
 
 	cli = cli_init();
 	cli_set_banner(cli, "libcli test environment");
-	cli_set_hostname(cli, "router");
-	cli_regular(cli, regular_callback);
+	cli_set_hostname(cli, "ows");
+//	cli_regular(cli, regular_callback);
 	cli_regular_interval(cli, 5); // Defaults to 1 second
 	cli_set_idle_timeout_callback(cli, 60, idle_timeout); // 60 second idle timeout
 
+	// Connect command
+	cli_register_command(cli, NULL, "connect", cmd_connect, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Connects to the given hostname");
+
+//	cli_loop(cli, 1);
+//	cli_done(cli);
+
+	int s, x;
+	int on = 1;
+	struct sockaddr_in addr;
+
+	if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		perror("socket");
+		return 1;
+	}
+	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_port = htons(8023);
+
+	if (bind(s, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+		perror("bind");
+		return 1;
+	}
+
+    if (listen(s, 50) < 0) {
+		perror("listen");
+		return 1;
+	}
+
+    printf("Listening on port %d\n", 8023);
+    while ((x = accept(s, NULL, 0))) {
+		cli_loop(cli, x);
+		shutdown(x, 2);
+		close(x);
+	}
 
 	return EXIT_SUCCESS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-/*
- * process_cli
- *
- * Reads the input and splits it
- * It splits the input :
- * - 0 -> the command
- * - >0 -> the arguments
- *
- * @arg		:	the commands map
- * @return	:	array of args
- */
-v_args	process_cli(const char* prompt) {
-	std::string	input;
-	v_args		split_result;
-
-	std::cout << prompt;
-	if ( not getline(std::cin, input).eof() )
-		boost::split(split_result, input, boost::is_any_of(" "));
-	else
-		split_result.push_back("quit");
-
-	return split_result;
+int idle_timeout(struct cli_def *cli) {
+    cli_print(cli, "Custom idle timeout");
+    return CLI_QUIT;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/*
+int regular_callback(struct cli_def *cli) {
+	cli_print(cli, "Regular callback - %u times so far", regular_count);
+	cli_reprompt(cli);
+    return CLI_OK;
+}
+*/
+///////////////////////////////////////////////////////////////////////////////
 
 /*
  * get_params
  */
-void	get_params(m_param* params) {
-	std::string	input;
+bool		get_params(m_param* params, int argc, char* argv[]) {
+	uint				counter = 0;
+	std::string			input;
+	v_args				split_result;
 	m_param::iterator	it;
 
-	it = params->begin();
-	while (it != params->end()) {
-		std::cout << it->first << ":";
-		getline(std::cin, it->second);
-		std::cout << "input is:" << it->second << std::endl;
-		it++;
+	if ( (uint)argc < params->size() )
+		return false;
+
+	for ( int i = 0 ; i < argc ; i++) {
+		boost::split(split_result, argv[i], boost::is_any_of("="));
+
+		it = params->begin();
+		it = params->find(split_result.at(0));
+
+		if ( it != params->end() ) {
+			it->second = split_result[1];
+			counter++;
+		}
 	}
-/*
-	BOOST_FOREACH(m_param::value_type couple, *params) {
-		std::cout << couple.first << ": ";
-		getline(std::cin, input);
-		std::cout << "input is:" << couple.second << std::endl;
-	}
-*/
+
+	if ( counter < params->size() )
+		return false;
+
+	return true;
 }
 
 /*
@@ -171,167 +194,337 @@ rpc::v_job_ids	build_v_jobs_from_string(const std::string* input) {
  *
  */
 void	usage() {
-	std::cout << "Usage: shell -f <config_file> [ -c || -v ]" << std::endl;
-	std::cout << "	<config_file>	: the main configuration file" << std::endl;
-	std::cout << "	-c		: check the configuration and exit" << std::endl;
-	std::cout << "	-v		: verbose mode" << std::endl;
+	std::cout
+		<< "Usage: shell -f <config_file> [ -c || -v ]" << std::endl
+		<< "	<config_file>	: the main configuration file" << std::endl
+		<< "	-c		: check the configuration and exit" << std::endl
+		<< "	-v		: verbose mode" << std::endl;
 }
 
 /*
- * quit
+ * build_string_from_job_state
  */
-void	quit() {
-	exit(EXIT_SUCCESS);
-}
+std::string	build_string_from_job_state(const rpc::e_job_state::type js) {
+	std::string result;
 
-/*
- * help
- */
-bool	help(const v_args* args) {
-	std::cout << "Help :" << std::endl;
-	return true;
-}
-
-/*
- * sql
- */
-bool	sql(Rpc_Client* client, const std::string* hostname) {
-	std::string	input;
-
-	while (1) {
-		std::cout << "sql> ";
-		getline(std::cin, input);
-		if ( input.compare("exit") == 0 or input.length() == 0 )
+	switch (js) {
+		case rpc::e_job_state::WAITING: {
+			result = "waiting";
 			break;
-		client->get_client()->sql_exec(input);
+		}
+		case rpc::e_job_state::RUNNING: {
+			result = "running";
+			break;
+		}
+		case rpc::e_job_state::SUCCEDED: {
+			result = "succeded";
+			break;
+		}
+		case rpc::e_job_state::FAILED: {
+			result = "failed";
+			break;
+		}
 	}
-	return true;
+
+	return result;
 }
 
 /*
- * hello
+ * build_job_state_from_string
  */
-bool	hello(Rpc_Client* client, const char* hostname) {
-	rpc::t_hello	hello_result;
-	rpc::t_node		node;
+rpc::e_job_state::type	build_job_state_from_string(const char* state) {
+	if ( strcmp(state, "waiting") == 0 )
+		return rpc::e_job_state::WAITING;
+	if ( strcmp(state, "running") == 0 )
+		return rpc::e_job_state::RUNNING;
+	if ( strcmp(state, "succeded") == 0 )
+		return rpc::e_job_state::SUCCEDED;
+	if ( strcmp(state, "failed") == 0 )
+		return rpc::e_job_state::FAILED;
 
-	node.name = hostname;
-
-	try {
-		client->get_client()->hello(hello_result, node);
-	} catch (const rpc::e_routing e) {
-		std::cerr << "e_routing: " << e.msg << std::endl;
-		return false;
-	} catch (const std::exception e) {
-		std::cerr << "exception: " << e.what() << std::endl;
-		return false;
-	}
-
-	if ( hello_result.name.empty() == true and hello_result.domain.empty() == true) {
-		std::cerr << "RPC call failed" << std::endl;
-		return false;
-	}
-
-	std::cout << "domain: " << hello_result.domain << std::endl;
-	std::cout << "name: " << hello_result.name << std::endl;
-	std::cout << "master: ";
-
-	if ( hello_result.is_master == true )
-		std::cout << "yes";
-	else
-		std::cout << "no";
-
-	std::cout << std::endl;
-
-	return true;
+	throw "Error: string state is not related to a job's state";
+	return rpc::e_job_state::FAILED;
 }
 
 /*
  * print_jobs
  */
-void	print_jobs(const rpc::v_jobs& jobs) {
+void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs) {
 	BOOST_FOREACH(rpc::t_job j, jobs) {
-		std::cout
-		<< "id: " << j.id << std::endl
-		<< "name: " << j.name << std::endl
-		<< "node_name: " << j.node_name << std::endl
-		<< "domain: " << j.domain << std::endl
-		<< "cmd_line: " << j.cmd_line << std::endl
-		<< "weight: " << j.weight << std::endl;
+		cli_print(cli,
+				"id: %u\nname: %s\nnode_name: %s\ndomain: %s\ncmd_line: %s\nweight: %u",
+				j.id,
+				j.name.c_str(),
+				j.node_name.c_str(),
+				j.domain.c_str(),
+				j.cmd_line.c_str(),
+				j.weight);
 
 		// TODO: print the prv et nxt job_ids
 
-		std::cout
-		<< "start_time: " << j.start_time << std::endl
-		<< "stop_time: " << j.stop_time << std::endl
-		<< "return_code: " << j.return_code << std::endl
-		<< std::endl;
+		cli_print(cli,
+				  "status: %s\nstart_time: %lld\nstop_time: %lld\nreturn_code: %u",
+				  build_string_from_job_state(j.state).c_str(),
+				  j.start_time,
+				  j.stop_time,
+				  j.return_code);
+
+		cli_print(cli, "=================================");
 	}
 }
 
 /*
  * get_jobs
  */
-bool	get_jobs(Rpc_Client* client, const std::string& running_node) {
+int	cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	rpc::v_jobs	result;
+	std::string	target;
 
-	try {
-		client->get_client()->get_jobs(result, running_node);
-	} catch (const rpc::e_job e) {
-		std::cout << "Error: " << e.msg << std::endl;
-		return false;
+	if ( argc == 0 )
+		target = connected_node_name;
+	else if ( argc == 1 )
+		target = argv[0];
+	else {
+		cli_print(cli, "Error: missing one arg : running_node");
+		return CLI_ERROR_ARG;
 	}
 
-	print_jobs(result);
+	try {
+		client.get_client()->get_jobs(result, target.c_str());
+	} catch (const rpc::e_job e) {
+		cli_print(cli, "Error: %s", e.msg.c_str());
+		return CLI_ERROR;
+	}
 
-	return true;
+	print_jobs(cli, result);
+
+	return CLI_OK;
 }
 
 /*
- * add_job
+ * cmd_get_ready_jobs
  */
-bool	add_job(Rpc_Client* client, const std::string* hostname, const std::string* domain_name, const std::string* name, const std::string* node_name, std::string* cmd_line, int weight, rpc::v_job_ids& pj, rpc::v_job_ids& nj ) {
+int		cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], int argc) {
+	rpc::v_jobs	result;
+	std::string	target;
+
+	if ( argc == 0 )
+		target = connected_node_name;
+	else if ( argc == 1 )
+		target = argv[0];
+	else {
+		cli_print(cli, "Error: missing one arg : running_node");
+		return CLI_ERROR_ARG;
+	}
+
+	if ( argc != 1 ) {
+		cli_print(cli, "Error: missing one arg : running_node");
+		return CLI_ERROR_ARG;
+	}
+
+	try {
+		client.get_client()->get_ready_jobs(result, target);
+	} catch (const rpc::e_job e) {
+		cli_print(cli, "Error: %s", e.msg.c_str());
+		return CLI_ERROR;
+	}
+
+	print_jobs(cli, result);
+
+	return CLI_OK;
+}
+
+/*
+ * cmd_add_job
+ */
+int	cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc) {
+	m_param	params;
 	rpc::t_job	job;
 
-	job.name = name->c_str();
-	job.node_name = node_name->c_str();
-	job.cmd_line = cmd_line->c_str();
-	job.weight = weight;
+	// TODO: ask attributes to create a job
+	if ( argc == 0 ) {
+		cli_print(cli, "Not implemented yet");
+		return CLI_ERROR;
+	}
+
+	params["domain_name"]	= "";
+	params["name"]			= "";
+	params["node_name"]		= "";
+	params["cmd_line"]		= "";
+	params["weight"]		= "";
+	params["pj"]			= "";
+	params["nj"]			= "";
+
+	if ( get_params(&params, argc, argv) == false ) {
+		cli_print(cli, "Bad parameters");
+		return CLI_ERROR;
+	}
+
+	job.name = params["name"].c_str();
+	job.node_name = params["node_name"].c_str();
+	job.cmd_line = params["cmd_line"].c_str();
+	job.weight = boost::lexical_cast<int>(params["weight"].c_str());
+
+	rpc::v_job_ids	pj	= build_v_jobs_from_string(&params["pj"]);
+	rpc::v_job_ids	nj	= build_v_jobs_from_string(&params["nj"]);
+
 	job.prv = pj;
 	job.nxt = nj;
 
 	try {
-		if ( client->get_client()->add_job(job) == false ) {
-			std::cerr << "RPC call failed" << std::endl;
-			return false;
+		if ( client.get_client()->add_job(job) == false ) {
+			cli_print(cli, "RPC call failed");
+			return CLI_ERROR;
 		} else
-			std::cout << "Command succeded" << std::endl;
+			cli_print(cli, "Command succeded");
 	} catch (const rpc::e_job e) {
-		std::cerr << "RPC call failed: " << e.msg << std::endl;
-		return false;
+		cli_print(cli, "%s", e.msg.c_str());
+		return CLI_ERROR;
 	}
 
-	return true;
+	return CLI_OK;
+}
+
+/*
+ * cmd_remove_job
+ */
+int		cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int argc) {
+	m_param		params;
+	rpc::t_job	job;
+
+	// TODO: ask attributes to create a job
+	if ( argc == 0 ) {
+		cli_print(cli, "Not implemented yet");
+		return CLI_ERROR;
+	}
+
+	params["id"] = "";
+	params["node_name"] = "";
+
+	if ( get_params(&params, argc, argv) == false ) {
+		cli_print(cli, "Bad parameters");
+		return CLI_ERROR;
+	}
+
+	job.id = boost::lexical_cast<int>(params["id"]);
+	job.node_name = params["node_name"];
+
+	try {
+		if ( client.get_client()->remove_job(job) == false ) {
+			cli_print(cli, "RPC call failed");
+			return CLI_ERROR;
+		} else
+			cli_print(cli, "Command succeded");
+	} catch (const rpc::e_job e) {
+		cli_print(cli, "%s", e.msg.c_str());
+		return CLI_ERROR;
+	}
+
+	return CLI_OK;
+}
+
+/*
+ * cmd_update_job_state
+ */
+int		cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[], int argc) {
+	m_param		params;
+	rpc::t_job	job;
+
+	// TODO: ask attributes to create a job
+	if ( argc == 0 ) {
+		cli_print(cli, "Not implemented yet");
+		return CLI_ERROR;
+	}
+
+	params["id"] = "";
+	params["node_name"] = "";
+	params["state"] = "";
+
+	if ( get_params(&params, argc, argv) == false ) {
+		cli_print(cli, "Bad parameters");
+		return CLI_ERROR;
+	}
+
+	job.id = boost::lexical_cast<int>(params["id"]);
+	job.node_name = params["node_name"];
+
+	try {
+		if ( client.get_client()->update_job_state(job, build_job_state_from_string(params["state"].c_str())) == false ) {
+			cli_print(cli, "RPC call failed");
+			return CLI_ERROR;
+		} else
+			cli_print(cli, "Command succeded");
+	} catch (const rpc::e_job e) {
+		cli_print(cli, "%s", e.msg.c_str());
+		return CLI_ERROR;
+	} catch (const apache::thrift::transport::TTransportException e ) {
+		cli_print(cli, "%s", e.what());
+		return CLI_ERROR;
+	}
+
+	return CLI_OK;
+}
+
+/*
+ * hello
+ */
+int		cmd_hello(struct cli_def *cli, const char *command, char *argv[], int argc) {
+	rpc::t_hello	hello_result;
+	rpc::t_node		node;
+
+	if ( argc == 0 )
+		node.name = connected_node_name.c_str();
+	else
+		node.name = argv[0];
+
+	try {
+		client.get_client()->hello(hello_result, node);
+	} catch (const rpc::e_routing e) {
+		cli_print(cli, "e_routing: %s", e.msg.c_str());
+		return CLI_ERROR;
+	} catch (const std::exception e) {
+		cli_print(cli, "exception: %s", e.what());
+		return CLI_ERROR;
+	}
+
+	if ( hello_result.name.empty() == true and hello_result.domain.empty() == true) {
+		cli_print(cli, "RPC call failed");
+		return CLI_ERROR;
+	}
+
+	if ( hello_result.is_master == true )
+		cli_print(cli, "domain: %s\nname: %s\nmaster: yes", hello_result.domain.c_str(), hello_result.name.c_str());
+	else
+		cli_print(cli, "domain: %s\nname: %s\nmaster: no", hello_result.domain.c_str(), hello_result.name.c_str());
+
+	return CLI_OK;
 }
 
 /*
  * connect
  *
  */
-bool	connect(const v_args* args, Config* conf_params) {
+int		cmd_connect(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	v_args	split_result;
 	v_args	line;
 	m_param	params;
 
 	std::string	prompt;
-	const char*	hostname = NULL;
-	int		port;
+	std::string	hostname;
+	int			port;
 
-	Router		router(conf_params);
-	Rpc_Client	client(conf_params, &router);
+//	Router		router(&conf_params);
+//	Rpc_Client	client(&conf_params, &router);
 
 //	if ( router.update_peers_list() == false )
 //		return false;
+
+	if ( argc < 1 ) {
+		cli_print(cli, "Missing hostname");
+		return CLI_ERROR_ARG;
+	}
+
+	boost::split(split_result, argv[0], boost::is_any_of(": "));
 
 	/*
 	 * case 1: split_result = hostname
@@ -339,61 +532,52 @@ bool	connect(const v_args* args, Config* conf_params) {
 	 * case 2: split_result = hostname, port
 	 *	-> use [0] and [1]
 	 */
-	boost::split(split_result, args->front(), boost::is_any_of(": "));
-	if ( split_result.size() == 1 ) {
-		hostname = split_result[0].c_str();
-		if ( args->size() == 2 )
-			port = boost::lexical_cast<int>(args->at(1));
-		else
-			port = boost::lexical_cast<int>(*conf_params->get_param("bind_port"));
+	if ( argc == 1 ) {
+		if ( split_result.size() == 1 ) {
+			hostname = argv[0];
+			port = boost::lexical_cast<int>(*conf_params.get_param("bind_port"));
+		} else {
+			hostname = split_result[0];
+			port = boost::lexical_cast<int>(split_result[1]);
+		}
 	} else {
-		hostname = args->front().c_str();
-		port = boost::lexical_cast<int>(split_result[1]);
+		hostname = argv[0];
+		port = boost::lexical_cast<int>(argv[1]);
 	}
 
-	if ( client.open(hostname, port) == false ) {
-		std::cout << "Cannot connect" << std::endl;
-		return false;
+	if ( client.open(hostname.c_str(), port) == false ) {
+		cli_print(cli, "Cannot connect to %s port %u", hostname.c_str(), port);
+		return CLI_ERROR;
 	}
 
-	prompt = hostname;
-	prompt += ">" ;
+	// TODO: fix this dirty hack -> use const args in libcli
+	char* h = strdup(hostname.c_str());
+	cli_set_hostname(cli, h);
+	free(h);
 
-	// creates the cli
-	while (1) {
-		line = process_cli(prompt.c_str());
-		if ( line[0].compare("hello") == 0 ) {
-			hello(&client, hostname);
-			continue;
-		}
-		if ( line[0].compare("add_job") == 0 ) {
-			params["domain_name"]	= "";
-			params["name"]			= "";
-			params["node_name"]		= "";
-			params["cmd_line"]		= "";
-			params["weight"]		= "";
-			params["pj"]			= "";
-			params["nj"]			= "";
+	// Routing command
+	cli_register_command(cli, NULL, "hello", cmd_hello, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Sends a 'hello' to a node to know its caracteristics");
 
-			get_params(&params);
+	// Add commands
+	cli_command*	cli_add = cli_register_command(cli, NULL, "add", NULL, PRIVILEGE_PRIVILEGED, MODE_EXEC, NULL);
+	cli_register_command(cli, cli_add, "job", cmd_add_job, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Adds a job to the connected node");
 
-			rpc::v_job_ids	pj	= build_v_jobs_from_string(&params["pj"]);
-			rpc::v_job_ids	nj	= build_v_jobs_from_string(&params["nj"]);
-			int		weight	= boost::lexical_cast<int>(params["weight"]);
+	// Remove command
+	cli_command*	cli_remove = cli_register_command(cli, NULL, "remove", NULL, PRIVILEGE_PRIVILEGED, MODE_EXEC, NULL);
+	cli_register_command(cli, cli_remove, "job", cmd_remove_job, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Removes a job to the connected node (using id and node_name)");
 
-			add_job(&client, &args->at(0), &params["domain_name"], &params["name"], &params["node_name"], &params["cmd_line"], weight, pj, nj);
-			continue;
-		}
-		if ( line[0].compare("get_jobs") == 0 ) {
-			get_jobs(&client, hostname);
-		}
-		if ( line[0].compare("quit") == 0 or line[0].compare("exit") == 0 )
-			break;
-		if ( line[0].compare("sql") == 0 ) {
-			sql(&client, &args->at(0));
-		}
-	}
+	// Update command
+	cli_command*	cli_update = cli_register_command(cli, NULL, "update", NULL, PRIVILEGE_PRIVILEGED, MODE_EXEC, NULL);
+	cli_register_command(cli, cli_update, "job_state", cmd_update_job_state, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Updates a job's state to the connected node (using id, node_name and state)");
 
+	// Get commands
+	cli_command*	cli_get = cli_register_command(cli, NULL, "get", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, NULL);
+	cli_register_command(cli, cli_get, "jobs", cmd_get_jobs, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Get the jobs of the connected node");
+	cli_register_command(cli, cli_get, "ready_jobs", cmd_get_ready_jobs, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Gets the 'ready to run' jobs of the connected node");
 
-	return true;
+	// Sets the global node's name
+	connected_node_name = hostname;
+
+	// TODO: unregister commands before exiting
+	return CLI_OK;
 }

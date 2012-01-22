@@ -32,15 +32,24 @@
 #include <string.h>
 #include <map>
 
+#include <netdb.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <limits>
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
+
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <libcli.h>
 
+#include "thrift/ows_rpc.h"
+#include "thrift/model_types.h"
 #include "router.h"
 #include "config.h"
 #include "rpc_client.h"
-#include "thrift/ows_rpc.h"
 
 typedef std::vector<std::string>				v_args;
 
@@ -57,37 +66,34 @@ typedef	std::map<std::string, bool(*)(Rpc_Client*, const v_args*)>		m_cnt_list;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class	Command {
-public:
-	virtual bool	execute(v_args& argv) = 0;
+Config		conf_params;
+Rpc_Client	client;
+std::string	connected_node_name;
 
-	std::string&	get_help_msg() const;
-	std::string&	get_desc_msg() const;
+int		cmd_connect(struct cli_def *cli, const char *command, char *argv[], int argc);
+int		cmd_hello(struct cli_def *cli, const char *command, char *argv[], int argc);
 
-private:
-	std::string		help_msg;
-	std::string		desc_msg;
-};
+int		cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc);
+int		cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int argc);
+int		cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[], int argc);
+
+int		cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int argc);
+int		cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], int argc);
+
+int		idle_timeout(struct cli_def *cli);
+int		regular_callback(struct cli_def *cli);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 int		main (int argc, char* const argv[]);
 
-v_args		process_cli(const char* prompt);
-void		get_params(m_param* params);
-rpc::v_job_ids	build_v_jobs_from_string(const std::string* input);
+bool	get_params(m_param* params, int argc, char* argv[]);
+
 
 void	usage();
-void	quit();
+void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs);
 
-int		cmd_connect(const v_args* args, Config* conf_params);
-bool	help(const v_args* args);
-
-bool	hello(Rpc_Client* client, const std::string* hostname);
-
-void	print_jobs(const rpc::v_jobs& jobs);
-bool	get_jobs(Rpc_Client* client, const std::string& running_node);
-bool	add_job(Rpc_Client* client, const std::string* hostname, const std::string* domain_name, const std::string* name, const std::string* node_name, std::string* cmd_line, int weight, v_jobs* pj, v_jobs* nj );
+rpc::v_job_ids	build_v_jobs_from_string(const std::string* input);
+std::string		build_string_from_job_state(const rpc::e_job_state::type js);
 
 #endif // SHELL_H
-
