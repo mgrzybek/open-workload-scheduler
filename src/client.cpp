@@ -153,7 +153,7 @@ int		main (int argc, char * const argv[]) {
 	 * - Check for ready jobs every minute
 	 */
 	while(1) {
-		BOOST_FOREACH(Job j, domain.get_ready_jobs(conf_params.get_param("node_name").c_str())) {
+		BOOST_FOREACH(Job j, domain.get_ready_jobs(conf_params.get_param("node_name")->c_str())) {
 			j.run();
 		}
 		sleep(60);
