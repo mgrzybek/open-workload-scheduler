@@ -32,8 +32,8 @@
 Config::Config() {
 	// Model : this->syntax_regex.insert(std::pair<std::string, boost::regex>("", boost::regex("", boost::regex::perl)));
 	this->syntax_regex.insert(std::pair<std::string, boost::regex>("bind_port", boost::regex("^[0-9]{2,}$", boost::regex::perl)));
-//	this->syntax_regex.insert(std::pair<std::string, boost::regex>("bind_address", boost::regex("^([0-9]+)([[.period.]][0-9]+){3}$", boost::regex::perl)));
-//	this->syntax_regex.insert(std::pair<std::string, boost::regex>("node_name", boost::regex('[\w]', boost::regex::perl)));
+	//	this->syntax_regex.insert(std::pair<std::string, boost::regex>("bind_address", boost::regex("^([0-9]+)([[.period.]][0-9]+){3}$", boost::regex::perl)));
+	//	this->syntax_regex.insert(std::pair<std::string, boost::regex>("node_name", boost::regex('[\w]', boost::regex::perl)));
 }
 
 Config::~Config() {
@@ -45,15 +45,15 @@ Config::~Config() {
 bool	Config::parse_file(const char* file_path) {
 	std::ifstream	f(file_path, std::ifstream::in);
 
-	std::string		line;
-	std::string		key;
-	std::string		value;
+	std::string	line;
+	std::string	key;
+	std::string	value;
 
 	boost::regex	spaces("[[:space:]]+", boost::regex::perl);
 	boost::regex	comment("^#.*?$", boost::regex::perl);
 	boost::regex	comment_endl("#.*?$", boost::regex::perl);
 
-	size_t			position = 0;
+	size_t		position = 0;
 
 	if ( f.is_open() )
 		while ( ! f.eof() ) {
@@ -71,7 +71,7 @@ bool	Config::parse_file(const char* file_path) {
 				return false;
 			}
 
-			key		= line.substr(0, position);
+			key	= line.substr(0, position);
 			value	= line.substr(position+1, line.length());
 
 			if ( key.length() == 0 or value.length() == 0 ) {
