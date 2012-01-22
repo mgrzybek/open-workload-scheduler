@@ -94,6 +94,5 @@ void	usage();
 void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs);
 
 rpc::v_job_ids	build_v_jobs_from_string(const std::string* input);
-std::string		build_string_from_job_state(const rpc::e_job_state::type js);
 
 #endif // SHELL_H

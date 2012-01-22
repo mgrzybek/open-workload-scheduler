@@ -106,13 +106,13 @@ int		main (int argc, char* const argv[]) {
 		return 1;
 	}
 
-    if (listen(s, 50) < 0) {
+	if (listen(s, 50) < 0) {
 		perror("listen");
 		return 1;
 	}
 
-    printf("Listening on port %d\n", 8023);
-    while ((x = accept(s, NULL, 0))) {
+	printf("Listening on port %d\n", 8023);
+	while ((x = accept(s, NULL, 0))) {
 		cli_loop(cli, x);
 		shutdown(x, 2);
 		close(x);
@@ -124,24 +124,25 @@ int		main (int argc, char* const argv[]) {
 ///////////////////////////////////////////////////////////////////////////////
 
 int idle_timeout(struct cli_def *cli) {
-    cli_print(cli, "Custom idle timeout");
-    return CLI_QUIT;
+	cli_print(cli, "Custom timeout: the RPC connection is closed");
+	client.close();
+	return CLI_QUIT;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 /*
-int regular_callback(struct cli_def *cli) {
-	cli_print(cli, "Regular callback - %u times so far", regular_count);
-	cli_reprompt(cli);
-    return CLI_OK;
-}
-*/
+   int regular_callback(struct cli_def *cli) {
+   cli_print(cli, "Regular callback - %u times so far", regular_count);
+   cli_reprompt(cli);
+   return CLI_OK;
+   }
+   */
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
  * get_params
  */
-bool		get_params(m_param* params, int argc, char* argv[]) {
+bool	get_params(m_param* params, int argc, char* argv[]) {
 	uint				counter = 0;
 	std::string			input;
 	v_args				split_result;
@@ -211,11 +212,11 @@ std::string	build_string_from_job_state(const rpc::e_job_state::type js) {
 		case rpc::e_job_state::WAITING: {
 			result = "waiting";
 			break;
-		}
+						}
 		case rpc::e_job_state::RUNNING: {
 			result = "running";
 			break;
-		}
+						}
 		case rpc::e_job_state::SUCCEDED: {
 			result = "succeded";
 			break;
@@ -229,22 +230,7 @@ std::string	build_string_from_job_state(const rpc::e_job_state::type js) {
 	return result;
 }
 
-/*
- * build_job_state_from_string
- */
-rpc::e_job_state::type	build_job_state_from_string(const char* state) {
-	if ( strcmp(state, "waiting") == 0 )
-		return rpc::e_job_state::WAITING;
-	if ( strcmp(state, "running") == 0 )
-		return rpc::e_job_state::RUNNING;
-	if ( strcmp(state, "succeded") == 0 )
-		return rpc::e_job_state::SUCCEDED;
-	if ( strcmp(state, "failed") == 0 )
-		return rpc::e_job_state::FAILED;
 
-	throw "Error: string state is not related to a job's state";
-	return rpc::e_job_state::FAILED;
-}
 
 /*
  * print_jobs
@@ -263,11 +249,11 @@ void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs) {
 		// TODO: print the prv et nxt job_ids
 
 		cli_print(cli,
-				  "status: %s\nstart_time: %lld\nstop_time: %lld\nreturn_code: %u",
-				  build_string_from_job_state(j.state).c_str(),
-				  j.start_time,
-				  j.stop_time,
-				  j.return_code);
+				"status: %s\nstart_time: %lld\nstop_time: %lld\nreturn_code: %u",
+				build_string_from_job_state(j.state).c_str(),
+				j.start_time,
+				j.stop_time,
+				j.return_code);
 
 		cli_print(cli, "=================================");
 	}
@@ -304,7 +290,7 @@ int	cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int arg
 /*
  * cmd_get_ready_jobs
  */
-int		cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], int argc) {
+int	cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	rpc::v_jobs	result;
 	std::string	target;
 
@@ -348,28 +334,31 @@ int	cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc
 	}
 
 	params["domain_name"]	= "";
-	params["name"]			= "";
-	params["node_name"]		= "";
-	params["cmd_line"]		= "";
-	params["weight"]		= "";
-	params["pj"]			= "";
-	params["nj"]			= "";
+	params["name"]		= "";
+	params["node_name"]	= "";
+	params["cmd_line"]	= "";
+	params["weight"]	= "";
+	params["pj"]		= "";
+	params["nj"]		= "";
 
 	if ( get_params(&params, argc, argv) == false ) {
 		cli_print(cli, "Bad parameters");
 		return CLI_ERROR;
 	}
 
-	job.name = params["name"].c_str();
-	job.node_name = params["node_name"].c_str();
-	job.cmd_line = params["cmd_line"].c_str();
-	job.weight = boost::lexical_cast<int>(params["weight"].c_str());
+	job.name	= params["name"].c_str();
+	job.node_name	= params["node_name"].c_str();
+	job.cmd_line	= params["cmd_line"].c_str();
 
-	rpc::v_job_ids	pj	= build_v_jobs_from_string(&params["pj"]);
-	rpc::v_job_ids	nj	= build_v_jobs_from_string(&params["nj"]);
+	try {
+		job.weight = boost::lexical_cast<int>(params["weight"].c_str());
+	} catch (const std::exception e) {
+		cli_print(cli, "Bad weight given");
+		return CLI_ERROR;
+	}
 
-	job.prv = pj;
-	job.nxt = nj;
+	job.prv		= build_v_jobs_from_string(&params["pj"]);
+	job.nxt		= build_v_jobs_from_string(&params["nj"]);
 
 	try {
 		if ( client.get_client()->add_job(job) == false ) {
@@ -388,7 +377,7 @@ int	cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc
 /*
  * cmd_remove_job
  */
-int		cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int argc) {
+int	cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	m_param		params;
 	rpc::t_job	job;
 
@@ -426,7 +415,7 @@ int		cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int 
 /*
  * cmd_update_job_state
  */
-int		cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[], int argc) {
+int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	m_param		params;
 	rpc::t_job	job;
 
@@ -468,9 +457,9 @@ int		cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[]
 /*
  * hello
  */
-int		cmd_hello(struct cli_def *cli, const char *command, char *argv[], int argc) {
+int	cmd_hello(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	rpc::t_hello	hello_result;
-	rpc::t_node		node;
+	rpc::t_node	node;
 
 	if ( argc == 0 )
 		node.name = connected_node_name.c_str();
@@ -504,14 +493,14 @@ int		cmd_hello(struct cli_def *cli, const char *command, char *argv[], int argc)
  * connect
  *
  */
-int		cmd_connect(struct cli_def *cli, const char *command, char *argv[], int argc) {
+int	cmd_connect(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	v_args	split_result;
 	v_args	line;
 	m_param	params;
 
 	std::string	prompt;
 	std::string	hostname;
-	int			port;
+	int		port;
 
 //	Router		router(&conf_params);
 //	Rpc_Client	client(&conf_params, &router);
@@ -581,3 +570,4 @@ int		cmd_connect(struct cli_def *cli, const char *command, char *argv[], int arg
 	// TODO: unregister commands before exiting
 	return CLI_OK;
 }
+

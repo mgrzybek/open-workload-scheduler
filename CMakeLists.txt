@@ -6,6 +6,7 @@ add_definitions(-Wall -g -O2)
 set(CMAKE_CXX_FLAGS_RELEASE)
 
 add_executable(master src/master.cpp
+	src/common.cpp
 	src/config.cpp
 	src/database.cpp
 	src/domain.cpp
@@ -34,6 +35,7 @@ add_executable(master src/master.cpp
 )
 
 add_executable(client src/client.cpp
+	src/common.cpp
 	src/config.cpp
 	src/database.cpp
 	src/domain.cpp
@@ -62,6 +64,7 @@ add_executable(client src/client.cpp
 )
 
 add_executable(shell src/shell.cpp
+	src/common.cpp
 	src/config.cpp
 	src/node.cpp
 	src/rpc_client.cpp

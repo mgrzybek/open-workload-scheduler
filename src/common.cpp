@@ -27,38 +27,26 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef COMMON_H
-#define COMMON_H
-
-#include "thrift/model_types.h"
-
-/*
- * Database selection
- *
- * You can only use one database engine.
- */
-
-//	To use MySQL support
-#define USE_MYSQL
-
-//	To use SQLite support
-//#define USE_SQLITE
-
-/*
- * RPC selection
- *
- * You can only use one RPC engine.
- * I used to use xmlrpc-c but did not manage to build something efficient.
- */
-
-// To use Apache Thrift
-#define USE_THRIFT
-
-// TODO: think of ZeroMQ + custom message encryption
+#include "common.h"
 
 /*
  * build_job_state_from_string
+ *
+ * Translates a 'stringed' job_state to an enumed job_state
+ *
+ * @arg state	: the state to convert
+ * @return		: the 'stringed' state
  */
-rpc::e_job_state::type	build_job_state_from_string(const char* state);
+rpc::e_job_state::type	build_job_state_from_string(const char* state) {
+	if ( strcmp(state, "waiting") == 0 )
+		return rpc::e_job_state::WAITING;
+	if ( strcmp(state, "running") == 0 )
+		return rpc::e_job_state::RUNNING;
+	if ( strcmp(state, "succeded") == 0 )
+		return rpc::e_job_state::SUCCEDED;
+	if ( strcmp(state, "failed") == 0 )
+		return rpc::e_job_state::FAILED;
 
-#endif // COMMON_H
+	throw "Error: string state is not related to a job's state";
+	return rpc::e_job_state::FAILED;
+}
