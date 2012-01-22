@@ -58,7 +58,6 @@ bool	Mysql::prepare(const std::string* node_name, const std::string* db_skeleton
 	if ( mysql_library_init(sizeof(server_args) / sizeof(char *), server_args, server_groups) )
 		std::cerr << "could not initialize MySQL library" << std::endl;
 
-	std::cout << "mysql init..." << std::endl;
 	if ( (this->mysql = mysql_init(NULL)) == NULL )
 		std::cerr << mysql_error(this->mysql) << std::endl;
 
@@ -115,7 +114,7 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* mysql) {
 	if (res)
 		while ( ( row = mysql_fetch_row(res) ) )
 			for ( uint i=0 ; i < mysql_num_fields(res) ; i++ )
-				std::cout << row[i] << std::endl;
+				std::cerr << row[i] << std::endl;
 	else
 		if ( mysql_field_count(mysql) != 0 ) {
 			std::cerr << "Erreur : " << mysql_error(this->mysql) << std::endl;
@@ -137,7 +136,7 @@ bool	Mysql::standalone_execute(const v_queries* queries) {
 	std::string	query		= "START TRANSACTION;";
 
 	if ( local_mysql == NULL ) {
-		std::cout << "Error: local_mysql is null" << std::endl;
+		std::cerr << "Error: local_mysql is null" << std::endl;
 		return false;
 	}
 
@@ -147,7 +146,6 @@ bool	Mysql::standalone_execute(const v_queries* queries) {
 	}
 
 	BOOST_FOREACH(std::string q, *queries) {
-		std::cout << q.c_str() << std::endl;
 		if ( this->atomic_execute(q, local_mysql) == false ) {
 			query = "ROLLBACK";
 			this->atomic_execute(query, local_mysql);
@@ -180,8 +178,6 @@ v_row	Mysql::query_one_row(const char* query) {
 		return result;
 
 	this->updates_mutex.lock();
-
-	std::cout << query << std::endl;
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
 		std::cerr << query << std::endl << mysql_error(this->mysql);
@@ -220,8 +216,6 @@ v_v_row*	Mysql::query_full_result(const char* query) {
 
 	this->updates_mutex.lock();
 
-	std::cout << query << std::endl;
-
 	if ( mysql_query(local_mysql, query) != 0 ) {
 		std::cerr << query << std::endl << mysql_error(local_mysql);
 		this->updates_mutex.unlock();
@@ -240,7 +234,6 @@ v_v_row*	Mysql::query_full_result(const char* query) {
 					line.push_back(std::string(row[i]));
 				else
 					line.push_back(std::string("NULL"));
-				std::cout << row[i] << std::endl;
 			}
 
 			result->push_back(line);
@@ -318,7 +311,7 @@ MYSQL*		Mysql::init() {
 	local_mysql = mysql_init(this->mysql);
 
 	if ( local_mysql == NULL ) {
-		std::cout << "Error: cannot init a MySQL connector" << std::endl;
+		std::cerr << "Error: cannot init a MySQL connector" << std::endl;
 		return NULL;
 	}
 
@@ -404,8 +397,6 @@ bool	Sqlite::execute(const std::string* query) {
 
 //	this->updates_mutex.lock();
 
-	std::cout << query->c_str() << std::endl;
-
 	ret_code = sqlite3_exec(this->p_db, query->c_str(), callback, 0, &err_msg);
 
 	if ( ret_code != SQLITE_OK ) {
@@ -432,8 +423,6 @@ v_row	Sqlite::query_one_row(const std::string* query) {
 		return result;
 
 //	this->updates_mutex.lock();
-
-	std::cout << query->c_str() << std::endl;
 
 	if ( sqlite3_prepare_v2(this->p_db, query->c_str(), -1, &stmt, NULL) != SQLITE_OK ) {
 //		this->updates_mutex.unlock();
@@ -464,8 +453,6 @@ v_v_row*	Sqlite::query_full_result(const std::string* query) {
 		return result;
 
 //	this->updates_mutex.lock();
-
-	std::cout << query->c_str() << std::endl;
 
 	if ( sqlite3_prepare_v2(this->p_db, query->c_str(), -1, &stmt, NULL) != SQLITE_OK ) {
 //		this->updates_mutex.unlock();
