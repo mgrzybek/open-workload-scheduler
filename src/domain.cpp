@@ -377,6 +377,10 @@ bool	Domain::update_job_state(const Job* j, const rpc::e_job_state::type js) {
 			query += "failed";
 			break;
 		}
+		default: {
+			std::cerr << "Error: bad job's state, cannot update" << std::endl;
+			return false;
+		}
 	}
 	query += "' WHERE job_id = '";
 	query += boost::lexical_cast<std::string>(j->get_id());
@@ -434,7 +438,7 @@ bool	Domain::update_job_state(const std::string& running_node, const int& j_id, 
 		}
 	}
 	query += "' WHERE job_id = '";
-	query += j_id;
+	query += boost::lexical_cast<std::string>(j_id);
 	query += "';";
 
 	queries.insert(queries.end(), query);
@@ -654,6 +658,7 @@ rpc::v_jobs	Domain::get_jobs(const char* running_node) {
 		job->node_name	= job_row[3];
 		job->cmd_line	= job_row[2];
 		job->weight		= boost::lexical_cast<int>(job_row[4]);
+		job->state		= build_job_state_from_string(job_row[5].c_str());
 
 		jobs_list.push_back(*job);
 	}

@@ -76,7 +76,7 @@ void	Rpc_Server::run() {
 #endif //USE_THRIFT
 }
 
-Domain*		Rpc_Server::get_domain() {
+Domain*	Rpc_Server::get_domain() {
 	return this->domain;
 }
 
@@ -181,7 +181,7 @@ bool	ows_rpcHandler::remove_job(const rpc::t_job& j) {
 }
 
 bool	ows_rpcHandler::update_job_state(const rpc::t_job& j, const rpc::e_job_state::type js) {
-	return this->domain->update_job_state(j.node_name, (int)j.id, js);
+	return this->domain->update_job_state(j.node_name, j.id, js);
 }
 
 void	ows_rpcHandler::sql_exec(const std::string& query) {
