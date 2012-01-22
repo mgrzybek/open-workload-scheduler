@@ -40,6 +40,7 @@
 #include "config.h"
 #include "database.h"
 #include "job.h"
+
 #include "thrift/ows_rpc.h"
 
 // namespace ows {
@@ -129,8 +130,8 @@ public:
 	 * @arg j_id			: the job's id
 	 * @arg js				: the new job's state
 	 */
-	bool				update_job_state(const Job*, const e_job_state);
-	bool				update_job_state(const std::string& running_node, const int& j_id, const e_job_state& js);
+	bool				update_job_state(const Job*, const rpc::e_job_state::type);
+	bool				update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js);
 
 	/*
 	 * get_ready_jobs

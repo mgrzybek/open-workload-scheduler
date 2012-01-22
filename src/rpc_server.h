@@ -115,7 +115,7 @@ private:
 	Domain*	domain;
 
 	// TODO: use rpc::e_job directly into the code to avoid using cast functions
-	e_job_state	cast_e_job_state(const rpc::e_job_state::type& js);
+//	e_job_state	cast_e_job_state(const rpc::e_job_state::type& js);
 };
 
 #endif // USE_THRIFT

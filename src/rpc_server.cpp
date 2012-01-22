@@ -181,25 +181,25 @@ bool	ows_rpcHandler::remove_job(const rpc::t_job& j) {
 }
 
 bool	ows_rpcHandler::update_job_state(const rpc::t_job& j, const rpc::e_job_state::type js) {
-	return this->domain->update_job_state(j.node_name, (int)j.id, this->cast_e_job_state(js));
+	return this->domain->update_job_state(j.node_name, (int)j.id, js);
 }
 
 void	ows_rpcHandler::sql_exec(const std::string& query) {
 	this->domain->sql_exec(query);
 }
-
+/*
 e_job_state	ows_rpcHandler::cast_e_job_state(const rpc::e_job_state::type& js) {
 	switch(js) {
-		case WAITING: {
+		case rpc::e_job_state::WAITING: {
 			return WAITING;
 		}
-		case RUNNING: {
+		case rpc::e_job_state::RUNNING: {
 			return RUNNING;
 		}
-		case SUCCEDED: {
+		case rpc::e_job_state::SUCCEDED: {
 			return SUCCEDED;
 		}
-		case FAILED: {
+		case rpc::e_job_state::FAILED: {
 			return FAILED;
 		}
 		default: {
@@ -209,5 +209,5 @@ e_job_state	ows_rpcHandler::cast_e_job_state(const rpc::e_job_state::type& js) {
 	// To avoid a warning: "Control reaches end of non-void function"
 	return FAILED;
 }
-
+*/
 #endif // USE_THRIFT

@@ -343,7 +343,7 @@ bool	Domain::remove_job(const std::string& running_node, const int j_id) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Domain::update_job_state(const Job* j, const e_job_state js) {
+bool	Domain::update_job_state(const Job* j, const rpc::e_job_state::type js) {
 	std::string		query;
 //	char*			running_node = j->get_node_name();
 	v_queries		queries;
@@ -361,17 +361,21 @@ bool	Domain::update_job_state(const Job* j, const e_job_state js) {
 	query += "job SET job_state = '";
 
 	switch (js) {
-		case WAITING: {
+		case rpc::e_job_state::WAITING: {
 			query += "waiting";
+			break;
 		}
-		case RUNNING: {
+		case rpc::e_job_state::RUNNING: {
 			query += "running";
+			break;
 		}
-		case SUCCEDED: {
+		case rpc::e_job_state::SUCCEDED: {
 			query += "succeded";
+			break;
 		}
-		case FAILED: {
+		case rpc::e_job_state::FAILED: {
 			query += "failed";
+			break;
 		}
 	}
 	query += "' WHERE job_id = '";
@@ -398,7 +402,7 @@ bool	Domain::update_job_state(const Job* j, const e_job_state js) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Domain::update_job_state(const std::string& running_node, const int& j_id, const e_job_state& js) {
+bool	Domain::update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js) {
 	std::string	query;
 	v_queries	queries;
 
@@ -412,17 +416,21 @@ bool	Domain::update_job_state(const std::string& running_node, const int& j_id, 
 	query += "job SET job_state = '";
 
 	switch (js) {
-		case WAITING: {
+		case rpc::e_job_state::WAITING: {
 			query += "waiting";
+			break;
 		}
-		case RUNNING: {
+		case rpc::e_job_state::RUNNING: {
 			query += "running";
+			break;
 		}
-		case SUCCEDED: {
+		case rpc::e_job_state::SUCCEDED: {
 			query += "succeded";
+			break;
 		}
-		case FAILED: {
+		case rpc::e_job_state::FAILED: {
 			query += "failed";
+			break;
 		}
 	}
 	query += "' WHERE job_id = '";

@@ -69,6 +69,7 @@ typedef struct {
 class Rpc_Client {
 public:
 	Rpc_Client(Config* c, Router* r);
+	Rpc_Client();
 	~Rpc_Client();
 
 	/*
@@ -148,7 +149,7 @@ public:
 	 * @arg js				: the new job's state
 	 */
 	bool			update_job_state(const Job* j);
-	bool			update_job_state(const std::string* running_node, const int job_id, const e_job_state js);
+	bool			update_job_state(const std::string* running_node, const int job_id, const rpc::e_job_state js);
 
 	/*
 	 * remove_job
@@ -202,7 +203,7 @@ protected:
 	 *
 	 * Downloads the planning from the master and write it to a file
 	 */
-	std::string		get_planning();
+//	std::string		get_planning();
 
 private:
 	/*

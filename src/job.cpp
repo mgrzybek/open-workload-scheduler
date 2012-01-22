@@ -104,7 +104,7 @@ Job::~Job() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Job::run() {
-	if ( this->update_state(RUNNING) == false ) {
+	if ( this->update_state(rpc::e_job_state::RUNNING) == false ) {
 		std::cerr << "Error: cannot update job's state to RUNNING" << std::endl;
 		return false;
 	}
@@ -113,15 +113,17 @@ bool	Job::run() {
 	this->return_code	= system(this->cmd_line.c_str());
 	this->stop_time		= time(NULL);
 
+	std::cout << "Job " << this->name.c_str() << " returned code " << this->return_code << std::endl;
+
 	if ( this->return_code == 0 ) {
-		if ( this->update_state(SUCCEDED) == false ) {
+		if ( this->update_state(rpc::e_job_state::SUCCEDED) == false ) {
 			std::cerr << "Error: cannot update job's state to SUCCEDED" << std::endl;
 			return false;
 		}
 		return true;
 	}
 
-	if ( this->update_state(FAILED) == false ) {
+	if ( this->update_state(rpc::e_job_state::FAILED) == false ) {
 		std::cerr << "Error: cannot update job's state to FAILED" << std::endl;
 		return false;
 	}
@@ -131,7 +133,7 @@ bool	Job::run() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Job::update_state(const e_job_state js) {
+bool	Job::update_state(const rpc::e_job_state::type js) {
 	return this->domain->update_job_state(this, js);
 }
 

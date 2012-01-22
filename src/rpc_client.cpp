@@ -35,6 +35,12 @@ Rpc_Client::Rpc_Client(Config* c, Router* r) {
 #endif // USE_THRIFT
 }
 
+Rpc_Client::Rpc_Client() {
+#ifdef USE_THRIFT
+	this->client	= NULL;
+#endif // USE_THRIFT
+}
+
 Rpc_Client::~Rpc_Client() {
 	this->config	= NULL;
 	this->router	= NULL;

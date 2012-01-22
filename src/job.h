@@ -30,13 +30,12 @@
 
 // namespace ows {
 
-// Should be placed before including domain.h
-enum e_job_state { WAITING, RUNNING, SUCCEDED, FAILED };
-
 #include <vector>
 
 #include "common.h"
 #include "domain.h"
+
+#include "thrift/model_types.h"
 
 class Domain;
 
@@ -69,7 +68,7 @@ public:
 	 *
 	 * @return true	: sucess
 	 */
-	bool		update_state(const e_job_state js);
+	bool		update_state(const rpc::e_job_state::type js);
 
 	/*
 	 * getters
