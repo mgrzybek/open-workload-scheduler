@@ -51,48 +51,188 @@
 #include "config.h"
 #include "rpc_client.h"
 
+///////////////////////////////////////////////////////////////////////////////
+
 typedef std::vector<std::string>				v_args;
 
 typedef	std::pair<std::string, std::string>		p_param;
 typedef	std::map<std::string, std::string>		m_param;
 
-/*
-typedef	std::pair<std::string, bool(*)(const v_args*)>	p_cmd_list;
-typedef	std::map<std::string, bool(*)(const v_args*)>		m_cmd_list;
+///////////////////////////////////////////////////////////////////////////////
 
-typedef	std::pair<std::string, bool(*)(Rpc_Client*, const v_args*)>	p_cnt_list;
-typedef	std::map<std::string, bool(*)(Rpc_Client*, const v_args*)>		m_cnt_list;
-*/
+/*
+ * For instance the shell is a telnet server. We need to make the cli_loop
+ * function use the local input file descriptors.
+ * The program is not thread-safe and must be used by only one client.
+ *
+ * TODO: use the command line
+ */
+
+/*
+ * conf_params
+ *
+ * This object contains the parameters given by the configuration file
+ */
+Config		conf_params;
+
+/*
+ * client
+ *
+ * This object represents the connection to the peer
+ */
+Rpc_Client	client;
+
+/*
+ * connected_node_name
+ *
+ * This is the name of the
+ */
+std::string	connected_node_name;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Config		conf_params;
-Rpc_Client	client;
-std::string	connected_node_name;
-
+/*
+ * cmd_connect
+ *
+ * @arg	: the cli object
+ * @arg	: the name of the called command
+ * @arg	: the arguments
+ * @arg	: the number of arguments
+ * @return	: CLI_OK | CLI_ERROR | CLI_QUIT | CLI_ERROR_ARG
+ */
 int		cmd_connect(struct cli_def *cli, const char *command, char *argv[], int argc);
+
+/*
+ * cmd_hello
+ *
+ * @arg	: the cli object
+ * @arg	: the name of the called command
+ * @arg	: the arguments
+ * @arg	: the number of arguments
+ * @return	: CLI_OK | CLI_ERROR | CLI_QUIT | CLI_ERROR_ARG
+ */
 int		cmd_hello(struct cli_def *cli, const char *command, char *argv[], int argc);
 
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * cmd_add_job
+ *
+ * @arg	: the cli object
+ * @arg	: the name of the called command
+ * @arg	: the arguments
+ * @arg	: the number of arguments
+ * @return	: CLI_OK | CLI_ERROR | CLI_QUIT | CLI_ERROR_ARG
+ */
 int		cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc);
+
+/*
+ * cmd_remove_job
+ *
+ * @arg	: the cli object
+ * @arg	: the name of the called command
+ * @arg	: the arguments
+ * @arg	: the number of arguments
+ * @return	: CLI_OK | CLI_ERROR | CLI_QUIT | CLI_ERROR_ARG
+ */
 int		cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int argc);
+
+/*
+ * cmd_update_job_state
+ *
+ * @arg	: the cli object
+ * @arg	: the name of the called command
+ * @arg	: the arguments
+ * @arg	: the number of arguments
+ * @return	: CLI_OK | CLI_ERROR | CLI_QUIT | CLI_ERROR_ARG
+ */
 int		cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[], int argc);
 
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * cmd_get_jobs
+ *
+ * @arg	: the cli object
+ * @arg	: the name of the called command
+ * @arg	: the arguments
+ * @arg	: the number of arguments
+ * @return	: CLI_OK | CLI_ERROR | CLI_QUIT | CLI_ERROR_ARG
+ */
 int		cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int argc);
+
+/*
+ * cmd_get_ready_jobs
+ *
+ * @arg	: the cli object
+ * @arg	: the name of the called command
+ * @arg	: the arguments
+ * @arg	: the number of arguments
+ * @return	: CLI_OK | CLI_ERROR | CLI_QUIT | CLI_ERROR_ARG
+ */
 int		cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], int argc);
 
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * idle_timeout
+ *
+ * @arg	: the cli object
+ * @return	: CLI_OK | CLI_ERROR | CLI_QUIT | CLI_ERROR_ARG
+ */
 int		idle_timeout(struct cli_def *cli);
+
+/*
+ * regular_callback
+ *
+ * @arg	: the cli object
+ * @return	: CLI_OK | CLI_ERROR | CLI_QUIT | CLI_ERROR_ARG
+ */
 int		regular_callback(struct cli_def *cli);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int		main (int argc, char* const argv[]);
+/*
+ * main
+ *
+ * @arg	: the arguments
+ * @arg	: the number of arguments
+ * @return	: EXIT_SUCCESS or EXIT_FAILURE
+ */
+int		main(int argc, char* const argv[]);
 
+/*
+ * get_params
+ *
+ * @arg	: the map to update
+ * @arg	: the arguments
+ * @arg	: the number of arguments
+ * @return	: success (true) or failure (false)
+ */
 bool	get_params(m_param* params, int argc, char* argv[]);
 
-
+/*
+ * usage
+ *
+ * @arg	: none
+ * @return	: none
+ */
 void	usage();
+
+/*
+ * print_jobs
+ *
+ * @arg	: the cli object
+ * @return	: none
+ */
 void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs);
 
+/*
+ * build_v_jobs_from_string
+ *
+ * @arg	: the string to convert
+ * @return	: the jobs'id vector
+ */
 rpc::v_job_ids	build_v_jobs_from_string(const std::string* input);
 
 #endif // SHELL_H
