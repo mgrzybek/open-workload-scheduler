@@ -63,6 +63,11 @@ struct	t_job {
 
 typedef list<t_job> v_jobs
 
+/*
+ * t_hello
+ *
+ * Defines the values given by a hello request
+ */
 struct	t_hello {
 	1: required string	domain,
 	2: required string	name,

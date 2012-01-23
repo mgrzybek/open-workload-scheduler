@@ -59,13 +59,13 @@ class Router;
  * t_hello
  *
  * Defines the values given by a hello request
- */
+ *//*
 typedef struct {
 	std::string	domain;
 	std::string	name;
 	bool		is_master;
 } t_hello;
-
+*/
 class Rpc_Client {
 public:
 	Rpc_Client(Config* c, Router* r);
@@ -103,7 +103,7 @@ public:
 	 * Says "hello" to a host and receives an answer :
 	 * - name:domain:is_master
 	 */
-	t_hello*		hello(const std::string* hostname);
+//	t_hello*		hello(const std::string* hostname);
 
 	/*
 	 * reach_master

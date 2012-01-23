@@ -90,9 +90,7 @@ ows_rpcHandler::ows_rpcHandler(Domain* d, Config* c, Router* r) : Rpc_Object(c, 
 
 void	ows_rpcHandler::hello(rpc::t_hello& _return, const rpc::t_node& target_node) {
 	std::string*	result	= NULL;
-
 	std::string*	gateway;
-	t_hello			hop_hello_result;
 
 	if ( target_node.name.compare(this->config->get_param("node_name")->c_str()) == 0 ) {
 		_return.name = target_node.name.c_str();
