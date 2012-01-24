@@ -55,113 +55,11 @@
 
 class Router;
 
-/*
- * t_hello
- *
- * Defines the values given by a hello request
- *//*
-typedef struct {
-	std::string	domain;
-	std::string	name;
-	bool		is_master;
-} t_hello;
-*/
 class Rpc_Client {
 public:
 	Rpc_Client(Config* c, Router* r);
 	Rpc_Client();
 	~Rpc_Client();
-
-	/*
-	 * is_reachable
-	 *
-	 * @arg :
-	 * @return :
-	 *
-	 * Not implemented yet
-	 */
-	bool			is_reachable(const std::string*, const std::string*);
-
-	/*
-	 * sql
-	 *
-	 * @arg : the gateway to use
-	 * @arg : the sql query to execute
-	 * @return : nothing
-	 *
-	 * The result is printed on the server
-	 */
-	void			sql_exec(const std::string* running_node, const std::string* hostname, const std::string* sql);
-
-	/*
-	 * hello
-	 *
-	 * @arg : the gateway to use
-	 * @arg : the target
-	 * @return : the hello's result
-	 *
-	 * Says "hello" to a host and receives an answer :
-	 * - name:domain:is_master
-	 */
-//	t_hello*		hello(const std::string* hostname);
-
-	/*
-	 * reach_master
-	 *
-	 * @arg : the target to use to try to reach the master
-	 * @return : true (master is reachable) / false (not reachable)
-	 *
-	 * Tries to reach the master node using known peers
-	 */
-	bool			reach_master();
-
-	/*
-	 * add_job
-	 *
-	 * Adds a job to the domain
-	 *
-	 * @arg	target	: the hosting node
-	 * @arg	j		: the job to add
-	 * @return true	: success
-	 */
-	bool			add_job(const std::string* target, const Job* j);
-	bool			add_job(const std::string* target, const std::string* domain_name, const std::string *name, const std::string* node_name, std::string* cmd_line, int weight, v_job_ids* pj, v_job_ids* nj);
-
-	/*
-	 * update_job
-	 *
-	 * Updates the given job (the id remains the same)
-	 *
-	 * @arg j		: the job to update
-	 * @return true	: success
-	 *
-	 */
-	bool			update_job(const Job*j);
-
-	/*
-	 * update_job_state
-	 *
-	 * Updates the job's state
-	 *
-	 * @arg					; the job to update
-	 * @arg running_node	: the name of the node running the job
-	 * @arg j_id			: the job's id
-	 * @arg js				: the new job's state
-	 */
-	bool			update_job_state(const Job* j);
-	bool			update_job_state(const std::string* running_node, const int job_id, const rpc::e_job_state js);
-
-	/*
-	 * remove_job
-	 *
-	 * Removes a job from the domain
-	 *
-	 * @arg					: the job to remove
-	 * @arg j_id			: the jobs's id
-	 * @return true			: success
-	 */
-	bool			remove_job(const Job* j);
-	bool			remove_job(const int job_id);
 
 #ifdef USE_THRIFT
 

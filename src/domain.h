@@ -129,6 +129,8 @@ public:
 	 * @arg running_node	: the name of the node running the job
 	 * @arg j_id			: the job's id
 	 * @arg js				: the new job's state
+	 *
+	 * TODO: use only the Job object (remove the second argument)
 	 */
 	bool				update_job_state(const Job*, const rpc::e_job_state::type);
 	bool				update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js);

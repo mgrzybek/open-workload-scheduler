@@ -344,64 +344,12 @@ bool	Domain::remove_job(const std::string& running_node, const int j_id) {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::update_job_state(const Job* j, const rpc::e_job_state::type js) {
-	std::string		query;
-//	char*			running_node = j->get_node_name();
-	v_queries		queries;
-
-	if ( j == NULL )
-		throw "Job is null";
-
-	this->updates_mutex.lock();
-
-	query = "UPDATE ";
-#ifdef USE_MYSQL
-	query += j->get_node_name();
-	query += ".";
-#endif
-	query += "job SET job_state = '";
-
-	switch (js) {
-		case rpc::e_job_state::WAITING: {
-			query += "waiting";
-			break;
-		}
-		case rpc::e_job_state::RUNNING: {
-			query += "running";
-			break;
-		}
-		case rpc::e_job_state::SUCCEDED: {
-			query += "succeded";
-			break;
-		}
-		case rpc::e_job_state::FAILED: {
-			query += "failed";
-			break;
-		}
-		default: {
-			std::cerr << "Error: bad job's state, cannot update" << std::endl;
-			return false;
-		}
+	if ( j == NULL ) {
+		std::cerr << "Error: j is NULL" << std::endl;
+		return false;
 	}
-	query += "' WHERE job_id = '";
-	query += boost::lexical_cast<std::string>(j->get_id());
-	query += "';";
 
-	queries.insert(queries.end(), query);
-
-#ifdef USE_MYSQL
-	if ( this->database.standalone_execute(&queries) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
-#ifdef USE_SQLITE
-	if ( this->get_database(running_node).standalone_execute(&queries) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
-	this->updates_mutex.unlock();
-	return false;
+	return this->update_job_state(j->get_node_name2(), j->get_id(), js);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -435,6 +383,10 @@ bool	Domain::update_job_state(const std::string& running_node, const int& j_id, 
 		case rpc::e_job_state::FAILED: {
 			query += "failed";
 			break;
+		}
+		default: {
+			std::cerr << "Error: bad job's state, cannot update" << std::endl;
+			return false;
 		}
 	}
 	query += "' WHERE job_id = '";

@@ -73,15 +73,16 @@ public:
 	/*
 	 * getters
 	 */
-	int			get_id()  const;
-	std::string	get_name() const;
-	std::string	get_cmd_line() const;
+	const int			get_id()  const;
+	const std::string	get_name() const;
+	const std::string	get_cmd_line() const;
 	const char*	get_node_name() const;
-	int			get_weight() const;
-	Domain*		get_domain() const;
+	const std::string	get_node_name2() const;
+	const int			get_weight() const;
+	const Domain*		get_domain() const;
 
-	v_job_ids	get_next() const;
-	v_job_ids	get_prev() const;
+	const v_job_ids	get_next() const;
+	const v_job_ids	get_prev() const;
 
 	/*
 	 * setters

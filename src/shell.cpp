@@ -264,7 +264,7 @@ int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[],
 	} catch (const rpc::e_job e) {
 		cli_print(cli, "%s", e.msg.c_str());
 		return CLI_ERROR;
-	} catch (const apache::thrift::transport::TTransportException e ) {
+	} catch (const apache::thrift::transport::TTransportException e) {
 		cli_print(cli, "%s", e.what());
 		return CLI_ERROR;
 	}

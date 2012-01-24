@@ -139,19 +139,19 @@ bool	Job::update_state(const rpc::e_job_state::type js) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int	Job::get_id() const {
+const int	Job::get_id() const {
 	return this->id;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-std::string	Job::get_name() const {
+const std::string	Job::get_name() const {
 	return this->name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-std::string	Job::get_cmd_line() const {
+const std::string	Job::get_cmd_line() const {
 	return this->cmd_line;
 }
 
@@ -160,28 +160,33 @@ std::string	Job::get_cmd_line() const {
 const char*	Job::get_node_name() const {
 	return this->node_name.c_str();
 }
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string	Job::get_node_name2() const {
+	return this->node_name;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int	Job::get_weight() const {
+const int	Job::get_weight() const {
 	return this->weight;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Domain*	Job::get_domain() const {
+const Domain*	Job::get_domain() const {
 	return this->domain;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-v_job_ids	Job::get_next() const {
+const v_job_ids	Job::get_next() const {
 	return this->next;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-v_job_ids	Job::get_prev() const {
+const v_job_ids	Job::get_prev() const {
 	return this->prev;
 }
 
