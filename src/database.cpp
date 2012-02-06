@@ -530,7 +530,3 @@ bool	Sqlite::load_file(const char* file_path) {
 ///////////////////////////////////////////////////////////////////////////////
 
 #endif // USE_SQLITE
-
-#undef	this->updates_mutex.lock();
-#undef	this->updates_mutex.unlock();
-

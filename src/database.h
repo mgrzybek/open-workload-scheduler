@@ -331,7 +331,7 @@ private:
 	/*
 	 * callback
 	 *
-	 * The SQLite's callback function from the qucikstart guide
+	 * The SQLite's callback function from the quickstart guide
 	 * Must be declared and defined here, otherwise it won't be usable into
 	 * sqlite3_exec calls
 	 */

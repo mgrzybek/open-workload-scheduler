@@ -29,14 +29,6 @@
 
 #include "common.h"
 
-/*
- * build_job_state_from_string
- *
- * Translates a 'stringed' job_state to an enumed job_state
- *
- * @arg state	: the state to convert
- * @return		: the 'stringed' state
- */
 rpc::e_job_state::type	build_job_state_from_string(const char* state) {
 	if ( strcmp(state, "waiting") == 0 )
 		return rpc::e_job_state::WAITING;
@@ -49,4 +41,29 @@ rpc::e_job_state::type	build_job_state_from_string(const char* state) {
 
 	throw "Error: string state is not related to a job's state";
 	return rpc::e_job_state::FAILED;
+}
+
+std::string	build_string_from_job_state(const rpc::e_job_state::type js) {
+	std::string result;
+
+	switch (js) {
+		case rpc::e_job_state::WAITING: {
+			result = "waiting";
+			break;
+		}
+		case rpc::e_job_state::RUNNING: {
+			result = "running";
+			break;
+		}
+		case rpc::e_job_state::SUCCEDED: {
+			result = "succeded";
+			break;
+		}
+		case rpc::e_job_state::FAILED: {
+			result = "failed";
+			break;
+		}
+	}
+
+	return result;
 }

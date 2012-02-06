@@ -58,7 +58,13 @@
 
 /*
  * build_job_state_from_string
+ *
+ * Translates a 'stringed' job_state to an enumed job_state
+ *
+ * @arg state	: the state to convert
+ * @return		: the 'stringed' state
  */
 rpc::e_job_state::type	build_job_state_from_string(const char* state);
+std::string	build_string_from_job_state(const rpc::e_job_state::type js);
 
 #endif // COMMON_H
