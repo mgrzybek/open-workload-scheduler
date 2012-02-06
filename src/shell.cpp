@@ -76,9 +76,9 @@ int	cmd_connect(struct cli_def *cli, const char *command, char *argv[], int argc
 	}
 
 	// TODO: fix this dirty hack -> use const args in libcli
-	char* h = strdup(hostname.c_str());
-	cli_set_hostname(cli, h);
-	free(h);
+//	char* h = strdup(hostname.c_str());
+	cli_set_hostname(cli, hostname.c_str());
+//	free(h);
 
 	// Routing command
 	cli_register_command(cli, NULL, "hello", cmd_hello, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Sends a 'hello' to a node to know its caracteristics");
@@ -333,6 +333,7 @@ int	cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], i
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// TODO: make a clean timeout logout
 int idle_timeout(struct cli_def *cli) {
 	cli_print(cli, "Custom timeout: the RPC connection is closed");
 	client.close();
@@ -341,7 +342,7 @@ int idle_timeout(struct cli_def *cli) {
 
 ///////////////////////////////////////////////////////////////////////////////
 /*
- int regular_callback(struct cli_def *cli) {
+int regular_callback(struct cli_def *cli) {
  cli_print(cli, "Regular callback - %u times so far", regular_count);
  cli_reprompt(cli);
  return CLI_OK;
@@ -517,7 +518,8 @@ void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs) {
 		// TODO: print the prv et nxt job_ids
 
 		cli_print(cli,
-				  "status: %s\nstart_time: %lld\nstop_time: %lld\nreturn_code: %u",
+				  "status: %u -> %s\nstart_time: %lld\nstop_time: %lld\nreturn_code: %u",
+				  j.state,
 				  build_string_from_job_state(j.state).c_str(),
 				  j.start_time,
 				  j.stop_time,
@@ -529,27 +531,4 @@ void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-std::string	build_string_from_job_state(const rpc::e_job_state::type js) {
-	std::string result;
 
-	switch (js) {
-		case rpc::e_job_state::WAITING: {
-			result = "waiting";
-			break;
-						}
-		case rpc::e_job_state::RUNNING: {
-			result = "running";
-			break;
-						}
-		case rpc::e_job_state::SUCCEDED: {
-			result = "succeded";
-			break;
-		}
-		case rpc::e_job_state::FAILED: {
-			result = "failed";
-			break;
-		}
-	}
-
-	return result;
-}
