@@ -10,3 +10,4 @@ Debug
 Release
 .DS_Store
 .svn
+gen-cpp

@@ -27,7 +27,9 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-namespace cpp rpc
+namespace cpp	rpc
+namespace perl	rpc
+namespace py	rpc
 
 enum e_job_state {
 	WAITING,
@@ -45,10 +47,10 @@ struct	t_node {
 }
 
 struct	t_job {
-	1: optional i64		start_time,
-	2: optional i64		stop_time,
-	3: optional integer	return_code,
-	4: optional e_job_state	state,
+	1: required i64		start_time,
+	2: required i64		stop_time,
+	3: required integer	return_code,
+	4: required e_job_state	state,
 
 	5: required integer	id,
 	6: required string	name,
@@ -57,8 +59,8 @@ struct	t_job {
 	9: required string	cmd_line,
 	10: required integer	weight,
 
-	11: optional v_job_ids	prv,
-	12: optional v_job_ids	nxt,
+	11: required v_job_ids	prv,
+	12: required v_job_ids	nxt,
 }
 
 typedef list<t_job> v_jobs

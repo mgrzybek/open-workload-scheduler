@@ -74,21 +74,12 @@ class t_node {
 
 };
 
-typedef struct _t_job__isset {
-  _t_job__isset() : start_time(false), stop_time(false), return_code(false), state(false), prv(false), nxt(false) {}
-  bool start_time;
-  bool stop_time;
-  bool return_code;
-  bool state;
-  bool prv;
-  bool nxt;
-} _t_job__isset;
 
 class t_job {
  public:
 
-  static const char* ascii_fingerprint; // = "4817A224DB85D09E8165B925BFFBCB75";
-  static const uint8_t binary_fingerprint[16]; // = {0x48,0x17,0xA2,0x24,0xDB,0x85,0xD0,0x9E,0x81,0x65,0xB9,0x25,0xBF,0xFB,0xCB,0x75};
+  static const char* ascii_fingerprint; // = "4FC4D397B4D482A141E3F5D87343C3BE";
+  static const uint8_t binary_fingerprint[16]; // = {0x4F,0xC4,0xD3,0x97,0xB4,0xD4,0x82,0xA1,0x41,0xE3,0xF5,0xD8,0x73,0x43,0xC3,0xBE};
 
   t_job() : start_time(0), stop_time(0), return_code(0), id(0), name(""), node_name(""), domain(""), cmd_line(""), weight(0) {
   }
@@ -108,25 +99,15 @@ class t_job {
   v_job_ids prv;
   v_job_ids nxt;
 
-  _t_job__isset __isset;
-
   bool operator == (const t_job & rhs) const
   {
-    if (__isset.start_time != rhs.__isset.start_time)
+    if (!(start_time == rhs.start_time))
       return false;
-    else if (__isset.start_time && !(start_time == rhs.start_time))
+    if (!(stop_time == rhs.stop_time))
       return false;
-    if (__isset.stop_time != rhs.__isset.stop_time)
+    if (!(return_code == rhs.return_code))
       return false;
-    else if (__isset.stop_time && !(stop_time == rhs.stop_time))
-      return false;
-    if (__isset.return_code != rhs.__isset.return_code)
-      return false;
-    else if (__isset.return_code && !(return_code == rhs.return_code))
-      return false;
-    if (__isset.state != rhs.__isset.state)
-      return false;
-    else if (__isset.state && !(state == rhs.state))
+    if (!(state == rhs.state))
       return false;
     if (!(id == rhs.id))
       return false;
@@ -140,13 +121,9 @@ class t_job {
       return false;
     if (!(weight == rhs.weight))
       return false;
-    if (__isset.prv != rhs.__isset.prv)
+    if (!(prv == rhs.prv))
       return false;
-    else if (__isset.prv && !(prv == rhs.prv))
-      return false;
-    if (__isset.nxt != rhs.__isset.nxt)
-      return false;
-    else if (__isset.nxt && !(nxt == rhs.nxt))
+    if (!(nxt == rhs.nxt))
       return false;
     return true;
   }
