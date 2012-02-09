@@ -75,10 +75,7 @@ int	cmd_connect(struct cli_def *cli, const char *command, char *argv[], int argc
 		return CLI_ERROR;
 	}
 
-	// TODO: fix this dirty hack -> use const args in libcli
-//	char* h = strdup(hostname.c_str());
 	cli_set_hostname(cli, hostname.c_str());
-//	free(h);
 
 	// Routing command
 	cli_register_command(cli, NULL, "hello", cmd_hello, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Sends a 'hello' to a node to know its caracteristics");
@@ -119,7 +116,7 @@ int	cmd_hello(struct cli_def *cli, const char *command, char *argv[], int argc) 
 		node.name = argv[0];
 
 	try {
-		client.get_client()->hello(hello_result, node);
+		client.get_handler()->hello(hello_result, node);
 	} catch (const rpc::e_routing e) {
 		cli_print(cli, "e_routing: %s", e.msg.c_str());
 		return CLI_ERROR;
@@ -146,6 +143,7 @@ int	cmd_hello(struct cli_def *cli, const char *command, char *argv[], int argc) 
 int	cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	m_param	params;
 	rpc::t_job	job;
+	rpc::t_node	node;
 
 	// TODO: ask attributes to create a job
 	if ( argc == 0 ) {
@@ -181,7 +179,7 @@ int	cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc
 	job.nxt		= build_v_jobs_from_string(&params["nj"]);
 
 	try {
-		if ( client.get_client()->add_job(job) == false ) {
+		if ( client.get_handler()->add_job(node, job) == false ) {
 			cli_print(cli, "RPC call failed");
 			return CLI_ERROR;
 		} else
@@ -200,6 +198,10 @@ int	cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int a
 	m_param		params;
 	rpc::t_job	job;
 
+	rpc::t_node	node;
+	node.name = conf_params.get_param("node_name")->c_str();
+	node.domain_name = conf_params.get_param("domain_name")->c_str();
+
 	// TODO: ask attributes to create a job
 	if ( argc == 0 ) {
 		cli_print(cli, "Not implemented yet");
@@ -218,7 +220,7 @@ int	cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int a
 	job.node_name = params["node_name"];
 
 	try {
-		if ( client.get_client()->remove_job(job) == false ) {
+		if ( client.get_handler()->remove_job(node, job) == false ) {
 			cli_print(cli, "RPC call failed");
 			return CLI_ERROR;
 		} else
@@ -237,6 +239,10 @@ int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[],
 	m_param		params;
 	rpc::t_job	job;
 
+	rpc::t_node	node;
+	node.name = conf_params.get_param("node_name")->c_str();
+	node.domain_name = conf_params.get_param("domain_name")->c_str();
+
 	// TODO: ask attributes to create a job
 	if ( argc == 0 ) {
 		cli_print(cli, "Not implemented yet");
@@ -254,9 +260,10 @@ int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[],
 
 	job.id = boost::lexical_cast<int>(params["id"]);
 	job.node_name = params["node_name"];
+	job.state = build_job_state_from_string(params["state"].c_str());
 
 	try {
-		if ( client.get_client()->update_job_state(job, build_job_state_from_string(params["state"].c_str())) == false ) {
+		if ( client.get_handler()->update_job_state(node, job) == false ) {
 			cli_print(cli, "RPC call failed");
 			return CLI_ERROR;
 		} else
@@ -276,19 +283,25 @@ int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[],
 
 int	cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	rpc::v_jobs	result;
-	std::string	target;
 
+	rpc::t_node	node;
+	node.name = conf_params.get_param("node_name")->c_str();
+	node.domain_name = conf_params.get_param("domain_name")->c_str();
+
+	rpc::t_node	target;
+
+	// TODO: use domain.node syntax for the target
 	if ( argc == 0 )
-		target = connected_node_name;
+		target.name = connected_node_name;
 	else if ( argc == 1 )
-		target = argv[0];
+		target.name = argv[0];
 	else {
 		cli_print(cli, "Error: missing one arg : running_node");
 		return CLI_ERROR_ARG;
 	}
 
 	try {
-		client.get_client()->get_jobs(result, target.c_str());
+		client.get_handler()->get_jobs(result, node, target);
 	} catch (const rpc::e_job e) {
 		cli_print(cli, "Error: %s", e.msg.c_str());
 		return CLI_ERROR;
@@ -303,12 +316,16 @@ int	cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int arg
 
 int	cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], int argc) {
 	rpc::v_jobs	result;
-	std::string	target;
+	rpc::t_node	target;
+	rpc::t_node node;
+
+	node.name = conf_params.get_param("node_name")->c_str();
+	node.domain_name = conf_params.get_param("domain_name")->c_str();
 
 	if ( argc == 0 )
-		target = connected_node_name;
+		target.name = connected_node_name;
 	else if ( argc == 1 )
-		target = argv[0];
+		target.name = argv[0];
 	else {
 		cli_print(cli, "Error: missing one arg : running_node");
 		return CLI_ERROR_ARG;
@@ -320,7 +337,7 @@ int	cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], i
 	}
 
 	try {
-		client.get_client()->get_ready_jobs(result, target);
+		client.get_handler()->get_ready_jobs(result, node, target);
 	} catch (const rpc::e_job e) {
 		cli_print(cli, "Error: %s", e.msg.c_str());
 		return CLI_ERROR;
@@ -473,9 +490,8 @@ bool	get_params(m_param* params, int argc, char* argv[]) {
 	return true;
 }
 
-/*
- * build_v_jobs_from_string
- */
+///////////////////////////////////////////////////////////////////////////////
+
 rpc::v_job_ids	build_v_jobs_from_string(const std::string* input) {
 	v_args		split_result;
 	rpc::v_job_ids	jobs;
@@ -530,5 +546,3 @@ void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-

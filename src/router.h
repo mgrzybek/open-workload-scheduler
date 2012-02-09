@@ -210,6 +210,7 @@ public:
 	 */
 //	std::string*	get_gateway(const std::string* destination);
 	std::string*	get_gateway(const std::string& destination);
+	std::string*	get_gateway(const char* destination);
 
 	/*
 	 * delete_gateway

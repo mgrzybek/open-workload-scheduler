@@ -52,6 +52,12 @@ Domain::~Domain() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/*
+bool	Domain::get_planning() {
+
+}
+*/
+///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::add_node(const char* running_node, const char* n) {
 	std::string query;
@@ -271,6 +277,12 @@ bool	Domain::update_job(const Job* j) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool	Domain::remove_job(const rpc::t_job& j) {
+	return this->remove_job(j.node_name, j.id);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 bool	Domain::remove_job(const Job* j) {
 	std::string		query;
 	const char*		running_node = j->get_node_name();
@@ -339,6 +351,12 @@ bool	Domain::remove_job(const std::string& running_node, const int j_id) {
 #endif
 	this->updates_mutex.unlock();
 	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool	Domain::update_job_state(const rpc::t_job& j) {
+	return this->update_job_state(j.node_name, j.id, j.state);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

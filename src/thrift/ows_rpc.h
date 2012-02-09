@@ -16,12 +16,13 @@ class ows_rpcIf {
   virtual ~ows_rpcIf() {}
   virtual void hello(t_hello& _return, const t_node& target_node) = 0;
   virtual void reach_master(t_route& _return) = 0;
-  virtual bool add_node(const std::string& running_node, const t_node& node) = 0;
-  virtual void get_jobs(v_jobs& _return, const std::string& running_node) = 0;
-  virtual void get_ready_jobs(v_jobs& _return, const std::string& running_node) = 0;
-  virtual bool add_job(const t_job& j) = 0;
-  virtual bool remove_job(const t_job& j) = 0;
-  virtual bool update_job_state(const t_job& j, const e_job_state::type js) = 0;
+  virtual void get_planning(std::string& _return, const t_node& calling_node) = 0;
+  virtual bool add_node(const t_node& calling_node, const t_node& hosting_node, const t_node& node_to_add) = 0;
+  virtual void get_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node) = 0;
+  virtual void get_ready_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node) = 0;
+  virtual bool add_job(const t_node& calling_node, const t_job& j) = 0;
+  virtual bool remove_job(const t_node& calling_node, const t_job& j) = 0;
+  virtual bool update_job_state(const t_node& calling_node, const t_job& j) = 0;
   virtual void sql_exec(const std::string& query) = 0;
 };
 
@@ -34,25 +35,28 @@ class ows_rpcNull : virtual public ows_rpcIf {
   void reach_master(t_route& /* _return */) {
     return;
   }
-  bool add_node(const std::string& /* running_node */, const t_node& /* node */) {
-    bool _return = false;
-    return _return;
-  }
-  void get_jobs(v_jobs& /* _return */, const std::string& /* running_node */) {
+  void get_planning(std::string& /* _return */, const t_node& /* calling_node */) {
     return;
   }
-  void get_ready_jobs(v_jobs& /* _return */, const std::string& /* running_node */) {
+  bool add_node(const t_node& /* calling_node */, const t_node& /* hosting_node */, const t_node& /* node_to_add */) {
+    bool _return = false;
+    return _return;
+  }
+  void get_jobs(v_jobs& /* _return */, const t_node& /* calling_node */, const t_node& /* target_node */) {
     return;
   }
-  bool add_job(const t_job& /* j */) {
+  void get_ready_jobs(v_jobs& /* _return */, const t_node& /* calling_node */, const t_node& /* target_node */) {
+    return;
+  }
+  bool add_job(const t_node& /* calling_node */, const t_job& /* j */) {
     bool _return = false;
     return _return;
   }
-  bool remove_job(const t_job& /* j */) {
+  bool remove_job(const t_node& /* calling_node */, const t_job& /* j */) {
     bool _return = false;
     return _return;
   }
-  bool update_job_state(const t_job& /* j */, const e_job_state::type /* js */) {
+  bool update_job_state(const t_node& /* calling_node */, const t_job& /* j */) {
     bool _return = false;
     return _return;
   }
@@ -258,22 +262,125 @@ class ows_rpc_reach_master_presult {
 };
 
 
+class ows_rpc_get_planning_args {
+ public:
+
+  ows_rpc_get_planning_args() {
+  }
+
+  virtual ~ows_rpc_get_planning_args() throw() {}
+
+  t_node calling_node;
+
+  bool operator == (const ows_rpc_get_planning_args & rhs) const
+  {
+    if (!(calling_node == rhs.calling_node))
+      return false;
+    return true;
+  }
+  bool operator != (const ows_rpc_get_planning_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ows_rpc_get_planning_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ows_rpc_get_planning_pargs {
+ public:
+
+
+  virtual ~ows_rpc_get_planning_pargs() throw() {}
+
+  const t_node* calling_node;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ows_rpc_get_planning_result__isset {
+  _ows_rpc_get_planning_result__isset() : success(false), e(false) {}
+  bool success;
+  bool e;
+} _ows_rpc_get_planning_result__isset;
+
+class ows_rpc_get_planning_result {
+ public:
+
+  ows_rpc_get_planning_result() : success("") {
+  }
+
+  virtual ~ows_rpc_get_planning_result() throw() {}
+
+  std::string success;
+  e_planning e;
+
+  _ows_rpc_get_planning_result__isset __isset;
+
+  bool operator == (const ows_rpc_get_planning_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(e == rhs.e))
+      return false;
+    return true;
+  }
+  bool operator != (const ows_rpc_get_planning_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ows_rpc_get_planning_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ows_rpc_get_planning_presult__isset {
+  _ows_rpc_get_planning_presult__isset() : success(false), e(false) {}
+  bool success;
+  bool e;
+} _ows_rpc_get_planning_presult__isset;
+
+class ows_rpc_get_planning_presult {
+ public:
+
+
+  virtual ~ows_rpc_get_planning_presult() throw() {}
+
+  std::string* success;
+  e_planning e;
+
+  _ows_rpc_get_planning_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
 class ows_rpc_add_node_args {
  public:
 
-  ows_rpc_add_node_args() : running_node("") {
+  ows_rpc_add_node_args() {
   }
 
   virtual ~ows_rpc_add_node_args() throw() {}
 
-  std::string running_node;
-  t_node node;
+  t_node calling_node;
+  t_node hosting_node;
+  t_node node_to_add;
 
   bool operator == (const ows_rpc_add_node_args & rhs) const
   {
-    if (!(running_node == rhs.running_node))
+    if (!(calling_node == rhs.calling_node))
       return false;
-    if (!(node == rhs.node))
+    if (!(hosting_node == rhs.hosting_node))
+      return false;
+    if (!(node_to_add == rhs.node_to_add))
       return false;
     return true;
   }
@@ -295,8 +402,9 @@ class ows_rpc_add_node_pargs {
 
   virtual ~ows_rpc_add_node_pargs() throw() {}
 
-  const std::string* running_node;
-  const t_node* node;
+  const t_node* calling_node;
+  const t_node* hosting_node;
+  const t_node* node_to_add;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -365,16 +473,19 @@ class ows_rpc_add_node_presult {
 class ows_rpc_get_jobs_args {
  public:
 
-  ows_rpc_get_jobs_args() : running_node("") {
+  ows_rpc_get_jobs_args() {
   }
 
   virtual ~ows_rpc_get_jobs_args() throw() {}
 
-  std::string running_node;
+  t_node calling_node;
+  t_node target_node;
 
   bool operator == (const ows_rpc_get_jobs_args & rhs) const
   {
-    if (!(running_node == rhs.running_node))
+    if (!(calling_node == rhs.calling_node))
+      return false;
+    if (!(target_node == rhs.target_node))
       return false;
     return true;
   }
@@ -396,7 +507,8 @@ class ows_rpc_get_jobs_pargs {
 
   virtual ~ows_rpc_get_jobs_pargs() throw() {}
 
-  const std::string* running_node;
+  const t_node* calling_node;
+  const t_node* target_node;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -465,16 +577,19 @@ class ows_rpc_get_jobs_presult {
 class ows_rpc_get_ready_jobs_args {
  public:
 
-  ows_rpc_get_ready_jobs_args() : running_node("") {
+  ows_rpc_get_ready_jobs_args() {
   }
 
   virtual ~ows_rpc_get_ready_jobs_args() throw() {}
 
-  std::string running_node;
+  t_node calling_node;
+  t_node target_node;
 
   bool operator == (const ows_rpc_get_ready_jobs_args & rhs) const
   {
-    if (!(running_node == rhs.running_node))
+    if (!(calling_node == rhs.calling_node))
+      return false;
+    if (!(target_node == rhs.target_node))
       return false;
     return true;
   }
@@ -496,7 +611,8 @@ class ows_rpc_get_ready_jobs_pargs {
 
   virtual ~ows_rpc_get_ready_jobs_pargs() throw() {}
 
-  const std::string* running_node;
+  const t_node* calling_node;
+  const t_node* target_node;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -570,10 +686,13 @@ class ows_rpc_add_job_args {
 
   virtual ~ows_rpc_add_job_args() throw() {}
 
+  t_node calling_node;
   t_job j;
 
   bool operator == (const ows_rpc_add_job_args & rhs) const
   {
+    if (!(calling_node == rhs.calling_node))
+      return false;
     if (!(j == rhs.j))
       return false;
     return true;
@@ -596,6 +715,7 @@ class ows_rpc_add_job_pargs {
 
   virtual ~ows_rpc_add_job_pargs() throw() {}
 
+  const t_node* calling_node;
   const t_job* j;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -670,10 +790,13 @@ class ows_rpc_remove_job_args {
 
   virtual ~ows_rpc_remove_job_args() throw() {}
 
+  t_node calling_node;
   t_job j;
 
   bool operator == (const ows_rpc_remove_job_args & rhs) const
   {
+    if (!(calling_node == rhs.calling_node))
+      return false;
     if (!(j == rhs.j))
       return false;
     return true;
@@ -696,6 +819,7 @@ class ows_rpc_remove_job_pargs {
 
   virtual ~ows_rpc_remove_job_pargs() throw() {}
 
+  const t_node* calling_node;
   const t_job* j;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -770,14 +894,14 @@ class ows_rpc_update_job_state_args {
 
   virtual ~ows_rpc_update_job_state_args() throw() {}
 
+  t_node calling_node;
   t_job j;
-  e_job_state::type js;
 
   bool operator == (const ows_rpc_update_job_state_args & rhs) const
   {
-    if (!(j == rhs.j))
+    if (!(calling_node == rhs.calling_node))
       return false;
-    if (!(js == rhs.js))
+    if (!(j == rhs.j))
       return false;
     return true;
   }
@@ -799,8 +923,8 @@ class ows_rpc_update_job_state_pargs {
 
   virtual ~ows_rpc_update_job_state_pargs() throw() {}
 
+  const t_node* calling_node;
   const t_job* j;
-  const e_job_state::type* js;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -932,23 +1056,26 @@ class ows_rpcClient : virtual public ows_rpcIf {
   void reach_master(t_route& _return);
   void send_reach_master();
   void recv_reach_master(t_route& _return);
-  bool add_node(const std::string& running_node, const t_node& node);
-  void send_add_node(const std::string& running_node, const t_node& node);
+  void get_planning(std::string& _return, const t_node& calling_node);
+  void send_get_planning(const t_node& calling_node);
+  void recv_get_planning(std::string& _return);
+  bool add_node(const t_node& calling_node, const t_node& hosting_node, const t_node& node_to_add);
+  void send_add_node(const t_node& calling_node, const t_node& hosting_node, const t_node& node_to_add);
   bool recv_add_node();
-  void get_jobs(v_jobs& _return, const std::string& running_node);
-  void send_get_jobs(const std::string& running_node);
+  void get_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node);
+  void send_get_jobs(const t_node& calling_node, const t_node& target_node);
   void recv_get_jobs(v_jobs& _return);
-  void get_ready_jobs(v_jobs& _return, const std::string& running_node);
-  void send_get_ready_jobs(const std::string& running_node);
+  void get_ready_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node);
+  void send_get_ready_jobs(const t_node& calling_node, const t_node& target_node);
   void recv_get_ready_jobs(v_jobs& _return);
-  bool add_job(const t_job& j);
-  void send_add_job(const t_job& j);
+  bool add_job(const t_node& calling_node, const t_job& j);
+  void send_add_job(const t_node& calling_node, const t_job& j);
   bool recv_add_job();
-  bool remove_job(const t_job& j);
-  void send_remove_job(const t_job& j);
+  bool remove_job(const t_node& calling_node, const t_job& j);
+  void send_remove_job(const t_node& calling_node, const t_job& j);
   bool recv_remove_job();
-  bool update_job_state(const t_job& j, const e_job_state::type js);
-  void send_update_job_state(const t_job& j, const e_job_state::type js);
+  bool update_job_state(const t_node& calling_node, const t_job& j);
+  void send_update_job_state(const t_node& calling_node, const t_job& j);
   bool recv_update_job_state();
   void sql_exec(const std::string& query);
   void send_sql_exec(const std::string& query);
@@ -967,6 +1094,7 @@ class ows_rpcProcessor : virtual public ::apache::thrift::TProcessor {
   std::map<std::string, void (ows_rpcProcessor::*)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*)> processMap_;
   void process_hello(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_reach_master(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_planning(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_add_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_jobs(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_ready_jobs(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -979,6 +1107,7 @@ class ows_rpcProcessor : virtual public ::apache::thrift::TProcessor {
     iface_(iface) {
     processMap_["hello"] = &ows_rpcProcessor::process_hello;
     processMap_["reach_master"] = &ows_rpcProcessor::process_reach_master;
+    processMap_["get_planning"] = &ows_rpcProcessor::process_get_planning;
     processMap_["add_node"] = &ows_rpcProcessor::process_add_node;
     processMap_["get_jobs"] = &ows_rpcProcessor::process_get_jobs;
     processMap_["get_ready_jobs"] = &ows_rpcProcessor::process_get_ready_jobs;
@@ -1028,70 +1157,82 @@ class ows_rpcMultiface : virtual public ows_rpcIf {
     }
   }
 
-  bool add_node(const std::string& running_node, const t_node& node) {
+  void get_planning(std::string& _return, const t_node& calling_node) {
     uint32_t sz = ifaces_.size();
     for (uint32_t i = 0; i < sz; ++i) {
       if (i == sz - 1) {
-        return ifaces_[i]->add_node(running_node, node);
-      } else {
-        ifaces_[i]->add_node(running_node, node);
-      }
-    }
-  }
-
-  void get_jobs(v_jobs& _return, const std::string& running_node) {
-    uint32_t sz = ifaces_.size();
-    for (uint32_t i = 0; i < sz; ++i) {
-      if (i == sz - 1) {
-        ifaces_[i]->get_jobs(_return, running_node);
+        ifaces_[i]->get_planning(_return, calling_node);
         return;
       } else {
-        ifaces_[i]->get_jobs(_return, running_node);
+        ifaces_[i]->get_planning(_return, calling_node);
       }
     }
   }
 
-  void get_ready_jobs(v_jobs& _return, const std::string& running_node) {
+  bool add_node(const t_node& calling_node, const t_node& hosting_node, const t_node& node_to_add) {
     uint32_t sz = ifaces_.size();
     for (uint32_t i = 0; i < sz; ++i) {
       if (i == sz - 1) {
-        ifaces_[i]->get_ready_jobs(_return, running_node);
+        return ifaces_[i]->add_node(calling_node, hosting_node, node_to_add);
+      } else {
+        ifaces_[i]->add_node(calling_node, hosting_node, node_to_add);
+      }
+    }
+  }
+
+  void get_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node) {
+    uint32_t sz = ifaces_.size();
+    for (uint32_t i = 0; i < sz; ++i) {
+      if (i == sz - 1) {
+        ifaces_[i]->get_jobs(_return, calling_node, target_node);
         return;
       } else {
-        ifaces_[i]->get_ready_jobs(_return, running_node);
+        ifaces_[i]->get_jobs(_return, calling_node, target_node);
       }
     }
   }
 
-  bool add_job(const t_job& j) {
+  void get_ready_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node) {
     uint32_t sz = ifaces_.size();
     for (uint32_t i = 0; i < sz; ++i) {
       if (i == sz - 1) {
-        return ifaces_[i]->add_job(j);
+        ifaces_[i]->get_ready_jobs(_return, calling_node, target_node);
+        return;
       } else {
-        ifaces_[i]->add_job(j);
+        ifaces_[i]->get_ready_jobs(_return, calling_node, target_node);
       }
     }
   }
 
-  bool remove_job(const t_job& j) {
+  bool add_job(const t_node& calling_node, const t_job& j) {
     uint32_t sz = ifaces_.size();
     for (uint32_t i = 0; i < sz; ++i) {
       if (i == sz - 1) {
-        return ifaces_[i]->remove_job(j);
+        return ifaces_[i]->add_job(calling_node, j);
       } else {
-        ifaces_[i]->remove_job(j);
+        ifaces_[i]->add_job(calling_node, j);
       }
     }
   }
 
-  bool update_job_state(const t_job& j, const e_job_state::type js) {
+  bool remove_job(const t_node& calling_node, const t_job& j) {
     uint32_t sz = ifaces_.size();
     for (uint32_t i = 0; i < sz; ++i) {
       if (i == sz - 1) {
-        return ifaces_[i]->update_job_state(j, js);
+        return ifaces_[i]->remove_job(calling_node, j);
       } else {
-        ifaces_[i]->update_job_state(j, js);
+        ifaces_[i]->remove_job(calling_node, j);
+      }
+    }
+  }
+
+  bool update_job_state(const t_node& calling_node, const t_job& j) {
+    uint32_t sz = ifaces_.size();
+    for (uint32_t i = 0; i < sz; ++i) {
+      if (i == sz - 1) {
+        return ifaces_[i]->update_job_state(calling_node, j);
+      } else {
+        ifaces_[i]->update_job_state(calling_node, j);
       }
     }
   }

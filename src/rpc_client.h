@@ -75,11 +75,11 @@ public:
 	bool			open(const char* hostname, const int& port);
 
 	/*
-	 * get_client
+	 * get_handler
 	 *
 	 * Gets the client handler
 	 */
-	rpc::ows_rpcClient*	get_client() const;
+	rpc::ows_rpcClient*	get_handler() const;
 
 	/*
 	 * close
@@ -128,11 +128,11 @@ private:
 	boost::shared_ptr<apache::thrift::transport::TTransport>	transport;
 
 	/*
-	 * client
+	 * handler
 	 *
 	 * Thrift's interface
 	 */
-	rpc::ows_rpcClient*		client;
+	rpc::ows_rpcClient*		handler;
 
 #endif // USE_THRIFT
 

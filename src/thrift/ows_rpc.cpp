@@ -352,7 +352,7 @@ uint32_t ows_rpc_reach_master_presult::read(::apache::thrift::protocol::TProtoco
   return xfer;
 }
 
-uint32_t ows_rpc_add_node_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t ows_rpc_get_planning_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -363,8 +363,7 @@ uint32_t ows_rpc_add_node_args::read(::apache::thrift::protocol::TProtocol* ipro
 
   using ::apache::thrift::protocol::TProtocolException;
 
-  bool isset_running_node = false;
-  bool isset_node = false;
+  bool isset_calling_node = false;
 
   while (true)
   {
@@ -375,17 +374,9 @@ uint32_t ows_rpc_add_node_args::read(::apache::thrift::protocol::TProtocol* ipro
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->running_node);
-          isset_running_node = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 2:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->node.read(iprot);
-          isset_node = true;
+          xfer += this->calling_node.read(iprot);
+          isset_calling_node = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -399,9 +390,210 @@ uint32_t ows_rpc_add_node_args::read(::apache::thrift::protocol::TProtocol* ipro
 
   xfer += iprot->readStructEnd();
 
-  if (!isset_running_node)
+  if (!isset_calling_node)
     throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_node)
+  return xfer;
+}
+
+uint32_t ows_rpc_get_planning_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("ows_rpc_get_planning_args");
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->calling_node.write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t ows_rpc_get_planning_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("ows_rpc_get_planning_pargs");
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->calling_node)).write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t ows_rpc_get_planning_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 0:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->success);
+          this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->e.read(iprot);
+          this->__isset.e = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t ows_rpc_get_planning_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+
+  uint32_t xfer = 0;
+
+  xfer += oprot->writeStructBegin("ows_rpc_get_planning_result");
+
+  if (this->__isset.success) {
+    xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRING, 0);
+    xfer += oprot->writeString(this->success);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.e) {
+    xfer += oprot->writeFieldBegin("e", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->e.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  }
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t ows_rpc_get_planning_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 0:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString((*(this->success)));
+          this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->e.read(iprot);
+          this->__isset.e = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t ows_rpc_add_node_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+  bool isset_calling_node = false;
+  bool isset_hosting_node = false;
+  bool isset_node_to_add = false;
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->calling_node.read(iprot);
+          isset_calling_node = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->hosting_node.read(iprot);
+          isset_hosting_node = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->node_to_add.read(iprot);
+          isset_node_to_add = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  if (!isset_calling_node)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_hosting_node)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_node_to_add)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
@@ -409,11 +601,14 @@ uint32_t ows_rpc_add_node_args::read(::apache::thrift::protocol::TProtocol* ipro
 uint32_t ows_rpc_add_node_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_add_node_args");
-  xfer += oprot->writeFieldBegin("running_node", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString(this->running_node);
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->calling_node.write(oprot);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("node", ::apache::thrift::protocol::T_STRUCT, 2);
-  xfer += this->node.write(oprot);
+  xfer += oprot->writeFieldBegin("hosting_node", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += this->hosting_node.write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("node_to_add", ::apache::thrift::protocol::T_STRUCT, 3);
+  xfer += this->node_to_add.write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -423,11 +618,14 @@ uint32_t ows_rpc_add_node_args::write(::apache::thrift::protocol::TProtocol* opr
 uint32_t ows_rpc_add_node_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_add_node_pargs");
-  xfer += oprot->writeFieldBegin("running_node", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString((*(this->running_node)));
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->calling_node)).write(oprot);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("node", ::apache::thrift::protocol::T_STRUCT, 2);
-  xfer += (*(this->node)).write(oprot);
+  xfer += oprot->writeFieldBegin("hosting_node", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += (*(this->hosting_node)).write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("node_to_add", ::apache::thrift::protocol::T_STRUCT, 3);
+  xfer += (*(this->node_to_add)).write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -561,7 +759,8 @@ uint32_t ows_rpc_get_jobs_args::read(::apache::thrift::protocol::TProtocol* ipro
 
   using ::apache::thrift::protocol::TProtocolException;
 
-  bool isset_running_node = false;
+  bool isset_calling_node = false;
+  bool isset_target_node = false;
 
   while (true)
   {
@@ -572,9 +771,17 @@ uint32_t ows_rpc_get_jobs_args::read(::apache::thrift::protocol::TProtocol* ipro
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->running_node);
-          isset_running_node = true;
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->calling_node.read(iprot);
+          isset_calling_node = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->target_node.read(iprot);
+          isset_target_node = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -588,7 +795,9 @@ uint32_t ows_rpc_get_jobs_args::read(::apache::thrift::protocol::TProtocol* ipro
 
   xfer += iprot->readStructEnd();
 
-  if (!isset_running_node)
+  if (!isset_calling_node)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_target_node)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
@@ -596,8 +805,11 @@ uint32_t ows_rpc_get_jobs_args::read(::apache::thrift::protocol::TProtocol* ipro
 uint32_t ows_rpc_get_jobs_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_get_jobs_args");
-  xfer += oprot->writeFieldBegin("running_node", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString(this->running_node);
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->calling_node.write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("target_node", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += this->target_node.write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -607,8 +819,11 @@ uint32_t ows_rpc_get_jobs_args::write(::apache::thrift::protocol::TProtocol* opr
 uint32_t ows_rpc_get_jobs_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_get_jobs_pargs");
-  xfer += oprot->writeFieldBegin("running_node", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString((*(this->running_node)));
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->calling_node)).write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("target_node", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += (*(this->target_node)).write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -774,7 +989,8 @@ uint32_t ows_rpc_get_ready_jobs_args::read(::apache::thrift::protocol::TProtocol
 
   using ::apache::thrift::protocol::TProtocolException;
 
-  bool isset_running_node = false;
+  bool isset_calling_node = false;
+  bool isset_target_node = false;
 
   while (true)
   {
@@ -785,9 +1001,17 @@ uint32_t ows_rpc_get_ready_jobs_args::read(::apache::thrift::protocol::TProtocol
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->running_node);
-          isset_running_node = true;
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->calling_node.read(iprot);
+          isset_calling_node = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->target_node.read(iprot);
+          isset_target_node = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -801,7 +1025,9 @@ uint32_t ows_rpc_get_ready_jobs_args::read(::apache::thrift::protocol::TProtocol
 
   xfer += iprot->readStructEnd();
 
-  if (!isset_running_node)
+  if (!isset_calling_node)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_target_node)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
@@ -809,8 +1035,11 @@ uint32_t ows_rpc_get_ready_jobs_args::read(::apache::thrift::protocol::TProtocol
 uint32_t ows_rpc_get_ready_jobs_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_get_ready_jobs_args");
-  xfer += oprot->writeFieldBegin("running_node", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString(this->running_node);
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->calling_node.write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("target_node", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += this->target_node.write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -820,8 +1049,11 @@ uint32_t ows_rpc_get_ready_jobs_args::write(::apache::thrift::protocol::TProtoco
 uint32_t ows_rpc_get_ready_jobs_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_get_ready_jobs_pargs");
-  xfer += oprot->writeFieldBegin("running_node", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString((*(this->running_node)));
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->calling_node)).write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("target_node", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += (*(this->target_node)).write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -987,6 +1219,7 @@ uint32_t ows_rpc_add_job_args::read(::apache::thrift::protocol::TProtocol* iprot
 
   using ::apache::thrift::protocol::TProtocolException;
 
+  bool isset_calling_node = false;
   bool isset_j = false;
 
   while (true)
@@ -998,6 +1231,14 @@ uint32_t ows_rpc_add_job_args::read(::apache::thrift::protocol::TProtocol* iprot
     switch (fid)
     {
       case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->calling_node.read(iprot);
+          isset_calling_node = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->j.read(iprot);
           isset_j = true;
@@ -1014,6 +1255,8 @@ uint32_t ows_rpc_add_job_args::read(::apache::thrift::protocol::TProtocol* iprot
 
   xfer += iprot->readStructEnd();
 
+  if (!isset_calling_node)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_j)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
@@ -1022,7 +1265,10 @@ uint32_t ows_rpc_add_job_args::read(::apache::thrift::protocol::TProtocol* iprot
 uint32_t ows_rpc_add_job_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_add_job_args");
-  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->calling_node.write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 2);
   xfer += this->j.write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
@@ -1033,7 +1279,10 @@ uint32_t ows_rpc_add_job_args::write(::apache::thrift::protocol::TProtocol* opro
 uint32_t ows_rpc_add_job_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_add_job_pargs");
-  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->calling_node)).write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 2);
   xfer += (*(this->j)).write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
@@ -1168,6 +1417,7 @@ uint32_t ows_rpc_remove_job_args::read(::apache::thrift::protocol::TProtocol* ip
 
   using ::apache::thrift::protocol::TProtocolException;
 
+  bool isset_calling_node = false;
   bool isset_j = false;
 
   while (true)
@@ -1179,6 +1429,14 @@ uint32_t ows_rpc_remove_job_args::read(::apache::thrift::protocol::TProtocol* ip
     switch (fid)
     {
       case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->calling_node.read(iprot);
+          isset_calling_node = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->j.read(iprot);
           isset_j = true;
@@ -1195,6 +1453,8 @@ uint32_t ows_rpc_remove_job_args::read(::apache::thrift::protocol::TProtocol* ip
 
   xfer += iprot->readStructEnd();
 
+  if (!isset_calling_node)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_j)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
@@ -1203,7 +1463,10 @@ uint32_t ows_rpc_remove_job_args::read(::apache::thrift::protocol::TProtocol* ip
 uint32_t ows_rpc_remove_job_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_remove_job_args");
-  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->calling_node.write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 2);
   xfer += this->j.write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
@@ -1214,7 +1477,10 @@ uint32_t ows_rpc_remove_job_args::write(::apache::thrift::protocol::TProtocol* o
 uint32_t ows_rpc_remove_job_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_remove_job_pargs");
-  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->calling_node)).write(oprot);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 2);
   xfer += (*(this->j)).write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
@@ -1349,8 +1615,8 @@ uint32_t ows_rpc_update_job_state_args::read(::apache::thrift::protocol::TProtoc
 
   using ::apache::thrift::protocol::TProtocolException;
 
+  bool isset_calling_node = false;
   bool isset_j = false;
-  bool isset_js = false;
 
   while (true)
   {
@@ -1362,18 +1628,16 @@ uint32_t ows_rpc_update_job_state_args::read(::apache::thrift::protocol::TProtoc
     {
       case 1:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->j.read(iprot);
-          isset_j = true;
+          xfer += this->calling_node.read(iprot);
+          isset_calling_node = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
       case 2:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          int32_t ecast35;
-          xfer += iprot->readI32(ecast35);
-          this->js = (e_job_state::type)ecast35;
-          isset_js = true;
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->j.read(iprot);
+          isset_j = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -1387,9 +1651,9 @@ uint32_t ows_rpc_update_job_state_args::read(::apache::thrift::protocol::TProtoc
 
   xfer += iprot->readStructEnd();
 
-  if (!isset_j)
+  if (!isset_calling_node)
     throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_js)
+  if (!isset_j)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
@@ -1397,11 +1661,11 @@ uint32_t ows_rpc_update_job_state_args::read(::apache::thrift::protocol::TProtoc
 uint32_t ows_rpc_update_job_state_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_update_job_state_args");
-  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 1);
-  xfer += this->j.write(oprot);
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->calling_node.write(oprot);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("js", ::apache::thrift::protocol::T_I32, 2);
-  xfer += oprot->writeI32((int32_t)this->js);
+  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += this->j.write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -1411,11 +1675,11 @@ uint32_t ows_rpc_update_job_state_args::write(::apache::thrift::protocol::TProto
 uint32_t ows_rpc_update_job_state_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ows_rpc_update_job_state_pargs");
-  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 1);
-  xfer += (*(this->j)).write(oprot);
+  xfer += oprot->writeFieldBegin("calling_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->calling_node)).write(oprot);
   xfer += oprot->writeFieldEnd();
-  xfer += oprot->writeFieldBegin("js", ::apache::thrift::protocol::T_I32, 2);
-  xfer += oprot->writeI32((int32_t)(*(this->js)));
+  xfer += oprot->writeFieldBegin("j", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += (*(this->j)).write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -1724,20 +1988,82 @@ void ows_rpcClient::recv_reach_master(t_route& _return)
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "reach_master failed: unknown result");
 }
 
-bool ows_rpcClient::add_node(const std::string& running_node, const t_node& node)
+void ows_rpcClient::get_planning(std::string& _return, const t_node& calling_node)
 {
-  send_add_node(running_node, node);
+  send_get_planning(calling_node);
+  recv_get_planning(_return);
+}
+
+void ows_rpcClient::send_get_planning(const t_node& calling_node)
+{
+  int32_t cseqid = 0;
+  oprot_->writeMessageBegin("get_planning", ::apache::thrift::protocol::T_CALL, cseqid);
+
+  ows_rpc_get_planning_pargs args;
+  args.calling_node = &calling_node;
+  args.write(oprot_);
+
+  oprot_->writeMessageEnd();
+  oprot_->getTransport()->writeEnd();
+  oprot_->getTransport()->flush();
+}
+
+void ows_rpcClient::recv_get_planning(std::string& _return)
+{
+
+  int32_t rseqid = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TMessageType mtype;
+
+  iprot_->readMessageBegin(fname, mtype, rseqid);
+  if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
+    ::apache::thrift::TApplicationException x;
+    x.read(iprot_);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+    throw x;
+  }
+  if (mtype != ::apache::thrift::protocol::T_REPLY) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  if (fname.compare("get_planning") != 0) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  ows_rpc_get_planning_presult result;
+  result.success = &_return;
+  result.read(iprot_);
+  iprot_->readMessageEnd();
+  iprot_->getTransport()->readEnd();
+
+  if (result.__isset.success) {
+    // _return pointer has now been filled
+    return;
+  }
+  if (result.__isset.e) {
+    throw result.e;
+  }
+  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "get_planning failed: unknown result");
+}
+
+bool ows_rpcClient::add_node(const t_node& calling_node, const t_node& hosting_node, const t_node& node_to_add)
+{
+  send_add_node(calling_node, hosting_node, node_to_add);
   return recv_add_node();
 }
 
-void ows_rpcClient::send_add_node(const std::string& running_node, const t_node& node)
+void ows_rpcClient::send_add_node(const t_node& calling_node, const t_node& hosting_node, const t_node& node_to_add)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("add_node", ::apache::thrift::protocol::T_CALL, cseqid);
 
   ows_rpc_add_node_pargs args;
-  args.running_node = &running_node;
-  args.node = &node;
+  args.calling_node = &calling_node;
+  args.hosting_node = &hosting_node;
+  args.node_to_add = &node_to_add;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1786,19 +2112,20 @@ bool ows_rpcClient::recv_add_node()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "add_node failed: unknown result");
 }
 
-void ows_rpcClient::get_jobs(v_jobs& _return, const std::string& running_node)
+void ows_rpcClient::get_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node)
 {
-  send_get_jobs(running_node);
+  send_get_jobs(calling_node, target_node);
   recv_get_jobs(_return);
 }
 
-void ows_rpcClient::send_get_jobs(const std::string& running_node)
+void ows_rpcClient::send_get_jobs(const t_node& calling_node, const t_node& target_node)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("get_jobs", ::apache::thrift::protocol::T_CALL, cseqid);
 
   ows_rpc_get_jobs_pargs args;
-  args.running_node = &running_node;
+  args.calling_node = &calling_node;
+  args.target_node = &target_node;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1847,19 +2174,20 @@ void ows_rpcClient::recv_get_jobs(v_jobs& _return)
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "get_jobs failed: unknown result");
 }
 
-void ows_rpcClient::get_ready_jobs(v_jobs& _return, const std::string& running_node)
+void ows_rpcClient::get_ready_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node)
 {
-  send_get_ready_jobs(running_node);
+  send_get_ready_jobs(calling_node, target_node);
   recv_get_ready_jobs(_return);
 }
 
-void ows_rpcClient::send_get_ready_jobs(const std::string& running_node)
+void ows_rpcClient::send_get_ready_jobs(const t_node& calling_node, const t_node& target_node)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("get_ready_jobs", ::apache::thrift::protocol::T_CALL, cseqid);
 
   ows_rpc_get_ready_jobs_pargs args;
-  args.running_node = &running_node;
+  args.calling_node = &calling_node;
+  args.target_node = &target_node;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1908,18 +2236,19 @@ void ows_rpcClient::recv_get_ready_jobs(v_jobs& _return)
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "get_ready_jobs failed: unknown result");
 }
 
-bool ows_rpcClient::add_job(const t_job& j)
+bool ows_rpcClient::add_job(const t_node& calling_node, const t_job& j)
 {
-  send_add_job(j);
+  send_add_job(calling_node, j);
   return recv_add_job();
 }
 
-void ows_rpcClient::send_add_job(const t_job& j)
+void ows_rpcClient::send_add_job(const t_node& calling_node, const t_job& j)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("add_job", ::apache::thrift::protocol::T_CALL, cseqid);
 
   ows_rpc_add_job_pargs args;
+  args.calling_node = &calling_node;
   args.j = &j;
   args.write(oprot_);
 
@@ -1969,18 +2298,19 @@ bool ows_rpcClient::recv_add_job()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "add_job failed: unknown result");
 }
 
-bool ows_rpcClient::remove_job(const t_job& j)
+bool ows_rpcClient::remove_job(const t_node& calling_node, const t_job& j)
 {
-  send_remove_job(j);
+  send_remove_job(calling_node, j);
   return recv_remove_job();
 }
 
-void ows_rpcClient::send_remove_job(const t_job& j)
+void ows_rpcClient::send_remove_job(const t_node& calling_node, const t_job& j)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("remove_job", ::apache::thrift::protocol::T_CALL, cseqid);
 
   ows_rpc_remove_job_pargs args;
+  args.calling_node = &calling_node;
   args.j = &j;
   args.write(oprot_);
 
@@ -2030,20 +2360,20 @@ bool ows_rpcClient::recv_remove_job()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "remove_job failed: unknown result");
 }
 
-bool ows_rpcClient::update_job_state(const t_job& j, const e_job_state::type js)
+bool ows_rpcClient::update_job_state(const t_node& calling_node, const t_job& j)
 {
-  send_update_job_state(j, js);
+  send_update_job_state(calling_node, j);
   return recv_update_job_state();
 }
 
-void ows_rpcClient::send_update_job_state(const t_job& j, const e_job_state::type js)
+void ows_rpcClient::send_update_job_state(const t_node& calling_node, const t_job& j)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("update_job_state", ::apache::thrift::protocol::T_CALL, cseqid);
 
   ows_rpc_update_job_state_pargs args;
+  args.calling_node = &calling_node;
   args.j = &j;
-  args.js = &js;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -2270,6 +2600,63 @@ void ows_rpcProcessor::process_reach_master(int32_t seqid, ::apache::thrift::pro
   }
 }
 
+void ows_rpcProcessor::process_get_planning(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+{
+  void* ctx = NULL;
+  if (eventHandler_.get() != NULL) {
+    ctx = eventHandler_->getContext("ows_rpc.get_planning", callContext);
+  }
+  ::apache::thrift::TProcessorContextFreer freer(eventHandler_.get(), ctx, "ows_rpc.get_planning");
+
+  if (eventHandler_.get() != NULL) {
+    eventHandler_->preRead(ctx, "ows_rpc.get_planning");
+  }
+
+  ows_rpc_get_planning_args args;
+  args.read(iprot);
+  iprot->readMessageEnd();
+  uint32_t bytes = iprot->getTransport()->readEnd();
+
+  if (eventHandler_.get() != NULL) {
+    eventHandler_->postRead(ctx, "ows_rpc.get_planning", bytes);
+  }
+
+  ows_rpc_get_planning_result result;
+  try {
+    iface_->get_planning(result.success, args.calling_node);
+    result.__isset.success = true;
+  } catch (e_planning &e) {
+    result.e = e;
+    result.__isset.e = true;
+  } catch (const std::exception& e) {
+    if (eventHandler_.get() != NULL) {
+      eventHandler_->handlerError(ctx, "ows_rpc.get_planning");
+    }
+
+    ::apache::thrift::TApplicationException x(e.what());
+    oprot->writeMessageBegin("get_planning", ::apache::thrift::protocol::T_EXCEPTION, seqid);
+    x.write(oprot);
+    oprot->writeMessageEnd();
+    oprot->getTransport()->writeEnd();
+    oprot->getTransport()->flush();
+    return;
+  }
+
+  if (eventHandler_.get() != NULL) {
+    eventHandler_->preWrite(ctx, "ows_rpc.get_planning");
+  }
+
+  oprot->writeMessageBegin("get_planning", ::apache::thrift::protocol::T_REPLY, seqid);
+  result.write(oprot);
+  oprot->writeMessageEnd();
+  bytes = oprot->getTransport()->writeEnd();
+  oprot->getTransport()->flush();
+
+  if (eventHandler_.get() != NULL) {
+    eventHandler_->postWrite(ctx, "ows_rpc.get_planning", bytes);
+  }
+}
+
 void ows_rpcProcessor::process_add_node(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
 {
   void* ctx = NULL;
@@ -2293,7 +2680,7 @@ void ows_rpcProcessor::process_add_node(int32_t seqid, ::apache::thrift::protoco
 
   ows_rpc_add_node_result result;
   try {
-    result.success = iface_->add_node(args.running_node, args.node);
+    result.success = iface_->add_node(args.calling_node, args.hosting_node, args.node_to_add);
     result.__isset.success = true;
   } catch (e_node &e) {
     result.e = e;
@@ -2350,7 +2737,7 @@ void ows_rpcProcessor::process_get_jobs(int32_t seqid, ::apache::thrift::protoco
 
   ows_rpc_get_jobs_result result;
   try {
-    iface_->get_jobs(result.success, args.running_node);
+    iface_->get_jobs(result.success, args.calling_node, args.target_node);
     result.__isset.success = true;
   } catch (e_job &e) {
     result.e = e;
@@ -2407,7 +2794,7 @@ void ows_rpcProcessor::process_get_ready_jobs(int32_t seqid, ::apache::thrift::p
 
   ows_rpc_get_ready_jobs_result result;
   try {
-    iface_->get_ready_jobs(result.success, args.running_node);
+    iface_->get_ready_jobs(result.success, args.calling_node, args.target_node);
     result.__isset.success = true;
   } catch (e_job &e) {
     result.e = e;
@@ -2464,7 +2851,7 @@ void ows_rpcProcessor::process_add_job(int32_t seqid, ::apache::thrift::protocol
 
   ows_rpc_add_job_result result;
   try {
-    result.success = iface_->add_job(args.j);
+    result.success = iface_->add_job(args.calling_node, args.j);
     result.__isset.success = true;
   } catch (e_job &e) {
     result.e = e;
@@ -2521,7 +2908,7 @@ void ows_rpcProcessor::process_remove_job(int32_t seqid, ::apache::thrift::proto
 
   ows_rpc_remove_job_result result;
   try {
-    result.success = iface_->remove_job(args.j);
+    result.success = iface_->remove_job(args.calling_node, args.j);
     result.__isset.success = true;
   } catch (e_job &e) {
     result.e = e;
@@ -2578,7 +2965,7 @@ void ows_rpcProcessor::process_update_job_state(int32_t seqid, ::apache::thrift:
 
   ows_rpc_update_job_state_result result;
   try {
-    result.success = iface_->update_job_state(args.j, args.js);
+    result.success = iface_->update_job_state(args.calling_node, args.j);
     result.__isset.success = true;
   } catch (e_job &e) {
     result.e = e;

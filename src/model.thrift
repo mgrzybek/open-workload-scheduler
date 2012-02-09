@@ -43,7 +43,8 @@ typedef list<integer> v_job_ids
 
 struct	t_node {
 	1: required string	name,
-	2: optional integer	weight,
+	2: required string	domain_name,
+	3: required integer	weight,
 }
 
 struct	t_job {
@@ -77,7 +78,7 @@ struct	t_hello {
 }
 
 struct t_route {
-	1: required string	node_name,
+	1: required t_node	destination_node,
 	2: required integer	hops,
 }
 
@@ -93,6 +94,10 @@ exception e_node {
 	1: string	msg,
 }
 
+exception e_planning {
+	1: string	msg,
+}
+
 service ows_rpc {
 	/*
 	 * Routing
@@ -103,36 +108,54 @@ service ows_rpc {
 	t_route	reach_master() throws (1:e_routing e);
 
 	/*
+	 * Planning
+	 */
+	string	get_planning(
+			1: required t_node	calling_node,
+	) throws (1:e_planning e);
+
+	/*
 	 * Node
 	 */
 	bool	add_node(
-			1: required string	running_node,
-			2: required t_node	node,
+			1: required t_node	calling_node,
+			2: required t_node	hosting_node,
+			3: required t_node	node_to_add,
 	) throws (1:e_node e);
 
 	/*
 	 * Jobs
 	 */
 	v_jobs	get_jobs(
-			1: required string	running_node
+			1: required t_node	calling_node,
+			2: required t_node	target_node,
 	) throws (1:e_job e);
+
 	v_jobs	get_ready_jobs(
-			1: required string	running_node
+			1: required t_node	calling_node,
+			2: required t_node	target_node,
 	) throws (1:e_job e);
+
 	bool	add_job(
-			1: required t_job		j
+			1: required t_node	calling_node,
+			2: required t_job	j,
 	) throws (1:e_job e);
+
 	bool	remove_job(
-			1: required t_job		j
+			1: required t_node	calling_node,
+			2: required t_job	j,
 	) throws (1:e_job e);
+
 //	bool	remove_job(
-//			1: required string	running_node,
+//			1: required t_node	calling_node,
 //			2: required integer	j_id,
 //	) throws (1:e_job e);
+
 	bool	update_job_state(
-			1: required t_job		j,
-			2: required e_job_state	js
+			1: required t_node	calling_node,
+			2: required t_job	j,
 	) throws (1:e_job e);
+
 //	bool	update_job_state(
 //			1: required string	running_node,
 //			2: required integer	j_id,

@@ -59,6 +59,15 @@ public:
 	~Domain();
 
 	/*
+	 * get_planning
+	 *
+	 * Gets the planning from the master
+	 *
+	 * @return true	: sucess
+	 */
+	bool				get_planning();
+
+	/*
 	 * add_node
 	 *
 	 * Adds a node to the domain
@@ -116,6 +125,7 @@ public:
 	 * @arg j_id			: the jobs's id
 	 * @return true			: success
 	 */
+	bool				remove_job(const rpc::t_job& j);
 	bool				remove_job(const Job*);
 	bool				remove_job(const std::string* running_node, const int j_id);
 	bool				remove_job(const std::string& running_node, const int j_id);
@@ -132,6 +142,7 @@ public:
 	 *
 	 * TODO: use only the Job object (remove the second argument)
 	 */
+	bool				update_job_state(const rpc::t_job&);
 	bool				update_job_state(const Job*, const rpc::e_job_state::type);
 	bool				update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js);
 

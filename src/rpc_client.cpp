@@ -31,13 +31,13 @@ Rpc_Client::Rpc_Client(Config* c, Router* r) {
 	this->config	= c;
 	this->router	= r;
 #ifdef USE_THRIFT
-	this->client	= NULL;
+	this->handler	= NULL;
 #endif // USE_THRIFT
 }
 
 Rpc_Client::Rpc_Client() {
 #ifdef USE_THRIFT
-	this->client	= NULL;
+	this->handler	= NULL;
 #endif // USE_THRIFT
 }
 
@@ -45,9 +45,9 @@ Rpc_Client::~Rpc_Client() {
 	this->config	= NULL;
 	this->router	= NULL;
 #ifdef USE_THRIFT
-	if ( this->client != NULL ) {
-		delete this->client;
-		this->client = NULL;
+	if ( this->handler != NULL ) {
+		delete this->handler;
+		this->handler = NULL;
 		if ( this->transport != NULL )
 			this->transport->close();
 
@@ -62,7 +62,7 @@ bool	Rpc_Client::open(const char* hostname, const int& port) {
 	boost::shared_ptr<apache::thrift::transport::TTransport>	transport(new apache::thrift::transport::TBufferedTransport(socket));
 	boost::shared_ptr<apache::thrift::protocol::TProtocol>		protocol(new apache::thrift::protocol::TBinaryProtocol(transport));
 
-	this->client = new rpc::ows_rpcClient(protocol);
+	this->handler = new rpc::ows_rpcClient(protocol);
 
 	try {
 		transport->open();
@@ -74,14 +74,14 @@ bool	Rpc_Client::open(const char* hostname, const int& port) {
 	return true;
 }
 
-rpc::ows_rpcClient*	Rpc_Client::get_client() const {
-	return this->client;
+rpc::ows_rpcClient*	Rpc_Client::get_handler() const {
+	return this->handler;
 }
 
 //TODO: find a clean transport->close()
 bool    Rpc_Client::close() {
-	delete this->client;
-	this->client = NULL;
+	delete this->handler;
+	this->handler = NULL;
 /*
 	try {
 		this->transport->close();

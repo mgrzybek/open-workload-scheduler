@@ -250,14 +250,13 @@ public:
 	bool	prepare(const char* node_name, const std::string* db_data, const std::string* db_skeleton );
 
 	/*
-	 * execute
+	 * standaline_execute
 	 *
 	 * Executes an SQL query without result
 	 *
-	 * @arg query	: SQL query
+	 * @arg query	: SQL queries
 	 * @return true	: success
 	 */
-	bool	atomic_execute(const std::string* query);
 	bool	standalone_execute(const v_queries* queries);
 
 	/*
@@ -268,7 +267,7 @@ public:
 	 * @arg query	: SQL query
 	 * @return true	: success
 	 */
-	v_row	query_one_row(const std::string* query);
+	v_row	query_one_row(const char* query);
 
 	/*
 	 * query_full_result
@@ -279,7 +278,7 @@ public:
 	 * @arg	result		: the rows
 	 * @return true		: the success
 	 */
-	v_v_row*	query_full_result(const std::string* query);
+	v_v_row*	query_full_result(const char* query);
 
 	/*
 	 * get_inserted_id
@@ -289,7 +288,7 @@ public:
 	 * @arg		: none
 	 * @return	: the id
 	 */
-	int		get_inserted_id() const;
+	int		get_inserted_id();
 
 	/*
 	 * shutdown
@@ -319,6 +318,17 @@ private:
 	sqlite3*	p_db;
 
 	/*
+	 * execute
+	 *
+	 * Executes an SQL query without result
+	 *
+	 * @arg query	: SQL query
+	 * @arg	mysql	: the MySQL connector
+	 * @return true	: success
+	 */
+	bool	atomic_execute(const std::string& query, sqlite3* p_db);
+
+	/*
 	 * load_file
 	 *
 	 * Reads an SQL file and execute the queries
@@ -326,7 +336,16 @@ private:
 	 * @arg file_path	: the SQL file
 	 * @return true		: success
 	 */
-	bool		load_file(const char*);
+	bool	load_file(const char* node_name, const char* file_path);
+
+	/*
+	 * init
+	 *
+	 * Initializes the SQLite connection to the embedded server
+	 * - must be called on each thread
+	 * - basically it is called at the beginning of each method
+	 */
+	sqlite3*	init();
 
 	/*
 	 * callback

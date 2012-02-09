@@ -21,8 +21,8 @@ const char* _ke_job_stateNames[] = {
 };
 const std::map<int, const char*> _e_job_state_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(4, _ke_job_stateValues, _ke_job_stateNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
 
-const char* t_node::ascii_fingerprint = "5AC90DA6F2A44658D2CCBD1121C29A34";
-const uint8_t t_node::binary_fingerprint[16] = {0x5A,0xC9,0x0D,0xA6,0xF2,0xA4,0x46,0x58,0xD2,0xCC,0xBD,0x11,0x21,0xC2,0x9A,0x34};
+const char* t_node::ascii_fingerprint = "52F7D5E8217C4B8FC14F1F30BF2EB41C";
+const uint8_t t_node::binary_fingerprint[16] = {0x52,0xF7,0xD5,0xE8,0x21,0x7C,0x4B,0x8F,0xC1,0x4F,0x1F,0x30,0xBF,0x2E,0xB4,0x1C};
 
 uint32_t t_node::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -36,6 +36,8 @@ uint32_t t_node::read(::apache::thrift::protocol::TProtocol* iprot) {
   using ::apache::thrift::protocol::TProtocolException;
 
   bool isset_name = false;
+  bool isset_domain_name = false;
+  bool isset_weight = false;
 
   while (true)
   {
@@ -54,9 +56,17 @@ uint32_t t_node::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->domain_name);
+          isset_domain_name = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
         if (ftype == ::apache::thrift::protocol::T_I16) {
           xfer += iprot->readI16(this->weight);
-          this->__isset.weight = true;
+          isset_weight = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -72,6 +82,10 @@ uint32_t t_node::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   if (!isset_name)
     throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_domain_name)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_weight)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
 
@@ -81,11 +95,12 @@ uint32_t t_node::write(::apache::thrift::protocol::TProtocol* oprot) const {
   xfer += oprot->writeFieldBegin("name", ::apache::thrift::protocol::T_STRING, 1);
   xfer += oprot->writeString(this->name);
   xfer += oprot->writeFieldEnd();
-  if (this->__isset.weight) {
-    xfer += oprot->writeFieldBegin("weight", ::apache::thrift::protocol::T_I16, 2);
-    xfer += oprot->writeI16(this->weight);
-    xfer += oprot->writeFieldEnd();
-  }
+  xfer += oprot->writeFieldBegin("domain_name", ::apache::thrift::protocol::T_STRING, 2);
+  xfer += oprot->writeString(this->domain_name);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldBegin("weight", ::apache::thrift::protocol::T_I16, 3);
+  xfer += oprot->writeI16(this->weight);
+  xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -429,8 +444,8 @@ uint32_t t_hello::write(::apache::thrift::protocol::TProtocol* oprot) const {
   return xfer;
 }
 
-const char* t_route::ascii_fingerprint = "3628A1EB414F66736E1B2A082E79475F";
-const uint8_t t_route::binary_fingerprint[16] = {0x36,0x28,0xA1,0xEB,0x41,0x4F,0x66,0x73,0x6E,0x1B,0x2A,0x08,0x2E,0x79,0x47,0x5F};
+const char* t_route::ascii_fingerprint = "8F79B413CBA2C751FFAA9ADAD3083A49";
+const uint8_t t_route::binary_fingerprint[16] = {0x8F,0x79,0xB4,0x13,0xCB,0xA2,0xC7,0x51,0xFF,0xAA,0x9A,0xDA,0xD3,0x08,0x3A,0x49};
 
 uint32_t t_route::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -443,7 +458,7 @@ uint32_t t_route::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   using ::apache::thrift::protocol::TProtocolException;
 
-  bool isset_node_name = false;
+  bool isset_destination_node = false;
   bool isset_hops = false;
 
   while (true)
@@ -455,9 +470,9 @@ uint32_t t_route::read(::apache::thrift::protocol::TProtocol* iprot) {
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->node_name);
-          isset_node_name = true;
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->destination_node.read(iprot);
+          isset_destination_node = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -479,7 +494,7 @@ uint32_t t_route::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   xfer += iprot->readStructEnd();
 
-  if (!isset_node_name)
+  if (!isset_destination_node)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_hops)
     throw TProtocolException(TProtocolException::INVALID_DATA);
@@ -489,8 +504,8 @@ uint32_t t_route::read(::apache::thrift::protocol::TProtocol* iprot) {
 uint32_t t_route::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("t_route");
-  xfer += oprot->writeFieldBegin("node_name", ::apache::thrift::protocol::T_STRING, 1);
-  xfer += oprot->writeString(this->node_name);
+  xfer += oprot->writeFieldBegin("destination_node", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->destination_node.write(oprot);
   xfer += oprot->writeFieldEnd();
   xfer += oprot->writeFieldBegin("hops", ::apache::thrift::protocol::T_I16, 2);
   xfer += oprot->writeI16(this->hops);
@@ -654,6 +669,60 @@ uint32_t e_node::read(::apache::thrift::protocol::TProtocol* iprot) {
 uint32_t e_node::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("e_node");
+  xfer += oprot->writeFieldBegin("msg", ::apache::thrift::protocol::T_STRING, 1);
+  xfer += oprot->writeString(this->msg);
+  xfer += oprot->writeFieldEnd();
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+const char* e_planning::ascii_fingerprint = "EFB929595D312AC8F305D5A794CFEDA1";
+const uint8_t e_planning::binary_fingerprint[16] = {0xEF,0xB9,0x29,0x59,0x5D,0x31,0x2A,0xC8,0xF3,0x05,0xD5,0xA7,0x94,0xCF,0xED,0xA1};
+
+uint32_t e_planning::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->msg);
+          this->__isset.msg = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t e_planning::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("e_planning");
   xfer += oprot->writeFieldBegin("msg", ::apache::thrift::protocol::T_STRING, 1);
   xfer += oprot->writeString(this->msg);
   xfer += oprot->writeFieldEnd();

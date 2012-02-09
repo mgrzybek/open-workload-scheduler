@@ -113,6 +113,12 @@ std::string*	Config::get_param(const char* field) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+e_running_mode	Config::get_running_mode() {
+	return this->running_mode;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 bool	Config::check_syntax(const char* key, const char* value) {
 	m_syntax_regex::iterator	it;
 
@@ -134,3 +140,6 @@ bool	Config::check_syntax(const char* key, const char* value) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void	Config::set_running_mode(const e_running_mode rm) {
+	this->running_mode = rm;
+}

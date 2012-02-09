@@ -69,6 +69,12 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////
 
+/*
+ * TODO: know who is calling to be able to choose how to process the rpc:
+ * - is it the master wanting me to update something? -> ACL
+ * - loop detection: is node A calling node A?
+ */
+
 class Rpc_Server : public Rpc_Object {
 public:
 	Rpc_Server(Domain*, Config*, Router*);
@@ -83,7 +89,7 @@ public:
 	Domain*	get_domain();
 
 private:
-	Domain*		domain;
+	Domain*	domain;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,27 +104,29 @@ public:
 	void hello(rpc::t_hello& _return, const rpc::t_node& target_node);
 	void reach_master(rpc::t_route& _return);
 
+	// Planning methods
+	void get_planning(std::string& _return, const rpc::t_node& calling_node);
+
 	// Nodes methods
-	bool add_node(const std::string& running_node, const rpc::t_node& node); // TODO: fix the weight value
+	bool add_node(const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_add); // TODO: fix the weight value
 
 	// Jobs methods
-	void get_jobs(rpc::v_jobs& _return, const std::string& running_node);
-	void get_ready_jobs(rpc::v_jobs& _return, const std::string& running_node);
-	bool add_job(const rpc::t_job& j);
-	bool remove_job(const rpc::t_job& j);
-	bool update_job_state(const rpc::t_job& j, const rpc::e_job_state::type js);
+	void get_jobs(rpc::v_jobs& _return, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	void get_ready_jobs(rpc::v_jobs& _return, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	bool add_job(const rpc::t_node& calling_node, const rpc::t_job& j);
+	bool remove_job(const rpc::t_node& calling_node, const rpc::t_job& j);
+	bool update_job_state(const rpc::t_node& calling_node, const rpc::t_job& j);
 
 	// SQL methods
 	void sql_exec(const std::string& query);
 
 private:
 	Domain*	domain;
-
-	// TODO: use rpc::e_job directly into the code to avoid using cast functions
-//	e_job_state	cast_e_job_state(const rpc::e_job_state::type& js);
 };
 
 #endif // USE_THRIFT
+
+///////////////////////////////////////////////////////////////////////////////
 
 // } // namespace ows
 

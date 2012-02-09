@@ -78,7 +78,7 @@ bool	Router::update_peers_list() {
 			if ( position != 0 ) {
 				try {
 					this->rpc_client->open(peer.name.c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
-					this->rpc_client->get_client()->hello(hello_result, peer);
+					this->rpc_client->get_handler()->hello(hello_result, peer);
 				} catch (std::exception& e) {
 					this->hosts_keys.erase(peer.name);
 				}
@@ -199,6 +199,7 @@ std::string*	Router::get_gateway(const std::string* destination) {
 }
 */
 ///////////////////////////////////////////////////////////////////////////////
+
 std::string*	Router::get_gateway(const std::string& destination) {
 	m_routing_table::iterator			iter_dst;
 	m_weighted_gateway::const_iterator	iter_gtw;
@@ -211,6 +212,13 @@ std::string*	Router::get_gateway(const std::string& destination) {
 	}
 
 	return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+std::string*	Router::get_gateway(const char* destination) {
+	std::string	buffer(destination);
+	return this->get_gateway(buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -233,12 +241,12 @@ bool	Router::reach_master(const char* target) {
 	rpc::t_route	result;
 
 	this->rpc_client->open(target, boost::lexical_cast<int>(this->config->get_param("port")));
-	this->rpc_client->get_client()->reach_master(result);
+	this->rpc_client->get_handler()->reach_master(result);
 
 	// We may have found the master, so update the routing table
-	if ( result.node_name.empty() == false and result.hops >= 0 ) {
-		this->set_master_node(result.node_name.c_str());
-		this->insert_route(result.node_name, target, result.hops);
+	if ( result.destination_node.name.empty() == false and result.hops >= 0 ) {
+		this->set_master_node(result.destination_node.name.c_str());
+		this->insert_route(result.destination_node.name, target, result.hops);
 		return true;
 	}
 

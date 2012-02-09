@@ -152,14 +152,17 @@ int		main (int argc, char * const argv[]) {
 	 *
 	 * - Check for ready jobs every minute
 	 */
-	while(1) {
-		BOOST_FOREACH(Job j, domain.get_ready_jobs(conf_params.get_param("node_name")->c_str())) {
-			j.run();
+	boost::thread_group	running_jobs;
+	while (1) {
+		v_jobs	jobs = domain.get_ready_jobs(conf_params.get_param("node_name")->c_str());
+		std::cout << "jobs size: " << jobs.size() << std::endl; // TODO: remove it
+		BOOST_FOREACH(Job j, jobs) {
+			running_jobs.create_thread(boost::bind(&Job::run, &j));
 		}
 		sleep(60);
 	}
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

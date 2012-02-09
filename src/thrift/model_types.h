@@ -32,34 +32,29 @@ typedef std::vector<integer>  v_job_ids;
 
 typedef std::vector<class t_job>  v_jobs;
 
-typedef struct _t_node__isset {
-  _t_node__isset() : weight(false) {}
-  bool weight;
-} _t_node__isset;
 
 class t_node {
  public:
 
-  static const char* ascii_fingerprint; // = "5AC90DA6F2A44658D2CCBD1121C29A34";
-  static const uint8_t binary_fingerprint[16]; // = {0x5A,0xC9,0x0D,0xA6,0xF2,0xA4,0x46,0x58,0xD2,0xCC,0xBD,0x11,0x21,0xC2,0x9A,0x34};
+  static const char* ascii_fingerprint; // = "52F7D5E8217C4B8FC14F1F30BF2EB41C";
+  static const uint8_t binary_fingerprint[16]; // = {0x52,0xF7,0xD5,0xE8,0x21,0x7C,0x4B,0x8F,0xC1,0x4F,0x1F,0x30,0xBF,0x2E,0xB4,0x1C};
 
-  t_node() : name(""), weight(0) {
+  t_node() : name(""), domain_name(""), weight(0) {
   }
 
   virtual ~t_node() throw() {}
 
   std::string name;
+  std::string domain_name;
   integer weight;
-
-  _t_node__isset __isset;
 
   bool operator == (const t_node & rhs) const
   {
     if (!(name == rhs.name))
       return false;
-    if (__isset.weight != rhs.__isset.weight)
+    if (!(domain_name == rhs.domain_name))
       return false;
-    else if (__isset.weight && !(weight == rhs.weight))
+    if (!(weight == rhs.weight))
       return false;
     return true;
   }
@@ -179,20 +174,20 @@ class t_hello {
 class t_route {
  public:
 
-  static const char* ascii_fingerprint; // = "3628A1EB414F66736E1B2A082E79475F";
-  static const uint8_t binary_fingerprint[16]; // = {0x36,0x28,0xA1,0xEB,0x41,0x4F,0x66,0x73,0x6E,0x1B,0x2A,0x08,0x2E,0x79,0x47,0x5F};
+  static const char* ascii_fingerprint; // = "8F79B413CBA2C751FFAA9ADAD3083A49";
+  static const uint8_t binary_fingerprint[16]; // = {0x8F,0x79,0xB4,0x13,0xCB,0xA2,0xC7,0x51,0xFF,0xAA,0x9A,0xDA,0xD3,0x08,0x3A,0x49};
 
-  t_route() : node_name(""), hops(0) {
+  t_route() : hops(0) {
   }
 
   virtual ~t_route() throw() {}
 
-  std::string node_name;
+  t_node destination_node;
   integer hops;
 
   bool operator == (const t_route & rhs) const
   {
-    if (!(node_name == rhs.node_name))
+    if (!(destination_node == rhs.destination_node))
       return false;
     if (!(hops == rhs.hops))
       return false;
@@ -314,6 +309,43 @@ class e_node : public ::apache::thrift::TException {
   }
 
   bool operator < (const e_node & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _e_planning__isset {
+  _e_planning__isset() : msg(false) {}
+  bool msg;
+} _e_planning__isset;
+
+class e_planning : public ::apache::thrift::TException {
+ public:
+
+  static const char* ascii_fingerprint; // = "EFB929595D312AC8F305D5A794CFEDA1";
+  static const uint8_t binary_fingerprint[16]; // = {0xEF,0xB9,0x29,0x59,0x5D,0x31,0x2A,0xC8,0xF3,0x05,0xD5,0xA7,0x94,0xCF,0xED,0xA1};
+
+  e_planning() : msg("") {
+  }
+
+  virtual ~e_planning() throw() {}
+
+  std::string msg;
+
+  _e_planning__isset __isset;
+
+  bool operator == (const e_planning & rhs) const
+  {
+    if (!(msg == rhs.msg))
+      return false;
+    return true;
+  }
+  bool operator != (const e_planning &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const e_planning & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;

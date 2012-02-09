@@ -53,6 +53,21 @@ typedef std::map<std::string,std::string> m_config;
  */
 typedef std::map<std::string,boost::regex> m_syntax_regex;
 
+
+/*
+ * running_mode
+ *
+ * Describes how the scheduler should behave:
+ * - full p2p : there is no master node. The planning is distributed.
+ * - active mode : The nodes try to reach the master to get their planning.
+ * - passive mode : The nodes are passive and do not get their planning. They just wait the master to give jobs to run.
+ */
+typedef enum e_running_mode {
+	P2P,
+	ACTIVE,
+	PASSIVE
+};
+
 //namespace ows {
 
 class Config {
@@ -82,6 +97,13 @@ public:
 	 */
 	std::string*	get_param(const char*);
 
+	/*
+	 * get_running_mode
+	 *
+	 * @return : the selected mode
+	 */
+	e_running_mode	get_running_mode();
+
 private:
 	/*
 	 * check_syntax
@@ -93,6 +115,13 @@ private:
 	 * Checks if the stored key matches its regexp
 	 */
 	bool			check_syntax(const char* key, const char* value);
+
+	/*
+	 * get_running_mode
+	 *
+	 * @return : the selected mode
+	 */
+	void			set_running_mode(const e_running_mode rm);
 
 	/*
 	 * config_options
@@ -115,6 +144,15 @@ private:
 	 * The name of the node managing the domain
 	 */
 	std::string		master_node;
+
+	/*
+	 * running_mode
+	 *
+	 * How the scheduler should behave
+	 * We do not use the get_param method because this constant is read a lot
+	 * of times. It is slow to find()
+	 */
+	e_running_mode	running_mode;
 };
 
 //} // namespace ows

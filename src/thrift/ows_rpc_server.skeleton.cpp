@@ -32,32 +32,37 @@ class ows_rpcHandler : virtual public ows_rpcIf {
     printf("reach_master\n");
   }
 
-  bool add_node(const std::string& running_node, const t_node& node) {
+  void get_planning(std::string& _return, const t_node& calling_node) {
+    // Your implementation goes here
+    printf("get_planning\n");
+  }
+
+  bool add_node(const t_node& calling_node, const t_node& hosting_node, const t_node& node_to_add) {
     // Your implementation goes here
     printf("add_node\n");
   }
 
-  void get_jobs(v_jobs& _return, const std::string& running_node) {
+  void get_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node) {
     // Your implementation goes here
     printf("get_jobs\n");
   }
 
-  void get_ready_jobs(v_jobs& _return, const std::string& running_node) {
+  void get_ready_jobs(v_jobs& _return, const t_node& calling_node, const t_node& target_node) {
     // Your implementation goes here
     printf("get_ready_jobs\n");
   }
 
-  bool add_job(const t_job& j) {
+  bool add_job(const t_node& calling_node, const t_job& j) {
     // Your implementation goes here
     printf("add_job\n");
   }
 
-  bool remove_job(const t_job& j) {
+  bool remove_job(const t_node& calling_node, const t_job& j) {
     // Your implementation goes here
     printf("remove_job\n");
   }
 
-  bool update_job_state(const t_job& j, const e_job_state::type js) {
+  bool update_job_state(const t_node& calling_node, const t_job& j) {
     // Your implementation goes here
     printf("update_job_state\n");
   }
