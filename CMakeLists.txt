@@ -128,7 +128,7 @@ target_link_libraries(client
 	curl
 	dl
 	pthread
-	sqlite3
+	/opt/local/lib/libsqlite3.a
 	ssl
 	z
 
@@ -145,7 +145,7 @@ target_link_libraries(master
 	curl
 	dl
 	pthread
-	sqlite3
+	/opt/local/lib/libsqlite3.a
 	ssl
 	z
 

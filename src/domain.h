@@ -49,8 +49,8 @@ class Job;
 
 typedef	std::vector<Job>				v_jobs;
 #ifdef USE_SQLITE
-typedef	std::map<std::string, Sqlite>	m_nodes;
-typedef	std::pair<std::string, Sqlite>	p_nodes;
+typedef	std::map<std::string, Sqlite*>	m_nodes;
+typedef	std::pair<std::string, Sqlite*>	p_nodes;
 #endif
 
 class Domain {
@@ -145,6 +145,8 @@ public:
 	bool				update_job_state(const rpc::t_job&);
 	bool				update_job_state(const Job*, const rpc::e_job_state::type);
 	bool				update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js);
+	bool				update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
+	bool				update_job_state(const Job* j, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
 
 	/*
 	 * get_ready_jobs

@@ -147,14 +147,14 @@ bool	Mysql::standalone_execute(const v_queries* queries) {
 
 	BOOST_FOREACH(std::string q, *queries) {
 		if ( this->atomic_execute(q, local_mysql) == false ) {
-			query = "ROLLBACK";
+			query = "ROLLBACK;";
 			this->atomic_execute(query, local_mysql);
 			mysql_close(local_mysql);
 			return false;
 		}
 	}
 
-	query = "COMMIT";
+	query = "COMMIT;";
 
 	if ( this->atomic_execute(query, local_mysql) == false ) {
 		mysql_close(local_mysql);
@@ -344,9 +344,18 @@ std::string Mysql::translate_into_prog(const std::string* str) {
 #ifdef USE_SQLITE
 
 Sqlite::Sqlite() {
+	if ( sqlite3_threadsafe() != SQLITE_OK )
+		throw "SQLite3 is not threadsafe !";
+
+	if ( sqlite3_config(SQLITE_CONFIG_SERIALIZED) != SQLITE_OK )
+		throw "SQLite3 cannot use SQLITE_CONFIG_SERIALIZED";
+
+	if ( sqlite3_initialize() != SQLITE_OK )
+		throw "SQLite3 cannot initialize";
 }
 
 Sqlite::~Sqlite() {
+	sqlite3_shutdown();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -373,9 +382,9 @@ bool	Sqlite::prepare(const char* node_name, const std::string* db_data, const st
 		std::cerr << "Error : system error : mkdir -p returned " << result << std::endl;
 		return false;
 	}
-
-	//if ( sqlite3_open_v2(db_full_path_name.c_str(), &this->p_db, SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
-	if ( sqlite3_open_v2(":memory:", &this->p_db, SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
+	// TODO: http://www.sqlite.org/c3ref/config.html
+	if ( sqlite3_open_v2(db_full_path_name.c_str(), &this->p_db, SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
+//	if ( sqlite3_open_v2(":memory:", &this->p_db, SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
 		std::cerr << "Error : SQLITE error : " << sqlite3_errmsg(this->p_db) << std::endl;
 		std::cerr << db_full_path_name << std::endl;
 		return false;
@@ -386,36 +395,70 @@ bool	Sqlite::prepare(const char* node_name, const std::string* db_data, const st
 		return false;
 	}
 
-	return this->load_file(db_skeleton->c_str());
+	return this->load_file(node_name, db_skeleton->c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Sqlite::execute(const std::string* query) {
+bool	Sqlite::atomic_execute(const std::string& query, sqlite3* p_db) {
 	char*	err_msg	= 0;
 	int		ret_code;
 
-//	this->updates_mutex.lock();
+	this->updates_mutex.lock();
 
-	ret_code = sqlite3_exec(this->p_db, query->c_str(), callback, 0, &err_msg);
+	std::cout << query.c_str() << std::endl;
+	ret_code = sqlite3_exec(p_db, query.c_str(), callback, 0, &err_msg);
 
 	if ( ret_code != SQLITE_OK ) {
 		std::cerr << "Error : SQLITE error code " << ret_code << " : " << err_msg << std::endl;
 		sqlite3_free(err_msg);
 
-//		this->updates_mutex.unlock();
+		this->updates_mutex.unlock();
 
 		return false;
 	}
 
-//	this->updates_mutex.unlock();
+	this->updates_mutex.unlock();
 
 	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-v_row	Sqlite::query_one_row(const std::string* query) {
+bool	Sqlite::standalone_execute(const v_queries* queries) {
+//	sqlite3*	local_sqlite= this->init();
+	std::string	query		= "BEGIN TRANSACTION;";
+
+	if ( this->p_db == NULL ) {
+		std::cerr << "Error: local_sqlite is null" << std::endl;
+		return false;
+	}
+
+	if ( this->atomic_execute(query, this->p_db) == false ) {
+		return false;
+	}
+
+	BOOST_FOREACH(std::string q, *queries) {
+		if ( this->atomic_execute(q, this->p_db) == false ) {
+			query = "ROLLBACK;";
+			this->atomic_execute(query, this->p_db);
+			return false;
+		}
+	}
+
+	query = "COMMIT;";
+
+	if ( this->atomic_execute(query, this->p_db) == false ) {
+		return false;
+	}
+
+	while ( sqlite3_close(this->p_db) != SQLITE_OK );
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+v_row	Sqlite::query_one_row(const char* query) {
 	sqlite3_stmt*	stmt;
 	v_row			result;
 
@@ -424,7 +467,7 @@ v_row	Sqlite::query_one_row(const std::string* query) {
 
 //	this->updates_mutex.lock();
 
-	if ( sqlite3_prepare_v2(this->p_db, query->c_str(), -1, &stmt, NULL) != SQLITE_OK ) {
+	if ( sqlite3_prepare_v2(this->p_db, query, -1, &stmt, NULL) != SQLITE_OK ) {
 //		this->updates_mutex.unlock();
 		return result;
 	}
@@ -444,7 +487,7 @@ v_row	Sqlite::query_one_row(const std::string* query) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-v_v_row*	Sqlite::query_full_result(const std::string* query) {
+v_v_row*	Sqlite::query_full_result(const char* query) {
 	sqlite3_stmt*	stmt;
 	v_row			line;
 	v_v_row*		result = NULL;
@@ -454,7 +497,7 @@ v_v_row*	Sqlite::query_full_result(const std::string* query) {
 
 //	this->updates_mutex.lock();
 
-	if ( sqlite3_prepare_v2(this->p_db, query->c_str(), -1, &stmt, NULL) != SQLITE_OK ) {
+	if ( sqlite3_prepare_v2(this->p_db, query, -1, &stmt, NULL) != SQLITE_OK ) {
 //		this->updates_mutex.unlock();
 		return result;
 	}
@@ -476,7 +519,7 @@ v_v_row*	Sqlite::query_full_result(const std::string* query) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int		Sqlite::get_inserted_id() const {
+int		Sqlite::get_inserted_id() {
 	return sqlite3_last_insert_rowid(this->p_db);
 }
 
@@ -491,40 +534,31 @@ bool	Sqlite::shutdown() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Sqlite::load_file(const char* file_path) {
+bool	Sqlite::load_file(const char* node_name, const char* file_path) {
 	std::ifstream	f (file_path, std::ifstream::in);
 	std::string		line;
 	std::string		query;
+	v_queries		queries;
 	boost::regex	end_of_query("^.*?;$", boost::regex::perl);
 
-	query = "BEGIN TRANSACTION;";
-	if ( this->execute(&query) == false )
-		return false;
-	query.clear();
-
+	// TODO: throw an exception if the file does not exist
 	if ( f.is_open() ) {
 		while ( ! f.eof() ) {
 			getline(f, line);
 			query += " ";
 			if ( boost::regex_match(line, end_of_query) == true ) {
 				query += line;
-				if ( this->execute(&query) == false ) {
-					query = "ROLLBACK";
-					this->execute(&query);
-					return false;
-				}
+				queries.insert(queries.end(), query);
 				query.clear();
 			} else
 				query += line;
 		}
-	} else {
-		query = "ROLLBACK";
-		this->execute(&query);
+	} else
 		return false;
-	}
-	query = "COMMIT";
-	this->execute(&query);
-	return true;
+
+	queries.insert(queries.end(), query);
+
+	return this->standalone_execute(&queries);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

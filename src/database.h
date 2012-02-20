@@ -52,8 +52,6 @@ typedef	std::vector<std::string>			v_row;
 typedef	std::vector<v_row>					v_v_row;
 typedef	std::vector<std::string>			v_queries;
 
-//typedef	std::map<std::string, boost::mutex>	m_mutex;
-
 ///////////////////////////////////////////////////////////////////////////////
 /*
 class Database {
@@ -307,15 +305,14 @@ private:
 	 * MySQLe does not support multi access
 	 *
 	 */
-	//m_mutex		updates_mutex;
-	//boost::mutex	updates_mutex;
+	boost::mutex	updates_mutex;
 
 	/*
 	 * pp_db
 	 *
 	 * This SQLite db handler
 	 */
-	sqlite3*	p_db;
+	sqlite3*		p_db;
 
 	/*
 	 * execute

@@ -42,13 +42,17 @@ Domain::Domain(Config* c) {
 	this->database.prepare(this->config->get_param("node_name"), this->config->get_param("db_skeleton"));
 #endif
 #ifdef USE_SQLITE
-	Sqlite	sqlite_buf;
-	sqlite_buf.prepare(this->config->get_param("node_name")->c_str(), this->config->get_param("db_data"), this->config->get_param("db_skeleton"));
+	Sqlite*	sqlite_buf = new Sqlite();
+	if ( sqlite_buf->prepare(this->config->get_param("node_name")->c_str(), this->config->get_param("db_data"), this->config->get_param("db_skeleton")) == false )
+		throw "Error: cannot prepare the database";
 	this->databases.insert(p_nodes(*this->config->get_param("node_name"), sqlite_buf));
 #endif
 }
 
 Domain::~Domain() {
+#ifdef USE_SQLITE
+	// TODO: delete the Sqlite* objects from the map
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,7 +87,7 @@ bool	Domain::add_node(const char* running_node, const char* n) {
 	}
 #endif
 #ifdef USE_SQLITE
-	if ( this->get_database(running_node).standalone_execute(&queries) == true ) {
+	if ( this->get_database(running_node)->standalone_execute(&queries) == true ) {
 		this->updates_mutex.unlock();
 		return true;
 	}
@@ -115,7 +119,7 @@ bool	Domain::add_node(const char* running_node, const std::string& n, const int&
 	}
 #endif
 #ifdef USE_SQLITE
-	if ( this->get_database(running_node).standalone_execute(&queries) == true ) {
+	if ( this->get_database(running_node)->standalone_execute(&queries) == true ) {
 		this->updates_mutex.unlock();
 		return true;
 	}
@@ -190,7 +194,7 @@ bool	Domain::add_job(Job* j) {
 	}
 #endif
 #ifdef USE_SQLITE
-	if ( this->get_database(running_node).standalone_execute(&queries) == true ) {
+	if ( this->get_database(running_node)->standalone_execute(&queries) == true ) {
 		j->set_id(this->get_database(running_node)->get_inserted_id());
 		this->updates_mutex.unlock();
 		return true;
@@ -266,7 +270,7 @@ bool	Domain::update_job(const Job* j) {
 	}
 #endif
 #ifdef USE_SQLITE
-	if ( this->get_database(running_node).standalone_execute(&queries) == true ) {
+	if ( this->get_database(running_node)->standalone_execute(&queries) == true ) {
 		this->updates_mutex.unlock();
 		return true;
 	}
@@ -308,7 +312,7 @@ bool	Domain::remove_job(const Job* j) {
 	}
 #endif
 #ifdef USE_SQLITE
-	if ( this->get_database(running_node).standalone_execute(&queries) == true ) {
+	if ( this->get_database(running_node)->standalone_execute(&queries) == true ) {
 		this->updates_mutex.unlock();
 		return true;
 	}
@@ -344,7 +348,7 @@ bool	Domain::remove_job(const std::string& running_node, const int j_id) {
 	}
 #endif
 #ifdef USE_SQLITE
-	if ( this->get_database(running_node).standalone_execute(&queries) == true ) {
+	if ( this->get_database(running_node.c_str())->standalone_execute(&queries) == true ) {
 		this->updates_mutex.unlock();
 		return true;
 	}
@@ -420,13 +424,83 @@ bool	Domain::update_job_state(const std::string& running_node, const int& j_id, 
 	}
 #endif
 #ifdef USE_SQLITE
-	if ( this->get_database(running_node).standalone_execute(&queries) == true ) {
+	if ( this->get_database(running_node.c_str())->standalone_execute(&queries) == true ) {
 		this->updates_mutex.unlock();
 		return true;
 	}
 #endif
 	this->updates_mutex.unlock();
 	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool	Domain::update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time) {
+	std::string	query;
+	v_queries	queries;
+
+	this->updates_mutex.lock();
+
+	query = "UPDATE ";
+#ifdef USE_MYSQL
+	query += running_node.c_str();
+	query += ".";
+#endif
+	query += "job SET job_state = '";
+
+	switch (js) {
+		case rpc::e_job_state::WAITING: {
+			query += "waiting";
+			break;
+		}
+		case rpc::e_job_state::RUNNING: {
+			query += "running";
+			break;
+		}
+		case rpc::e_job_state::SUCCEDED: {
+			query += "succeded";
+			break;
+		}
+		case rpc::e_job_state::FAILED: {
+			query += "failed";
+			break;
+		}
+		default: {
+			std::cerr << "Error: bad job's state, cannot update" << std::endl;
+			return false;
+		}
+	}
+
+	query += ", start_time = '";
+	query += boost::lexical_cast<std::string>(start_time);
+	query += "', stop_time = '";
+	query += boost::lexical_cast<std::string>(stop_time);
+	query += "' WHERE job_id = '";
+	query += boost::lexical_cast<std::string>(j_id);
+	query += "';";
+
+	queries.insert(queries.end(), query);
+
+#ifdef USE_MYSQL
+	if ( this->database.standalone_execute(&queries) == true ) {
+		this->updates_mutex.unlock();
+		return true;
+	}
+#endif
+#ifdef USE_SQLITE
+	if ( this->get_database(running_node.c_str())->standalone_execute(&queries) == true ) {
+		this->updates_mutex.unlock();
+		return true;
+	}
+#endif
+	this->updates_mutex.unlock();
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool	Domain::update_job_state(const Job* j, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time) {
+	return this->update_job_state(j->get_node_name(), j->get_id(), js, start_time, stop_time);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -457,7 +531,7 @@ v_jobs	Domain::get_ready_jobs(const char* running_node) {
 		return jobs_list;
 
 	query += "get_ready_job;";
-	jobs_matrix = this->get_database(running_node)->query_full_result(&query);
+	jobs_matrix = this->get_database(running_node)->query_full_result(query.c_str());
 #endif
 
 	if ( jobs_matrix == NULL )
@@ -505,7 +579,7 @@ rpc::v_jobs	Domain::get_ready_rpc_jobs(const char* running_node) {
 		return jobs_list;
 
 	query += "get_ready_job;";
-	jobs_matrix = this->get_database(running_node)->query_full_result(&query);
+	jobs_matrix = this->get_database(running_node)->query_full_result(query.c_str());
 #endif
 
 	if ( jobs_matrix == NULL )
@@ -612,7 +686,7 @@ rpc::v_jobs	Domain::get_jobs(const char* running_node) {
 		return jobs_list;
 
 	query += "get_ready_job;";
-	jobs_matrix = this->get_database(running_node)->query_full_result(&query);
+	jobs_matrix = this->get_database(running_node)->query_full_result(query.c_str());
 #endif
 
 	if ( jobs_matrix == NULL )
@@ -648,7 +722,7 @@ void			Domain::sql_exec(const std::string& running_node, const std::string& s) {
 	result = this->database.query_full_result(s.c_str());
 #endif
 #ifdef USE_SQLITE
-	result = this->get_database(running_node)->execute(s);
+	result = this->get_database(running_node.c_str())->query_full_result(s.c_str());
 #endif
 
 	delete result;
@@ -677,7 +751,7 @@ Sqlite*			Domain::get_database(const char* node_name) {
 	if ( it == this->databases.end() )
 		return NULL;
 
-	return &it->second;
+	return it->second;
 }
 #endif
 
