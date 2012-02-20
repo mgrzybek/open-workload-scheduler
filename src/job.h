@@ -63,12 +63,14 @@ public:
 	 * update_state
 	 *
 	 * Updates the state
+	 * TODO: is it crappy to us severa methods?
 	 *
 	 * @arg	js		: the job's state
 	 *
 	 * @return true	: sucess
 	 */
 	bool		update_state(const rpc::e_job_state::type js);
+	bool		update_state(const rpc::e_job_state::type js, time_t start_time, time_t stop_time);
 
 	/*
 	 * getters

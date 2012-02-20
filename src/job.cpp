@@ -109,22 +109,32 @@ bool	Job::run() {
 		return false;
 	}
 
-	this->start_time	= time(NULL);
-	this->return_code	= system(this->cmd_line.c_str());
-	this->stop_time		= time(NULL);
+	try {
+		this->start_time	= time(NULL);
+		this->return_code	= system(this->cmd_line.c_str());
+		this->stop_time		= time(NULL);
+	} catch (const std::exception e) {
+		std::cerr << "Exception: cannot execute " << this->name << " : " << e.what() << std::endl;
+		return false;
+	}
 
 	std::cout << "Job " << this->name.c_str() << " returned code " << this->return_code << std::endl;
 
-	if ( this->return_code == 0 ) {
-		if ( this->update_state(rpc::e_job_state::SUCCEDED) == false ) {
-			std::cerr << "Error: cannot update job's state to SUCCEDED" << std::endl;
+	try {
+		if ( this->return_code == 0 ) {
+			if ( this->update_state(rpc::e_job_state::SUCCEDED, this->start_time, this->stop_time) == false ) {
+				std::cerr << "Error: cannot update job's state to SUCCEDED" << std::endl;
+				return false;
+			}
+			return true;
+		}
+
+		if ( this->update_state(rpc::e_job_state::FAILED, this->start_time, this->stop_time) == false ) {
+			std::cerr << "Error: cannot update job's state to FAILED" << std::endl;
 			return false;
 		}
-		return true;
-	}
-
-	if ( this->update_state(rpc::e_job_state::FAILED) == false ) {
-		std::cerr << "Error: cannot update job's state to FAILED" << std::endl;
+	} catch (const std::exception e) {
+		std::cerr << "Exception: cannot update job's state " << this->name << " : " << e.what() << std::endl;
 		return false;
 	}
 
@@ -135,6 +145,13 @@ bool	Job::run() {
 
 bool	Job::update_state(const rpc::e_job_state::type js) {
 	return this->domain->update_job_state(this, js);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+// TODO: fix it
+bool	Job::update_state(const rpc::e_job_state::type js, time_t start_time, time_t stop_time) {
+	return this->domain->update_job_state(this, js, start_time, stop_time);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

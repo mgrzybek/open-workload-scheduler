@@ -117,6 +117,13 @@ private:
 	bool			check_syntax(const char* key, const char* value);
 
 	/*
+	 * set_private_attributes
+	 *
+	 * Sets the typed variables such as the running mode
+	 */
+	bool			set_private_attributes();
+
+	/*
 	 * get_running_mode
 	 *
 	 * @return : the selected mode

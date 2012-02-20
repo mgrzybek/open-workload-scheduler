@@ -95,7 +95,8 @@ bool	Config::parse_file(const char* file_path) {
 		std::cout << (*it).first << " => " << (*it).second << "\n";
 
 	f.close();
-	return true;
+
+	return this->set_private_attributes();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -136,6 +137,23 @@ bool	Config::check_syntax(const char* key, const char* value) {
 		std::cerr << "Bad syntax for " << key << "=" << value << " which should match " << it->second << std::endl;
 
 	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool	Config::set_private_attributes() {
+	if ( this->get_param("running_mode")->compare("active") == 0 )
+		this->set_running_mode(ACTIVE);
+	else if ( this->get_param("running_mode")->compare("passive") == 0 )
+		this->set_running_mode(PASSIVE);
+	else if ( this->get_param("running_mode")->compare("p2p") == 0 )
+		this->set_running_mode(P2P);
+	else {
+		std::cerr << "Error: bad running_mode" << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

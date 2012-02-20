@@ -228,7 +228,7 @@ void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const rpc::t_node& calling_n
 				break;
 			}
 
-			this->domain->get_jobs(target_node.name.c_str());
+			_return = this->domain->get_jobs(target_node.name.c_str());
 			break;
 		}
 		case PASSIVE: {
