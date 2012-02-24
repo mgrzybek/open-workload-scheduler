@@ -118,6 +118,7 @@ bool	Job::run() {
 		return false;
 	}
 
+	// TODO: remove it
 	std::cout << "Job " << this->name.c_str() << " returned code " << this->return_code << std::endl;
 
 	try {

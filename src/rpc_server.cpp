@@ -69,6 +69,7 @@ void	Rpc_Server::run() {
 		boost::shared_ptr<apache::thrift::transport::TTransportFactory>	transportFactory(new apache::thrift::transport::TBufferedTransportFactory());
 		boost::shared_ptr<apache::thrift::protocol::TProtocolFactory>	protocolFactory(new apache::thrift::protocol::TBinaryProtocolFactory());
 
+		// TODO: use the multi-threaded version
 		apache::thrift::server::TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
 		server.serve();
 	} catch (std::exception const& e) {

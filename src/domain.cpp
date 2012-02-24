@@ -377,8 +377,14 @@ bool	Domain::update_job_state(const Job* j, const rpc::e_job_state::type js) {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js) {
-	std::string	query;
-	v_queries	queries;
+	std::string		query;
+	v_queries		queries;
+	boost::regex	empty_string("^\\s+$", boost::regex::perl);
+
+	if ( running_node.empty() == true or boost::regex_match(query, empty_string) == true ) {
+		std::cerr << "Error: running_node is empty" << std::endl;
+		return false;
+	}
 
 	this->updates_mutex.lock();
 
@@ -388,29 +394,7 @@ bool	Domain::update_job_state(const std::string& running_node, const int& j_id, 
 	query += ".";
 #endif
 	query += "job SET job_state = '";
-
-	switch (js) {
-		case rpc::e_job_state::WAITING: {
-			query += "waiting";
-			break;
-		}
-		case rpc::e_job_state::RUNNING: {
-			query += "running";
-			break;
-		}
-		case rpc::e_job_state::SUCCEDED: {
-			query += "succeded";
-			break;
-		}
-		case rpc::e_job_state::FAILED: {
-			query += "failed";
-			break;
-		}
-		default: {
-			std::cerr << "Error: bad job's state, cannot update" << std::endl;
-			return false;
-		}
-	}
+	query += build_string_from_job_state(js);
 	query += "' WHERE job_id = '";
 	query += boost::lexical_cast<std::string>(j_id);
 	query += "';";
@@ -436,8 +420,14 @@ bool	Domain::update_job_state(const std::string& running_node, const int& j_id, 
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time) {
-	std::string	query;
-	v_queries	queries;
+	std::string		query;
+	v_queries		queries;
+	boost::regex	empty_string("^\\s+$", boost::regex::perl);
+
+	if ( running_node.empty() == true or boost::regex_match(query, empty_string) == true ) {
+		std::cerr << "Error: running_node is empty" << std::endl;
+		return false;
+	}
 
 	this->updates_mutex.lock();
 
@@ -448,30 +438,9 @@ bool	Domain::update_job_state(const std::string& running_node, const int& j_id, 
 #endif
 	query += "job SET job_state = '";
 
-	switch (js) {
-		case rpc::e_job_state::WAITING: {
-			query += "waiting";
-			break;
-		}
-		case rpc::e_job_state::RUNNING: {
-			query += "running";
-			break;
-		}
-		case rpc::e_job_state::SUCCEDED: {
-			query += "succeded";
-			break;
-		}
-		case rpc::e_job_state::FAILED: {
-			query += "failed";
-			break;
-		}
-		default: {
-			std::cerr << "Error: bad job's state, cannot update" << std::endl;
-			return false;
-		}
-	}
+	queries.insert(queries.end(), query);
 
-	query += ", start_time = '";
+	query += "', start_time = '";
 	query += boost::lexical_cast<std::string>(start_time);
 	query += "', stop_time = '";
 	query += boost::lexical_cast<std::string>(stop_time);

@@ -41,8 +41,8 @@ Mysql::~Mysql() {
 
 bool	Mysql::prepare(const std::string* node_name, const std::string* db_skeleton) {
 	static char* server_args[] = {
-			"this_program",	// this string is not used
-			"--datadir=."
+		"this_program",	// this string is not used
+		"--datadir=."
 	};
 	static char* server_groups[] = {
 		"embedded",
@@ -58,16 +58,10 @@ bool	Mysql::prepare(const std::string* node_name, const std::string* db_skeleton
 	if ( mysql_library_init(sizeof(server_args) / sizeof(char *), server_args, server_groups) )
 		std::cerr << "could not initialize MySQL library" << std::endl;
 
-	if ( (this->mysql = mysql_init(NULL)) == NULL )
-		std::cerr << mysql_error(this->mysql) << std::endl;
-
 	if ( ! mysql_thread_safe() ) {
 		std::cerr << "MySQL is NOT theadsafe !" << std::endl;
 		return false;
 	}
-
-	mysql_options(this->mysql, MYSQL_READ_DEFAULT_GROUP, "embedded");
-	mysql_options(this->mysql, MYSQL_OPT_USE_EMBEDDED_CONNECTION, NULL);
 
 	// Creates the schema
 	query = "CREATE SCHEMA IF NOT EXISTS ";
@@ -76,11 +70,6 @@ bool	Mysql::prepare(const std::string* node_name, const std::string* db_skeleton
 
 	queries.insert(queries.end(), query);
 	query.clear();
-
-	// Uses it
-	//query = "USE " + this->translate_into_db(node_name) + ";";
-
-	//queries.insert(queries.end(), query);
 
 	if ( this->standalone_execute(&queries) == false ) {
 		return false;
@@ -92,39 +81,37 @@ bool	Mysql::prepare(const std::string* node_name, const std::string* db_skeleton
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Mysql::atomic_execute(const std::string& query, MYSQL* mysql) {
+bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 	MYSQL_RES*	res;
 	MYSQL_ROW	row;
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
+
+	std::cout << query.c_str() << std::endl;
 
 	if ( query.empty() == true or boost::regex_match(query, empty_string) == true ) {
 		std::cerr << "Error : query is empty !" << std::endl;
 		return false;
 	}
 
-	this->updates_mutex.lock();
 
-	if ( mysql_query(mysql, query.c_str()) != 0 ) {
-		std::cerr << query.c_str() << std::endl << mysql_error(this->mysql);
-		this->updates_mutex.unlock();;
+	if ( mysql_query(m, query.c_str()) != 0 ) {
+		std::cerr << query.c_str() << std::endl << mysql_error(m);
 		return false;
 	}
 
-	res = mysql_store_result(mysql);
+	res = mysql_store_result(m);
 	if (res)
 		while ( ( row = mysql_fetch_row(res) ) )
 			for ( uint i=0 ; i < mysql_num_fields(res) ; i++ )
 				std::cerr << row[i] << std::endl;
 	else
-		if ( mysql_field_count(mysql) != 0 ) {
-			std::cerr << "Erreur : " << mysql_error(this->mysql) << std::endl;
+		if ( mysql_field_count(m) != 0 ) {
+			std::cerr << "Erreur : " << mysql_error(m) << std::endl;
 			mysql_free_result(res);
-			this->updates_mutex.unlock();
 			return false;
 		}
 
 	mysql_free_result(res);
-	this->updates_mutex.unlock();
 
 	return true;
 }
@@ -141,7 +128,7 @@ bool	Mysql::standalone_execute(const v_queries* queries) {
 	}
 
 	if ( this->atomic_execute(query, local_mysql) == false ) {
-		mysql_close(local_mysql);
+		this->end(local_mysql);
 		return false;
 	}
 
@@ -149,7 +136,7 @@ bool	Mysql::standalone_execute(const v_queries* queries) {
 		if ( this->atomic_execute(q, local_mysql) == false ) {
 			query = "ROLLBACK;";
 			this->atomic_execute(query, local_mysql);
-			mysql_close(local_mysql);
+			this->end(local_mysql);
 			return false;
 		}
 	}
@@ -157,12 +144,11 @@ bool	Mysql::standalone_execute(const v_queries* queries) {
 	query = "COMMIT;";
 
 	if ( this->atomic_execute(query, local_mysql) == false ) {
-		mysql_close(local_mysql);
+		this->end(local_mysql);
 		return false;
 	}
 
-	mysql_close(local_mysql);
-	mysql_thread_end();
+	this->end(local_mysql);
 	return true;
 }
 
@@ -177,11 +163,9 @@ v_row	Mysql::query_one_row(const char* query) {
 	if ( query == NULL )
 		return result;
 
-	this->updates_mutex.lock();
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
-		std::cerr << query << std::endl << mysql_error(this->mysql);
-		this->updates_mutex.unlock();
+		std::cerr << query << std::endl << mysql_error(local_mysql);
 		return result;
 	}
 
@@ -195,9 +179,7 @@ v_row	Mysql::query_one_row(const char* query) {
 			std::cerr << "Erreur : " << mysql_error(local_mysql) << std::endl;
 
 	mysql_free_result(res);
-	mysql_close(local_mysql);
-	mysql_thread_end();
-	this->updates_mutex.unlock();
+	this->end(local_mysql);
 
 	return result;
 }
@@ -214,11 +196,9 @@ v_v_row*	Mysql::query_full_result(const char* query) {
 	if ( query == NULL )
 		return NULL;
 
-	this->updates_mutex.lock();
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
 		std::cerr << query << std::endl << mysql_error(local_mysql);
-		this->updates_mutex.unlock();
 		return NULL;
 	}
 
@@ -240,32 +220,31 @@ v_v_row*	Mysql::query_full_result(const char* query) {
 		}
 	} else
 		if ( mysql_field_count(local_mysql) != 0 )
-			std::cerr << "Erreur : " << mysql_error(this->mysql) << std::endl;
+			std::cerr << "Erreur : " << mysql_error(local_mysql) << std::endl;
 
 	mysql_free_result(res);
-	mysql_close(local_mysql);
-	mysql_thread_end();
-	this->updates_mutex.unlock();
+	this->end(local_mysql);
 
 	return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int		Mysql::get_inserted_id() {
-	return mysql_insert_id(this->mysql);
+// TODO: make sure it works thanks to the domain's mutex
+int	Mysql::get_inserted_id() {
+	MYSQL*	local_mysql	= this->init();
+	int		result;
+
+	result = mysql_insert_id(local_mysql);
+
+	this->end(local_mysql);
+	return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Mysql::shutdown() {
-	this->updates_mutex.lock();
-
-	mysql_close(this->mysql);
 	mysql_library_end();
-
-	this->updates_mutex.unlock();
-
 	return true;
 }
 
@@ -277,6 +256,7 @@ bool	Mysql::load_file(const char* node_name, const char* file_path) {
 	std::string		query;
 	v_queries		queries;
 	boost::regex	end_of_query("^.*?;$", boost::regex::perl);
+	boost::regex	empty_string("^\\s+$", boost::regex::perl);
 
 	query = "USE ";
 	query += node_name;
@@ -298,7 +278,8 @@ bool	Mysql::load_file(const char* node_name, const char* file_path) {
 	} else
 		return false;
 
-	queries.insert(queries.end(), query);
+	if ( query.empty() == false and boost::regex_match(query, empty_string) == false  )
+		queries.insert(queries.end(), query);
 
 	return this->standalone_execute(&queries);
 }
@@ -308,18 +289,29 @@ bool	Mysql::load_file(const char* node_name, const char* file_path) {
 MYSQL*		Mysql::init() {
 	MYSQL*	local_mysql = NULL;
 
-	local_mysql = mysql_init(this->mysql);
+	mysql_thread_init();
+
+	local_mysql = mysql_init(NULL);
 
 	if ( local_mysql == NULL ) {
 		std::cerr << "Error: cannot init a MySQL connector" << std::endl;
 		return NULL;
 	}
 
-	mysql_real_connect(local_mysql, NULL, NULL, NULL, NULL, 0, NULL, 0);
-
-//	mysql_real_connect(this->mysql, "192.168.1.13", "root", NULL, NULL, 3306, NULL, 0);
+	mysql_options(local_mysql, MYSQL_READ_DEFAULT_GROUP, "libmysqld_threaded_client");
+	if ( ! mysql_real_connect(local_mysql, NULL, NULL, NULL, NULL, 0, NULL, 0) ) {
+		std::cerr << "Error: cannot connect: " << mysql_error(local_mysql) << std::endl;
+		return NULL;
+	}
 
 	return local_mysql;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void	Mysql::end(MYSQL* db) {
+	mysql_close(db);
+	mysql_thread_end();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -337,18 +329,21 @@ std::string Mysql::translate_into_prog(const std::string* str) {
 	return boost::regex_replace(*str, underline, ".");
 }
 
-#endif // USE_THRIFT
+#endif // USE_MYSQL
 
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifdef USE_SQLITE
 
 Sqlite::Sqlite() {
-	if ( sqlite3_threadsafe() != SQLITE_OK )
-		throw "SQLite3 is not threadsafe !";
+//	if ( sqlite3_threadsafe() != SQLITE_OK )
+//		throw "SQLite3 is not threadsafe !";
 
-	if ( sqlite3_config(SQLITE_CONFIG_SERIALIZED) != SQLITE_OK )
-		throw "SQLite3 cannot use SQLITE_CONFIG_SERIALIZED";
+//	if ( sqlite3_config(SQLITE_CONFIG_SERIALIZED) != SQLITE_OK )
+//		throw "SQLite3 cannot use SQLITE_CONFIG_SERIALIZED";
+
+	if ( sqlite3_config(SQLITE_CONFIG_MULTITHREAD) != SQLITE_OK )
+		throw "SQLite3 cannot use SQLITE_CONFIG_MULTITHREAD";
 
 	if ( sqlite3_initialize() != SQLITE_OK )
 		throw "SQLite3 cannot initialize";
@@ -383,8 +378,7 @@ bool	Sqlite::prepare(const char* node_name, const std::string* db_data, const st
 		return false;
 	}
 	// TODO: http://www.sqlite.org/c3ref/config.html
-	if ( sqlite3_open_v2(db_full_path_name.c_str(), &this->p_db, SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
-//	if ( sqlite3_open_v2(":memory:", &this->p_db, SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
+	if ( sqlite3_open_v2(db_full_path_name.c_str(), &this->p_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
 		std::cerr << "Error : SQLITE error : " << sqlite3_errmsg(this->p_db) << std::endl;
 		std::cerr << db_full_path_name << std::endl;
 		return false;
@@ -404,8 +398,6 @@ bool	Sqlite::atomic_execute(const std::string& query, sqlite3* p_db) {
 	char*	err_msg	= 0;
 	int		ret_code;
 
-	this->updates_mutex.lock();
-
 	std::cout << query.c_str() << std::endl;
 	ret_code = sqlite3_exec(p_db, query.c_str(), callback, 0, &err_msg);
 
@@ -413,12 +405,8 @@ bool	Sqlite::atomic_execute(const std::string& query, sqlite3* p_db) {
 		std::cerr << "Error : SQLITE error code " << ret_code << " : " << err_msg << std::endl;
 		sqlite3_free(err_msg);
 
-		this->updates_mutex.unlock();
-
 		return false;
 	}
-
-	this->updates_mutex.unlock();
 
 	return true;
 }
@@ -465,10 +453,7 @@ v_row	Sqlite::query_one_row(const char* query) {
 	if ( query == NULL )
 		return result;
 
-//	this->updates_mutex.lock();
-
 	if ( sqlite3_prepare_v2(this->p_db, query, -1, &stmt, NULL) != SQLITE_OK ) {
-//		this->updates_mutex.unlock();
 		return result;
 	}
 
@@ -481,7 +466,6 @@ v_row	Sqlite::query_one_row(const char* query) {
 
 	sqlite3_free(stmt);
 
-//	this->updates_mutex.unlock();
 	return result;
 }
 
@@ -495,10 +479,7 @@ v_v_row*	Sqlite::query_full_result(const char* query) {
 	if ( query == NULL )
 		return result;
 
-//	this->updates_mutex.lock();
-
 	if ( sqlite3_prepare_v2(this->p_db, query, -1, &stmt, NULL) != SQLITE_OK ) {
-//		this->updates_mutex.unlock();
 		return result;
 	}
 
@@ -513,7 +494,6 @@ v_v_row*	Sqlite::query_full_result(const char* query) {
 
 	sqlite3_free(stmt);
 
-//	this->updates_mutex.unlock();
 	return result;
 }
 

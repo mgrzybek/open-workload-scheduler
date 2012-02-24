@@ -166,7 +166,7 @@ private:
 	 * MySQLe does not support multi access
 	 *
 	 */
-	boost::mutex	updates_mutex;
+//	boost::mutex	updates_mutex;
 
 	/*
 	 * execute
@@ -177,7 +177,7 @@ private:
 	 * @arg	mysql	: the MySQL connector
 	 * @return true	: success
 	 */
-	bool	atomic_execute(const std::string& query, MYSQL* mysql);
+	bool	atomic_execute(const std::string& query, MYSQL* m);
 
 	/*
 	 * load_file
@@ -197,6 +197,15 @@ private:
 	 * - basically it is called at the beginning of each method
 	 */
 	MYSQL*		init();
+
+	/*
+	 * end
+	 *
+	 * Ends the MySQL connection to the embedded server
+	 * - must be called on each thread
+	 * - basically it is called at the end of each method
+	 */
+	void		end(MYSQL* db);
 
 	/*
 	 * translate_into_db
@@ -305,7 +314,7 @@ private:
 	 * MySQLe does not support multi access
 	 *
 	 */
-	boost::mutex	updates_mutex;
+//	boost::mutex	updates_mutex;
 
 	/*
 	 * pp_db
@@ -354,7 +363,7 @@ private:
 	static int	callback(void *NotUsed, int argc, char **argv, char **azColName) {
 		int i;
 
-		for(i=0; i<argc; i++) {
+		for ( i=0; i < argc ; i++ ) {
 			std::cout << azColName[i] << " = ";
 
 			if ( argv[i] )
