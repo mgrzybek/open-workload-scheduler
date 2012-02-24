@@ -438,11 +438,11 @@ bool	Domain::update_job_state(const std::string& running_node, const int& j_id, 
 #endif
 	query += "job SET job_state = '";
 
-	queries.insert(queries.end(), query);
+	query += build_string_from_job_state(js);
 
-	query += "', start_time = '";
+	query += "', job_start_time = '";
 	query += boost::lexical_cast<std::string>(start_time);
-	query += "', stop_time = '";
+	query += "', job_stop_time = '";
 	query += boost::lexical_cast<std::string>(stop_time);
 	query += "' WHERE job_id = '";
 	query += boost::lexical_cast<std::string>(j_id);
@@ -509,7 +509,7 @@ v_jobs	Domain::get_ready_jobs(const char* running_node) {
 	BOOST_FOREACH(v_row job_row, *jobs_matrix) {
 		delete job;
 
-		job = new Job((Domain*)this, boost::lexical_cast<int>(job_row[0]), *this->name, job_row[3], job_row[2], (const int)boost::lexical_cast<int>(job_row[4]));
+		job = new Job((Domain*)this, boost::lexical_cast<int>(job_row[0]), job_row[1], job_row[3], job_row[2], (const int)boost::lexical_cast<int>(job_row[4]));
 		jobs_list.push_back(*job);
 	}
 

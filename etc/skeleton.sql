@@ -21,6 +21,8 @@ CREATE  TABLE IF NOT EXISTS `job` (
   `job_cmd_line` VARCHAR(45) NOT NULL ,
   `job_node_name` VARCHAR(45) NOT NULL ,
   `job_weight` INT(11) NOT NULL DEFAULT '1' ,
+  `job_start_time` TIME NOT NULL ,
+  `job_stop_time` TIME NOT NULL ,
   `job_state` ENUM('waiting','running','succeded','failed') NULL DEFAULT 'waiting' ,
   `job_rectype_id` INT(11) NULL DEFAULT NULL ,
   PRIMARY KEY (`job_id`) ,
