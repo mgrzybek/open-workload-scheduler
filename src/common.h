@@ -1,6 +1,6 @@
 /**
  * Project: OWS: an Open Source Workload Scheduler
- * File name: config.h
+ * File name: common.h
  * Description: defines the macro / functions to use in the project:
  * - which backend to use
  * - which RPC protocol to use...
@@ -30,7 +30,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "thrift/model_types.h"
+#include "gen-cpp/model_types.h"
 
 /*
  * Database selection
@@ -55,6 +55,16 @@
 #define USE_THRIFT
 
 // TODO: think of ZeroMQ + custom message encryption
+
+/*
+ * Compatibility includes
+ */
+
+#ifdef __linux__
+#include <sys/socket.h>
+#include <resolv.h>
+#include <stdint.h>
+#endif // __linux__
 
 /*
  * build_job_state_from_string
