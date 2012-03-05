@@ -111,8 +111,30 @@ where
 
 CREATE VIEW IF NOT EXISTS get_ready_links AS select distinct jl.job_next AS job_id from (jobs_link jl join job j) where (jl.job_prev = j.job_id) and (j.job_state = 'succeded');
 
+CREATE VIEW IF NOT EXISTS get_ready_linkless AS SELECT job_id FROM job WHERE job_state = 'waiting' AND job_id NOT IN ( SELECT job_next FROM jobs_link );
+
 CREATE VIEW IF NOT EXISTS get_available_resource AS select resource.resource_id AS resource_id,resource.resource_name AS resource_name,resource.resource_node_name AS resource_node_name,resource.resource_value AS resource_value from resource where (resource.resource_value > 0);
 
--- SET autocommit = 0;
-
+CREATE VIEW IF NOT EXISTS get_ready_job AS
+	select	j.job_id AS job_id,
+		j.job_name AS job_name,
+		j.job_cmd_line AS job_cmd_line,
+		j.job_node_name AS job_node_name,
+		j.job_weight AS job_weight,
+		j.job_state AS job_state,
+		j.job_rectype_id AS job_rectype_id
+	from job j
+	where (
+  		(
+			NOT j.job_id in (select get_ready_links.job_id AS job_id from get_ready_links)
+			AND
+			j.job_id in (select get_ready_linkless.job_id AS job_id from get_ready_linkless)
+			OR
+			j.job_id in (select get_ready_links.job_id AS job_id from get_ready_links)
+			AND
+			NOT j.job_id in (select get_ready_linkless.job_id AS job_id from get_ready_linkless)
+		)
+		and
+			j.job_id in (select j.job_id AS job_id from get_ready_time)
+	);
 

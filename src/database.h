@@ -321,7 +321,8 @@ private:
 	 *
 	 * This SQLite db handler
 	 */
-	sqlite3*		p_db;
+//	sqlite3*		p_db;
+	std::string		db;
 
 	/*
 	 * execute
@@ -352,6 +353,15 @@ private:
 	 * - basically it is called at the beginning of each method
 	 */
 	sqlite3*	init();
+
+	/*
+	 * end
+	 *
+	 * Ends the SQLite connection to the embedded server
+	 * - must be called on each thread
+	 * - basically it is called at the end of each method
+	 */
+	void		end(sqlite3* p_db);
 
 	/*
 	 * callback

@@ -358,15 +358,14 @@ Sqlite::~Sqlite() {
 bool	Sqlite::prepare(const char* node_name, const std::string* db_data, const std::string* db_skeleton ) {
 	// TODO : deal with plannings' progression
 	std::string	db_name("schd_1.db");
-	std::string	db_full_path_name;
 	std::string	mkdir_call("mkdir -p ");
 	int			result;
 
-	db_full_path_name += db_data->c_str();
-	db_full_path_name += "/";
-	db_full_path_name += node_name;
-	db_full_path_name += "/";
-	db_full_path_name += db_name.c_str();
+	this->db += db_data->c_str();
+	this->db += "/";
+	this->db += node_name;
+	this->db += "/";
+	this->db += db_name.c_str();
 
 	mkdir_call += db_data->c_str();
 	mkdir_call += "/";
@@ -375,17 +374,6 @@ bool	Sqlite::prepare(const char* node_name, const std::string* db_data, const st
 	result = system(mkdir_call.c_str());
 	if ( result != 0 ) {
 		std::cerr << "Error : system error : mkdir -p returned " << result << std::endl;
-		return false;
-	}
-	// TODO: http://www.sqlite.org/c3ref/config.html
-	if ( sqlite3_open_v2(db_full_path_name.c_str(), &this->p_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
-		std::cerr << "Error : SQLITE error : " << sqlite3_errmsg(this->p_db) << std::endl;
-		std::cerr << db_full_path_name << std::endl;
-		return false;
-	}
-
-	if ( this->p_db == NULL ) {
-		std::cerr << "Error : SQLITE cannot create pointer : not enough memory" << std::endl;
 		return false;
 	}
 
@@ -414,46 +402,48 @@ bool	Sqlite::atomic_execute(const std::string& query, sqlite3* p_db) {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Sqlite::standalone_execute(const v_queries* queries) {
-//	sqlite3*	local_sqlite= this->init();
-	std::string	query		= "BEGIN TRANSACTION;";
+	sqlite3*	p_db	= this->init();
+	std::string	query	= "BEGIN TRANSACTION;";
 
-	if ( this->p_db == NULL ) {
-		std::cerr << "Error: local_sqlite is null" << std::endl;
+	if ( p_db == NULL )
 		return false;
-	}
 
-	if ( this->atomic_execute(query, this->p_db) == false ) {
+	if ( this->atomic_execute(query, p_db) == false ) {
+		this->end(p_db);
 		return false;
 	}
 
 	BOOST_FOREACH(std::string q, *queries) {
-		if ( this->atomic_execute(q, this->p_db) == false ) {
+		if ( this->atomic_execute(q, p_db) == false ) {
 			query = "ROLLBACK;";
-			this->atomic_execute(query, this->p_db);
+			this->atomic_execute(query, p_db);
+			this->end(p_db);
 			return false;
 		}
 	}
 
 	query = "COMMIT;";
 
-	if ( this->atomic_execute(query, this->p_db) == false ) {
+	if ( this->atomic_execute(query, p_db) == false ) {
+		this->end(p_db);
 		return false;
 	}
 
-	while ( sqlite3_close(this->p_db) != SQLITE_OK );
+	this->end(p_db);
 	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 v_row	Sqlite::query_one_row(const char* query) {
+	sqlite3*		p_db = this->init();
 	sqlite3_stmt*	stmt;
 	v_row			result;
 
-	if ( query == NULL )
+	if ( query == NULL or p_db == NULL)
 		return result;
 
-	if ( sqlite3_prepare_v2(this->p_db, query, -1, &stmt, NULL) != SQLITE_OK ) {
+	if ( sqlite3_prepare_v2(p_db, query, -1, &stmt, NULL) != SQLITE_OK ) {
 		return result;
 	}
 
@@ -465,6 +455,7 @@ v_row	Sqlite::query_one_row(const char* query) {
 	}
 
 	sqlite3_free(stmt);
+	this->end(p_db);
 
 	return result;
 }
@@ -472,14 +463,15 @@ v_row	Sqlite::query_one_row(const char* query) {
 ///////////////////////////////////////////////////////////////////////////////
 
 v_v_row*	Sqlite::query_full_result(const char* query) {
+	sqlite3*		p_db = this->init();
 	sqlite3_stmt*	stmt;
 	v_row			line;
 	v_v_row*		result = NULL;
 
-	if ( query == NULL )
+	if ( query == NULL or p_db == NULL)
 		return result;
 
-	if ( sqlite3_prepare_v2(this->p_db, query, -1, &stmt, NULL) != SQLITE_OK ) {
+	if ( sqlite3_prepare_v2(p_db, query, -1, &stmt, NULL) != SQLITE_OK ) {
 		return result;
 	}
 
@@ -493,22 +485,25 @@ v_v_row*	Sqlite::query_full_result(const char* query) {
 	}
 
 	sqlite3_free(stmt);
+	this->end(p_db);
 
 	return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
+// TODO: make it more robust
 int		Sqlite::get_inserted_id() {
-	return sqlite3_last_insert_rowid(this->p_db);
+	sqlite3*	p_db = this->init();
+
+	return sqlite3_last_insert_rowid(p_db);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Sqlite::shutdown() {
+bool	Sqlite::shutdown() {/*
 	if ( sqlite3_close(this->p_db) == SQLITE_OK )
 		return true;
-
+*/
 	return false;
 }
 
@@ -542,5 +537,29 @@ bool	Sqlite::load_file(const char* node_name, const char* file_path) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+sqlite3*	Sqlite::init() {
+	sqlite3*	p_db;
+
+	if ( sqlite3_open_v2(this->db.c_str(), &p_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
+		std::cerr << "Error : SQLITE error : " << sqlite3_errmsg(p_db) << std::endl;
+		return NULL;
+	}
+
+	if ( p_db == NULL ) {
+		std::cerr << "Error : SQLITE cannot create pointer : not enough memory" << std::endl;
+		sqlite3_close(p_db);
+		return NULL;
+	}
+
+	return p_db;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void	Sqlite::end(sqlite3* p_db) {
+	sqlite3_close(p_db);
+}
+
 
 #endif // USE_SQLITE

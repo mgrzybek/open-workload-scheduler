@@ -69,8 +69,11 @@ bool	Domain::add_node(const char* running_node, const char* n) {
 
 	this->updates_mutex.lock();
 
-	query = "INSERT IGNORE INTO ";
+#ifdef USE_SQLITE
+	query = "INSERT OR IGNORE INTO ";
+#endif
 #ifdef USE_MYSQL
+	query = "INSERT IGNORE INTO ";
 	query += running_node;
 	query += ".";
 #endif
