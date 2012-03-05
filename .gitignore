@@ -10,6 +10,7 @@ Debug
 Release
 .DS_Store
 .svn
-gen-cpp
+ows_*
+model_*
 data
 thrift-prefix
