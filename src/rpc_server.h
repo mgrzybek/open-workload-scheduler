@@ -43,7 +43,7 @@
 
 #ifdef USE_THRIFT
 // RPC Stuff
-#include "thrift/ows_rpc.h"
+#include "gen-cpp/ows_rpc.h"
 
 // Common Stuff
 #include <protocol/TBinaryProtocol.h>

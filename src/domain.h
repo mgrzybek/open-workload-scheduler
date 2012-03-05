@@ -41,7 +41,7 @@
 #include "database.h"
 #include "job.h"
 
-#include "thrift/ows_rpc.h"
+#include "gen-cpp/ows_rpc.h"
 
 // namespace ows {
 

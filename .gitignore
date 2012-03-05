@@ -12,3 +12,4 @@ Release
 .svn
 gen-cpp
 data
+thrift-prefix

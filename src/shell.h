@@ -45,8 +45,8 @@
 
 #include <libcli.h>
 
-#include "thrift/ows_rpc.h"
-#include "thrift/model_types.h"
+#include "gen-cpp/ows_rpc.h"
+#include "gen-cpp/model_types.h"
 #include "router.h"
 #include "config.h"
 #include "rpc_client.h"

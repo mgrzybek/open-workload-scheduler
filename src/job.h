@@ -35,7 +35,7 @@
 #include "common.h"
 #include "domain.h"
 
-#include "thrift/model_types.h"
+#include "gen-cpp/model_types.h"
 
 class Domain;
 
