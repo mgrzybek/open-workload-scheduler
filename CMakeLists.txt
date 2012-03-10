@@ -217,13 +217,13 @@ target_link_libraries(client
 )
 
 target_link_libraries(master
-	#crypto
+	crypto
 	#curl
-	#dl
+	dl
 	pthread
 	/opt/local/lib/libsqlite3.a
-	#ssl
-	#z
+	ssl
+	z
 
 	/opt/local/lib/libthrift.a
 	/opt/local/lib/libboost_regex.a
