@@ -562,6 +562,7 @@ rpc::v_jobs	Domain::get_ready_rpc_jobs(const char* running_node) {
 
 		job = new rpc::t_job();
 
+		job->domain		= this->name->c_str();
 		job->id			= boost::lexical_cast<int>(job_row[0]);
 		job->name		= job_row[1];
 		job->node_name	= job_row[3];
@@ -669,7 +670,7 @@ rpc::v_jobs	Domain::get_jobs(const char* running_node) {
 
 		job = new rpc::t_job();
 
-		job->domain		= this->name;
+		job->domain		= this->name->c_str();
 		job->id			= boost::lexical_cast<int>(job_row[0]);
 		job->name		= job_row[1];
 		job->node_name	= job_row[3];
