@@ -39,11 +39,12 @@ rpc::e_job_state::type	build_job_state_from_string(const char* state) {
 	if ( strcmp(state, "failed") == 0 )
 		return rpc::e_job_state::FAILED;
 
+	// TODO: throw a clean exception
 	throw "Error: string state is not related to a job's state";
 	return rpc::e_job_state::FAILED;
 }
 
-std::string	build_string_from_job_state(const rpc::e_job_state::type js) {
+std::string	build_string_from_job_state(const rpc::e_job_state::type& js) {
 	std::string result;
 
 	switch (js) {
@@ -61,6 +62,68 @@ std::string	build_string_from_job_state(const rpc::e_job_state::type js) {
 		}
 		case rpc::e_job_state::FAILED: {
 			result = "failed";
+			break;
+		}
+	}
+
+	return result;
+}
+
+rpc::e_rectype_action::type	build_rectype_action_from_string(const char* rt_action) {
+	if ( strcmp(rt_action, "restart") == 0 )
+		return rpc::e_rectype_action::RESTART;
+	if ( strcmp(rt_action, "stop_schedule") == 0 )
+		return rpc::e_rectype_action::STOP_SCHEDULE;
+
+	// TODO: throw a clean exception
+	throw "Error: string action is not related to a rectype action";
+	return rpc::e_rectype_action::STOP_SCHEDULE;
+}
+
+std::string	build_string_from_rectype_action(const rpc::e_rectype_action::type& rt_action) {
+	std::string	result;
+
+	switch (rt_action) {
+		case rpc::e_rectype_action::RESTART: {
+			result = "restart";
+			break;
+		}
+		case rpc::e_rectype_action::STOP_SCHEDULE: {
+			result = "stop_schedule";
+			break;
+		}
+	}
+	// TODO: case default -> exception
+	return result;
+}
+
+rpc::e_time_constraint_type::type build_time_constraint_type_from_string(const char* type) {
+	if ( strcmp(type, "at") == 0 )
+		return rpc::e_time_constraint_type::AT;
+	if ( strcmp(type, "before") == 0 )
+		return rpc::e_time_constraint_type::BEFORE;
+	if ( strcmp(type, "after") == 0 )
+		return rpc::e_time_constraint_type::AFTER;
+
+	// TODO: throw a clean exception
+	throw "error";
+	return rpc::e_time_constraint_type::BEFORE;
+}
+
+std::string	build_string_from_time_constraint_type(const rpc::e_time_constraint_type::type& tc_t) {
+	std::string	result;
+
+	switch (tc_t) {
+		case rpc::e_time_constraint_type::AT: {
+			result = "at";
+			break;
+		}
+		case rpc::e_time_constraint_type::BEFORE: {
+			result = "before";
+			break;
+		}
+		case rpc::e_time_constraint_type::AFTER: {
+			result = "after";
 			break;
 		}
 	}
