@@ -181,12 +181,20 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # Common include directories
 include_directories(
 	/opt/local/include
+	/opt/local/include/mysql
 	/opt/local/include/mysql5
 	/opt/local/include/mysql5/mysql
 	/opt/local/include/thrift
 
+	/usr/local/include
+	/usr/local/include/mysql
+	/usr/local/include/mysql5
+	/usr/local/include/mysql5/mysql
+	/usr/local/include/thrift
+
 	/usr/include
 	/usr/include/mysql
+	/usr/include/mysql5
 	/usr/include/thrift
 
 	/Users/mathieu/Developpements/c/libcli
@@ -198,38 +206,103 @@ include_directories(
 )
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+#
+# Searching libraries
+#
+
+FIND_PROGRAM(THRIFT_LIB libthrift.a
+	/lib
+	/usr/lib
+	/usr/local/lib
+	/usr/share/lib
+	/opt/local/lib
+)
+FIND_PROGRAM(SQLITE_LIB libsqlite3.a
+	/lib
+	/usr/lib
+	/usr/local/lib
+	/usr/share/lib
+	/opt/local/lib
+)
+FIND_PROGRAM(BOOST_REGEX_LIB libboost_regex.a
+	/lib
+	/usr/lib
+	/usr/local/lib
+	/usr/share/lib
+	/opt/local/lib
+)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+FIND_PROGRAM(BOOST_THREAD_LIB libboost_thread-mt.a
+	/lib
+	/usr/lib
+	/usr/local/lib
+	/usr/share/lib
+	/opt/local/lib
+)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+FIND_PROGRAM(BOOST_THREAD_LIB libboost_thread.a
+	/lib
+	/usr/lib
+	/usr/local/lib
+	/usr/share/lib
+	/opt/local/lib
+)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+FIND_PROGRAM(BOOST_FILESYSTEM_LIB libboost_filesystem.a
+	/lib
+	/usr/lib
+	/usr/local/lib
+	/usr/share/lib
+	/opt/local/lib
+)
+FIND_PROGRAM(MYSQLD_LIB libmysqld.a
+	/lib
+	/usr/lib
+	/usr/local/lib
+	/usr/local/lib/mysql
+	/usr/local/lib/mysql5/mysql
+	/usr/share/lib
+	/usr/share/lib/mysql
+	/usr/share/lib/mysql5/mysql
+	/opt/local/lib
+	/opt/local/lib/mysql
+	/opt/local/lib/mysql5/mysql
+)
+#FIND_PROGRAM(DN_LIB libdn.a /lib /usr/lib /usr/local/lib /usr/share/lib /opt/local/lib)
+
 # targets
 target_link_libraries(client
 	#crypto
 	#curl
 	#dl
 	pthread
-	/opt/local/lib/libsqlite3.a
 	#ssl
 	#z
 
-	/opt/local/lib/libidn.a
-	/opt/local/lib/libthrift.a
-	/opt/local/lib/libboost_regex.a
-	/opt/local/lib/libboost_thread-mt.a
-	/opt/local/lib/libboost_filesystem.a
-	/opt/local/lib/mysql5/mysql/libmysqld.a
+	#	${DN_LIB}
+	${MYSQLD_LIB}
+	${SQLITE_LIB}
+	${THRIFT_LIB}
+	${BOOST_REGEX_LIB}
+	${BOOST_THREAD_LIB}
+	${BOOST_FILESYSTEM_LIB}
 )
 
 target_link_libraries(master
-	crypto
+	crypt
 	#curl
-	dl
+	#dl
 	pthread
-	/opt/local/lib/libsqlite3.a
 	ssl
 	z
 
-	/opt/local/lib/libthrift.a
-	/opt/local/lib/libboost_regex.a
-	/opt/local/lib/libboost_thread-mt.a
-	/opt/local/lib/libboost_filesystem.a
-	/opt/local/lib/mysql5/mysql/libmysqld.a
+	#	${DN_LIB}
+	${MYSQLD_LIB}
+	${SQLITE_LIB}
+	${THRIFT_LIB}
+	${BOOST_REGEX_LIB}
+	${BOOST_THREAD_LIB}
+	${BOOST_FILESYSTEM_LIB}
 )
 
 target_link_libraries(shell
@@ -240,11 +313,11 @@ target_link_libraries(shell
 	#ssl
 	#z
 
-	/opt/local/lib/libidn.a
-	/opt/local/lib/libthrift.a
-	/opt/local/lib/libboost_regex.a
-	/opt/local/lib/libboost_thread-mt.a
-	/opt/local/lib/libboost_filesystem.a
+	#	${DN_LIB}
+	${THRIFT_LIB}
+	${BOOST_REGEX_LIB}
+	${BOOST_THREAD_LIB}
+	${BOOST_FILESYSTEM_LIB}
 
 	/Users/mathieu/Developpements/c/libcli/libcli.so
 )
