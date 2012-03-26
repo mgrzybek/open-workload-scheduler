@@ -1,18 +1,13 @@
-diff -crB old/ows_rpc.h new/ows_rpc.h
-*** src/gen-cpp/ows_rpc.h	2012-02-25 15:32:38.000000000 +0100
---- src/gen-cpp/ows_rpc.h	2012-02-25 16:00:30.000000000 +0100
-***************
-*** 6,11 ****
---- 6,17 ----
-  #ifndef ows_rpc_H
-  #define ows_rpc_H
-  
-+ #ifdef __linux__
-+ #include <sys/socket.h>
-+ #include <resolv.h>
-+ #include <stdint.h>
-+ #endif // __linux__
-+ 
-  #include <TProcessor.h>
-  #include "model_types.h"
-  
+9a10,21
+> #ifdef __linux__
+> #include <sys/socket.h>
+> #include <resolv.h>
+> #include <stdint.h>
+> #endif // __linux__
+> 
+> #ifdef __FreeBSD__
+> #include <sys/types.h>
+> #include <sys/socket.h>
+> #include <netinet/in.h>
+> #endif // __FreeBSD__
+> 
