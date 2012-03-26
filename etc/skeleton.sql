@@ -94,13 +94,13 @@ CREATE  TABLE IF NOT EXISTS `time_constraint` (
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = latin1;
 
-CREATE  TABLE IF NOT EXISTS `schedule_job` (
-  `sched_id` INT(11) NOT NULL AUTO_INCREMENT ,
-  `sched_name` VARCHAR(45) NOT NULL ,
+CREATE  TABLE IF NOT EXISTS `macro_job` (
+  `macro_id` INT(11) NOT NULL AUTO_INCREMENT ,
+  `macro_name` VARCHAR(45) NOT NULL ,
   PRIMARY KEY (`sched_id`) ,
-  INDEX `fk_schedule_id` (`sched_id` ASC) ,
-  CONSTRAINT `fk_schedule_id`
-    FOREIGN KEY (`sched_id` )
+  INDEX `fk_macro_id` (`sched_id` ASC) ,
+  CONSTRAINT `fk_macro_id`
+    FOREIGN KEY (`macro_id` )
     REFERENCES `job` (`job_id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
