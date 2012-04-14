@@ -79,53 +79,57 @@ public:
 	 * - creates the schema
 	 * - loads the skeleton from file
 	 *
-	 * @arg node_name	: node's name
+	 * @arg domain_name	: domain's name
 	 * @arg db_skeleton	: the SQL file to use
 	 *
 	 * @return true		: success
 	 */
-	bool	prepare(const std::string* node_name, const std::string* db_skeleton);
+	bool	prepare(const std::string* domain_name, const std::string* db_skeleton);
 
 	/*
 	 * execute
 	 *
 	 * Executes an SQL query without result
 	 *
-	 * @arg query	: SQL query
-	 * @return true	: success
+	 * @arg query			: SQL query
+	 * @arg database_name	: the schema to use
+	 * @return true			: success
 	 */
-	bool	standalone_execute(const v_queries* queries);
+	bool	standalone_execute(const v_queries& queries, const char* database_name);
 
 	/*
 	 * query_one_row
 	 *
 	 * Executes a SQL query returing a single-row result
 	 *
-	 * @arg query	: SQL query
-	 * @return true	: success
+	 * @arg _return			: the result
+	 * @arg query			: SQL query
+	 * @arg database_name	: the schema to use
+	 * @return true			: success
 	 */
-	v_row	query_one_row(const char* query);
+	bool	query_one_row(v_row& _return, const char* query, const char* database_name);
 
 	/*
 	 * query_full_result
 	 *
 	 * Executes a SQL query returning several rows
 	 *
-	 * @arg query		: SQL query
-	 * @arg	result		: the rows
-	 * @return true		: the success
+	 * @arg	_return			: the output
+	 * @arg query			: SQL query
+	 * @arg database_name	: the schema to use
+	 * @return true			: success
 	 */
-	v_v_row*	query_full_result(const char* query);
+	bool	query_full_result(v_v_row& _return, const char* query, const char* database_name);
 
 	/*
 	 * get_inserted_id
 	 *
 	 * Gives mysql_insert_id(). It is used to update the object's id
 	 *
-	 * @arg		: none
+	 * @arg database_name	: the schema to use
 	 * @return	: the id
 	 */
-	int		get_inserted_id();
+	int		get_inserted_id(const char* database_name);
 
 	/*
 	 * shutdown
@@ -187,7 +191,7 @@ private:
 	 * @arg file_path	: the SQL file
 	 * @return true		: success
 	 */
-	bool		load_file(const char* node_name, const char* file_path);
+	bool	load_file(const char* node_name, const char* file_path);
 
 	/*
 	 * init
@@ -195,8 +199,11 @@ private:
 	 * Initializes the MySQL connection to the embedded server
 	 * - must be called on each thread
 	 * - basically it is called at the beginning of each method
+	 *
+	 * @arg database_name	: the schema to use
+	 * @return				: the MYSQL object
 	 */
-	MYSQL*		init();
+	MYSQL*		init(const char* database_name);
 
 	/*
 	 * end
@@ -204,6 +211,8 @@ private:
 	 * Ends the MySQL connection to the embedded server
 	 * - must be called on each thread
 	 * - basically it is called at the end of each method
+	 *
+	 * @arg db	: the MYSQL object to destroy
 	 */
 	void		end(MYSQL* db);
 
@@ -215,7 +224,6 @@ private:
 	 *
 	 * @arg str	: the string to convert
 	 * @return	: the translated string
-
 	 */
 	std::string	translate_into_db(const std::string*);
 

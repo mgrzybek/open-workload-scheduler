@@ -114,6 +114,12 @@ std::string*	Config::get_param(const char* field) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+const std::string*	Config::get_master_node() {
+	return &this->master_node;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 e_running_mode	Config::get_running_mode() {
 	return this->running_mode;
 }

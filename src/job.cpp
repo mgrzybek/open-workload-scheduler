@@ -28,7 +28,7 @@
 #include "job.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-
+/*
 Job::Job(Domain* d, const std::string& name, const std::string& node_name, const std::string& cmd_line, const int& weight, const v_job_ids& pj, const v_job_ids& nj) {
 	if ( d == NULL )
 		throw "Empty domain";
@@ -40,18 +40,18 @@ Job::Job(Domain* d, const std::string& name, const std::string& node_name, const
 		throw "Empty command line";
 
 	this->domain	= d;
-	this->name.assign(name.c_str());
-	this->node_name.assign(node_name.c_str());
-	this->cmd_line.assign(cmd_line.c_str());
+	this->job.name.assign(name.c_str());
+	this->job.node_name.assign(node_name.c_str());
+	this->job.cmd_line.assign(cmd_line.c_str());
 
-	this->weight	= weight;
+	this->job.weight	= weight;
 
-	this->prev = pj;
-	this->next = nj;
+	this->job.prv = pj;
+	this->job.nxt = nj;
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////
-
+/*
 Job::Job(Domain* d, int id, std::string& name, std::string& node_name, std::string& cmd_line, int weight) {
 	if ( d == NULL )
 		throw "Empty domain";
@@ -62,43 +62,39 @@ Job::Job(Domain* d, int id, std::string& name, std::string& node_name, std::stri
 	if ( cmd_line.empty() == true )
 		throw "Empty command line";
 
-	this->id		= id;
+	this->job.id		= id;
 	this->domain	= d;
-	this->name		= name.c_str();
-	this->node_name	= node_name.c_str();
-	this->cmd_line	= cmd_line.c_str();
+	this->job.name		= name.c_str();
+	this->job.node_name	= node_name.c_str();
+	this->job.cmd_line	= cmd_line.c_str();
 
-	this->weight	= weight;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/*
-Job::Job(rpc::t_job& j) {
-	this->start_time	= j.start_time;
-	this->stop_time		= j.stop_time;
-	this->return_code	= j.return_code;
-
-	this->id	= j.id;
-	this->name	= j.name.c_str();
-	this->node_name	= j.node_name.c_str();
-
-	// domain
-
-	this->cmd_line	= j.cmd_line.c_str();
-	this->weight	= j.weight;
-
-	this->prev		= j.prv;
-	this->next		= j.nxt;
+	this->job.weight	= weight;
 }
 */
+///////////////////////////////////////////////////////////////////////////////
+
+Job::Job(Domain* d, const rpc::t_job& j) {
+	if ( d == NULL )
+		throw "Empty domain";
+	if ( j.name.empty() == true )
+		throw "Empty name";
+	if ( j.node_name.empty() == true )
+		throw "Empty node_name";
+	if ( j.cmd_line.empty() == true )
+		throw "Empty command line";
+
+	this->domain = d;
+	this->job = j;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 Job::~Job() {
 //	delete this->start_time;
 //	delete this->stop_time;
 
-	this->prev.clear();
-	this->next.clear();
+	this->job.prv.clear();
+	this->job.nxt.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -110,32 +106,32 @@ bool	Job::run() {
 	}
 
 	try {
-		this->start_time	= time(NULL);
-		this->return_code	= system(this->cmd_line.c_str());
-		this->stop_time		= time(NULL);
+		this->job.start_time	= static_cast<long int>(time(NULL));
+		this->job.return_code	= system(this->job.cmd_line.c_str());
+		this->job.stop_time		= static_cast<long int>(time(NULL));
 	} catch (const std::exception e) {
-		std::cerr << "Exception: cannot execute " << this->name << " : " << e.what() << std::endl;
+		std::cerr << "Exception: cannot execute " << this->job.name << " : " << e.what() << std::endl;
 		return false;
 	}
 
 	// TODO: remove it
-	std::cout << "Job " << this->name.c_str() << " returned code " << this->return_code << std::endl;
+	std::cout << "Job " << this->job.name.c_str() << " returned code " << this->job.return_code << std::endl;
 
 	try {
-		if ( this->return_code == 0 ) {
-			if ( this->update_state(rpc::e_job_state::SUCCEDED, this->start_time, this->stop_time) == false ) {
+		if ( this->job.return_code == 0 ) {
+			if ( this->update_state(rpc::e_job_state::SUCCEDED, static_cast<time_t>(this->job.start_time), static_cast<time_t>(this->job.stop_time)) == false ) {
 				std::cerr << "Error: cannot update job's state to SUCCEDED" << std::endl;
 				return false;
 			}
 			return true;
 		}
 
-		if ( this->update_state(rpc::e_job_state::FAILED, this->start_time, this->stop_time) == false ) {
+		if ( this->update_state(rpc::e_job_state::FAILED, static_cast<time_t>(this->job.start_time), static_cast<time_t>(this->job.stop_time)) == false ) {
 			std::cerr << "Error: cannot update job's state to FAILED" << std::endl;
 			return false;
 		}
 	} catch (const std::exception e) {
-		std::cerr << "Exception: cannot update job's state " << this->name << " : " << e.what() << std::endl;
+		std::cerr << "Exception: cannot update job's state " << this->job.name << " : " << e.what() << std::endl;
 		return false;
 	}
 
@@ -157,37 +153,37 @@ bool	Job::update_state(const rpc::e_job_state::type js, time_t start_time, time_
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const int	Job::get_id() const {
-	return this->id;
+const rpc::t_job*	Job::get_job() const {
+	return &this->job;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 const std::string	Job::get_name() const {
-	return this->name;
+	return this->job.name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 const std::string	Job::get_cmd_line() const {
-	return this->cmd_line;
+	return this->job.cmd_line;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 const char*	Job::get_node_name() const {
-	return this->node_name.c_str();
+	return this->job.node_name.c_str();
 }
 ///////////////////////////////////////////////////////////////////////////////
 
 const std::string	Job::get_node_name2() const {
-	return this->node_name;
+	return this->job.node_name;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 const int	Job::get_weight() const {
-	return this->weight;
+	return this->job.weight;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -198,18 +194,12 @@ const Domain*	Job::get_domain() const {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const v_job_ids	Job::get_next() const {
-	return this->next;
+const rpc::v_job_ids	Job::get_next() const {
+	return this->job.nxt;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const v_job_ids	Job::get_prev() const {
-	return this->prev;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void		Job::set_id(const int i) {
-	this->id = i;
+const rpc::v_job_ids	Job::get_prev() const {
+	return this->job.prv;
 }

@@ -98,6 +98,13 @@ public:
 	std::string*	get_param(const char*);
 
 	/*
+	 * get_master_node
+	 *
+	 * Gives the master_node's name
+	 */
+	const std::string*	get_master_node();
+
+	/*
 	 * get_running_mode
 	 *
 	 * @return : the selected mode

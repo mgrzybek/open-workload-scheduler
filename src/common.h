@@ -130,6 +130,6 @@ rpc::e_time_constraint_type::type build_time_constraint_type_from_string(const c
  * @arg tc_type	: the enumed type to convert
  * @return		: the 'stringed' type
  */
-std::string	build_string_from_time_constraint_type(const rpc::e_time_constraint_type& tc_t);
+std::string	build_string_from_time_constraint_type(const rpc::e_time_constraint_type::type& tc_t);
 
 #endif // COMMON_H

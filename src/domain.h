@@ -58,14 +58,45 @@ public:
 	Domain(Config*);
 	~Domain();
 
+////////////////////////////////////////////////////////////////////////////////
+
 	/*
 	 * get_planning
 	 *
-	 * Gets the planning from the master
+	 * Gets the planning from the database
 	 *
-	 * @return true	: sucess
+	 * TODO: Two options are possible:
+	 * 1. get the dump from the master:
+	 * 	- MySQL: SQL dump
+	 * 	- SQLite: the .db file
+	 * 2. use the rpc function (add_job...)
+	 *
+	 * @arg _return		: the output
 	 */
-	bool				get_planning();
+	void	get_planning(rpc::t_planning& _return);
+
+	/*
+	 * set_planning
+	 *
+	 * Sets the planning according to the t_planning
+	 *
+	 * @arg planning	: the planning to insert
+	 */
+	bool	set_planning(const rpc::t_planning& planning);
+
+////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * add_node
+	 *
+	 * Adds a node to the domain
+	 * If it already exists, does not modify it
+	 *
+	 * @arg n				: the node to add
+	 *
+	 * @return true	: success
+	 */
+	bool	add_node(const rpc::t_node& n);
 
 	/*
 	 * add_node
@@ -78,7 +109,8 @@ public:
 	 *
 	 * @return true	: success
 	 */
-	bool				add_node(const char* running_node, const char* n);
+	bool	add_node(const char* running_node, const char* n);
+
 
 	/*
 	 * add_node
@@ -91,8 +123,21 @@ public:
 	 * @arg w				: its weight, can be null
 	 * @return true			: success
 	 */
-	bool				add_node(const char* running_node, const std::string& n, const int&  w);
+	bool	add_node(const char* running_node, const std::string& n, const int&  w);
 
+	/*
+	 * get_node
+	 *
+	 */
+	void	get_node(rpc::t_node& _return, const char* node_name, const char* running_node);
+
+	/*
+	 * get_nodes
+	 *
+	 */
+	void	get_nodes(rpc::v_nodes& _return, const char* running_node);
+
+////////////////////////////////////////////////////////////////////////////////
 
 	/*
 	 * add_job
@@ -103,7 +148,7 @@ public:
 	 * @arg j		: the job to add
 	 * @return true	: sucess
 	 */
-	bool				add_job(Job* j);
+	bool	add_job(const rpc::t_job& j);
 
 	/*
 	 * update_job
@@ -113,7 +158,7 @@ public:
 	 * @arg			: the job to update
 	 * @return true	: success
 	 */
-	bool				update_job(const Job*);
+	bool	update_job(const rpc::t_job&);
 
 	/*
 	 * remove_job
@@ -122,13 +167,13 @@ public:
 	 *
 	 * @arg					: the job to remove
 	 * @arg	running_node	: the name of the node running the job
-	 * @arg j_id			: the jobs's id
+	 * @arg j_name			: the jobs's name
 	 * @return true			: success
 	 */
-	bool				remove_job(const rpc::t_job& j);
-	bool				remove_job(const Job*);
-	bool				remove_job(const std::string* running_node, const int j_id);
-	bool				remove_job(const std::string& running_node, const int j_id);
+	bool	remove_job(const rpc::t_job& j);
+	bool	remove_job(const Job*);
+	bool	remove_job(const std::string* running_node, const std::string& j_name);
+	bool	remove_job(const std::string& running_node, const std::string& j_name);
 
 	/*
 	 * update_job_state
@@ -137,33 +182,116 @@ public:
 	 *
 	 * @arg					; the job to update
 	 * @arg running_node	: the name of the node running the job
-	 * @arg j_id			: the job's id
+	 * @arg j_name			: the job's name
 	 * @arg js				: the new job's state
 	 *
 	 * TODO: use only the Job object (remove the second argument)
 	 */
-	bool				update_job_state(const rpc::t_job&);
-	bool				update_job_state(const Job*, const rpc::e_job_state::type);
-	bool				update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js);
-	bool				update_job_state(const std::string& running_node, const int& j_id, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
-	bool				update_job_state(const Job* j, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
+	bool	update_job_state(const rpc::t_job&);
+	bool	update_job_state(const Job*, const rpc::e_job_state::type);
+	bool	update_job_state(const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js);
+	bool	update_job_state(const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
+	bool	update_job_state(const Job* j, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
 
 	/*
 	 * get_ready_jobs
 	 *
 	 * Gets the list of the jobs ready to be launched
 	 *
+	 * @arg _return			: the output
 	 * @arg	running_node	: the node to check
-	 * @return				: the jobs' list
 	 */
-	v_jobs				get_ready_jobs(const char* running_node);
-	rpc::v_jobs			get_ready_rpc_jobs(const char* running_node);
+	void	get_ready_jobs(v_jobs& _return, const char* running_node);
+	void	get_ready_jobs(rpc::v_jobs& _return, const char* running_node);
 
 	/*
+	 * get_jobs
+	 *
+	 * Gets the jobs' list
+	 *
+	 * @arg _return			: the output
+	 * @arg	running_node	: the node to check
+	 */
+//	v_jobs	get_jobs(const char* running_node);
+	void	get_jobs(rpc::v_jobs& _return, const char* running_node);
+
+////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * get_jobs_next
+	 *
+	 * Gets the next job_ids to run
+	 *
+	 * @arg	_return			: the output
+	 * @arg	running_node	: the node to check
+	 * @arg j_id			: the previous job_id
+	 */
+	void	get_jobs_next(rpc::v_job_ids& _return, const char* running_node, const std::string& j_name);
+
+////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * get_macro_jobs
+	 *
+	 * Gets the macro_jobs' list
+	 *
+	 * @arg _return		: the output
+	 * @arg	running_node	: the node to check
+	 */
+	void	get_macro_jobs(rpc::v_macro_jobs& _return, const char* running_node);
+
+////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * add_resource
 	 *
 	 */
-//	v_jobs				get_jobs(const char* running_node);
-	rpc::v_jobs			get_jobs(const char* running_node);
+	bool	add_resource(const rpc::t_resource& r, const char* node_name);
+
+	/*
+	 * get_resources
+	 *
+	 * Gets the resources' list
+	 *
+	 * @arg _return		: the output
+	 */
+	void	get_resources(rpc::v_resources& _return, const char* running_node);
+
+////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * get_time_constraints
+	 *
+	 * Gets the time_constraints' list
+	 *
+	 * @arg _return		: the output
+	 */
+	void	get_time_constraints(rpc::v_time_constraints& _return, const char* running_node, const std::string& j_name);
+
+////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * get_recovery_types
+	 *
+	 * Gets the recovery_types' list
+	 *
+	 * @arg _return			: the output
+	 * @arg running_node	: the node hosting the object
+	 */
+	void	get_recovery_types(rpc::v_recovery_types& _return, const char* running_node);
+
+	/*
+	 * get_recovery_type
+	 *
+	 * Gets the recovery_type associated to the given id
+	 *
+	 * @arg _return			: the output
+	 * @arg running_node	: the node hosting the object
+	 * @arg rec_id			: the type's id
+	 */
+	void	get_recovery_type(rpc::t_recovery_type& _return, const char* running_node, const int rec_id);
+
+////////////////////////////////////////////////////////////////////////////////
 
 	/*
 	 * sql_exec
@@ -171,13 +299,17 @@ public:
 	/*
 	 * SQL stuff for debug only !
 	 */
-	void				sql_exec(const std::string& running_node, const std::string& s);
-	void				sql_exec(const std::string& s);
+	void	sql_exec(const std::string& running_node, const std::string& s);
+	void	sql_exec(const std::string& s);
+
+////////////////////////////////////////////////////////////////////////////////
 
 	/*
 	 * Getters
 	 */
-	std::string*		get_name() const;
+//	std::string*		get_name() const;
+
+////////////////////////////////////////////////////////////////////////////////
 
 #ifdef USE_SQLITE
 	/*
@@ -190,6 +322,8 @@ public:
 	 */
 	Sqlite*				get_database(const char* node_name);
 #endif
+
+////////////////////////////////////////////////////////////////////////////////
 
 private:
 	/*
@@ -220,7 +354,7 @@ private:
 	 *
 	 * The domain's name
 	 */
-	std::string*	name;
+	std::string		name;
 
 	/*
 	 * updates_mutex
@@ -228,6 +362,16 @@ private:
 	 * This mutex is used to prevent concurrent access to the database
 	 */
 	boost::mutex	updates_mutex;
+
+	/*
+	 * get_add_node_query
+	 *
+	 */
+	void		get_add_node_query(std::string& _return, const rpc::t_node& node);
+	void		get_add_job_query(std::string& _return, const rpc::t_job& job);
+	void		get_add_resource_query(std::string& _return, const rpc::t_resource& resource);
+	void		get_add_recovery_type_query(std::string& _return, const rpc::t_recovery_type& rc_type);
+	void		get_add_macro_job_query(std::string& _return, const rpc::t_macro_job& macro_job);
 };
 
 // } // namespace ows

@@ -39,13 +39,13 @@
 
 class Domain;
 
-typedef std::vector<int>	v_job_ids;
+//typedef std::vector<int>	v_job_ids;
 
 class Job {
 public:
-	Job(Domain* d, const std::string& name, const std::string& node_name, const std::string& cmd_line, const int& weight, const v_job_ids& pj, const v_job_ids& nj);
-	Job(Domain* d, int id, std::string& name, std::string& node_name, std::string& cmd_line, int weight);
-//	Job(rpc::t_job& j);
+//	Job(Domain* d, const std::string& name, const std::string& node_name, const std::string& cmd_line, const int& weight, const v_job_ids& pj, const v_job_ids& nj);
+//	Job(Domain* d, int id, std::string& name, std::string& node_name, std::string& cmd_line, int weight);
+	Job(Domain* d, const rpc::t_job& j);
 	~Job();
 
 	/*
@@ -63,7 +63,7 @@ public:
 	 * update_state
 	 *
 	 * Updates the state
-	 * TODO: is it crappy to us severa methods?
+	 * TODO: is it crappy to us several methods?
 	 *
 	 * @arg	js		: the job's state
 	 *
@@ -75,6 +75,7 @@ public:
 	/*
 	 * getters
 	 */
+	const rpc::t_job*	get_job() const;
 	const int			get_id()  const;
 	const std::string	get_name() const;
 	const std::string	get_cmd_line() const;
@@ -83,8 +84,8 @@ public:
 	const int			get_weight() const;
 	const Domain*		get_domain() const;
 
-	const v_job_ids	get_next() const;
-	const v_job_ids	get_prev() const;
+	const rpc::v_job_ids	get_next() const;
+	const rpc::v_job_ids	get_prev() const;
 
 	/*
 	 * setters
@@ -93,81 +94,19 @@ public:
 
 private:
 	/*
-	 * start_time
-	 *
-	 * When the job started
-	 */
-	time_t		start_time;
-
-	/*
-	 * stop_time
-	 *
-	 * When the job stopped
-	 */
-	time_t		stop_time;
-
-	/*
-	 * return_code
-	 *
-	 * The code returned by the job's command line
-	 */
-	int			return_code;
-
-	/*
-	 * id
-	 *
-	 * The job's id (database)
-	 */
-	int			id;
-
-	/*
-	 * name
-	 *
-	 * The job's namme
-	 */
-	std::string	name;
-
-	/*
-	 * node_name
-	 *
-	 * The node hosting the job
-	 */
-	std::string	node_name;
-
-	/*
 	 * domain
 	 *
-	 * The domain owning the job
+	 * Pointer to the Domain object that cannot be stored in a t_job
 	 */
 	Domain*		domain;
 
 	/*
-	 * cmd_line
+	 * job
 	 *
-	 * The command line to execute on the node
+	 * We directly use the rpc::t_job to store data
+	 * This prevents us to code twice
 	 */
-	std::string	cmd_line;
-
-	/*
-	 * weight
-	 *
-	 * The amont of needed resources to run the job
-	 */
-	int			weight;
-
-	/*
-	 * prev
-	 *
-	 * The jobs that must be run before the job
-	 */
-	v_job_ids	prev;
-
-	/*
-	 * next
-	 *
-	 * The jobs waiting for this job to success
-	 */
-	v_job_ids	next;
+	rpc::t_job	job;
 };
 
 // } // namespace ows

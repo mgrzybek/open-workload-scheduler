@@ -105,7 +105,8 @@ public:
 	void reach_master(rpc::t_route& _return);
 
 	// Planning methods
-	void get_planning(std::string& _return, const rpc::t_node& calling_node);
+	void get_planning(rpc::t_planning& _return);
+	bool set_planning(const rpc::t_node& calling_node, const rpc::t_planning& planning);
 
 	// Nodes methods
 	bool add_node(const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_add); // TODO: fix the weight value
@@ -122,6 +123,19 @@ public:
 
 private:
 	Domain*	domain;
+
+	/*
+	 * master_node_check
+	 *
+	 * Used in passive mode to check 2 elements:
+	 * - is the calling node the master?
+	 * - am I the target of the RPC?
+	 *
+	 * @arg calling_node_name	: the calling node
+	 * @arg job_node_name		: the job hosting node
+	 * @throw ex_routing		: the check failed
+	 */
+	void	check_master_node(const std::string& calling_node_name, const std::string& job_node_name);
 };
 
 #endif // USE_THRIFT

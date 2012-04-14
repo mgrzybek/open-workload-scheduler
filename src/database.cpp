@@ -39,7 +39,7 @@ Mysql::~Mysql() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Mysql::prepare(const std::string* node_name, const std::string* db_skeleton) {
+bool	Mysql::prepare(const std::string* domain_name, const std::string* db_skeleton) {
 	static char* server_args[] = {
 		"this_program",	// this string is not used
 		"--datadir=."
@@ -65,18 +65,18 @@ bool	Mysql::prepare(const std::string* node_name, const std::string* db_skeleton
 
 	// Creates the schema
 	query = "CREATE SCHEMA IF NOT EXISTS ";
-	query += this->translate_into_db(node_name);
+	query += this->translate_into_db(domain_name);
 	query += " DEFAULT CHARACTER SET latin1;";
 
 	queries.insert(queries.end(), query);
 	query.clear();
 
-	if ( this->standalone_execute(&queries) == false ) {
+	if ( this->standalone_execute(queries, NULL) == false ) {
 		return false;
 	}
 
 	// Loads the skeleton from file
-	return this->load_file(node_name->c_str(), db_skeleton->c_str());
+	return this->load_file(domain_name->c_str(), db_skeleton->c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -92,7 +92,6 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 		std::cerr << "Error : query is empty !" << std::endl;
 		return false;
 	}
-
 
 	if ( mysql_query(m, query.c_str()) != 0 ) {
 		std::cerr << query.c_str() << std::endl << mysql_error(m);
@@ -118,8 +117,8 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Mysql::standalone_execute(const v_queries* queries) {
-	MYSQL*		local_mysql	= this->init();
+bool	Mysql::standalone_execute(const v_queries& queries, const char* database_name) {
+	MYSQL*		local_mysql	= this->init(database_name);
 	std::string	query		= "START TRANSACTION;";
 
 	if ( local_mysql == NULL ) {
@@ -132,7 +131,7 @@ bool	Mysql::standalone_execute(const v_queries* queries) {
 		return false;
 	}
 
-	BOOST_FOREACH(std::string q, *queries) {
+	BOOST_FOREACH(std::string q, queries) {
 		if ( this->atomic_execute(q, local_mysql) == false ) {
 			query = "ROLLBACK;";
 			this->atomic_execute(query, local_mysql);
@@ -154,58 +153,59 @@ bool	Mysql::standalone_execute(const v_queries* queries) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-v_row	Mysql::query_one_row(const char* query) {
+bool	Mysql::query_one_row(v_row& _return, const char* query, const char* database_name) {
 	MYSQL_RES*	res;
 	MYSQL_ROW	row;
-	MYSQL*		local_mysql = this->init();
-	v_row		result;
+	MYSQL*		local_mysql = this->init(database_name);
 
 	if ( query == NULL )
-		return result;
+		return false;
 
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
 		std::cerr << query << std::endl << mysql_error(local_mysql);
-		return result;
+		return false;
 	}
 
 	res = mysql_store_result(local_mysql);
 	if (res)
 		while ( ( row = mysql_fetch_row(res) ) )
 			for ( uint i=0 ; i < mysql_num_fields(res) ; i++ )
-				result.push_back(std::string(row[i]));
+				_return.push_back(std::string(row[i]));
 	else
-		if ( mysql_field_count(local_mysql) != 0 )
+		if ( mysql_field_count(local_mysql) != 0 ) {
 			std::cerr << "Erreur : " << mysql_error(local_mysql) << std::endl;
+			mysql_free_result(res);
+			this->end(local_mysql);
+			return false;
+		}
 
 	mysql_free_result(res);
 	this->end(local_mysql);
 
-	return result;
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-v_v_row*	Mysql::query_full_result(const char* query) {
+bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* database_name) {
 	MYSQL_RES*	res;
 	MYSQL_ROW	row;
-	MYSQL*		local_mysql = this->init();
+	MYSQL*		local_mysql = this->init(database_name);
 	v_row		line;
-	v_v_row*	result = NULL;
 
 	if ( query == NULL )
-		return NULL;
+		return false;
 
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
 		std::cerr << query << std::endl << mysql_error(local_mysql);
-		return NULL;
+		return false;
 	}
 
 	res = mysql_store_result(local_mysql);
 
 	if (res) {
-		result = new v_v_row();
 		while ( ( row = mysql_fetch_row(res) ) ) {
 			line.clear();
 
@@ -216,23 +216,27 @@ v_v_row*	Mysql::query_full_result(const char* query) {
 					line.push_back(std::string("NULL"));
 			}
 
-			result->push_back(line);
+			_return.push_back(line);
 		}
 	} else
-		if ( mysql_field_count(local_mysql) != 0 )
+		if ( mysql_field_count(local_mysql) != 0 ) {
+			mysql_free_result(res);
+			this->end(local_mysql);
 			std::cerr << "Erreur : " << mysql_error(local_mysql) << std::endl;
+			return false;
+		}
 
 	mysql_free_result(res);
 	this->end(local_mysql);
 
-	return result;
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 // TODO: make sure it works thanks to the domain's mutex
-int	Mysql::get_inserted_id() {
-	MYSQL*	local_mysql	= this->init();
+int	Mysql::get_inserted_id(const char* database_name) {
+	MYSQL*	local_mysql	= this->init(database_name);
 	int		result;
 
 	result = mysql_insert_id(local_mysql);
@@ -257,6 +261,7 @@ bool	Mysql::load_file(const char* node_name, const char* file_path) {
 	v_queries		queries;
 	boost::regex	end_of_query("^.*?;$", boost::regex::perl);
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
+	boost::regex	comment_string("^--.*?$", boost::regex::perl);
 
 	query = "USE ";
 	query += node_name;
@@ -268,12 +273,13 @@ bool	Mysql::load_file(const char* node_name, const char* file_path) {
 		while ( ! f.eof() ) {
 			getline(f, line);
 			query += " ";
-			if ( boost::regex_match(line, end_of_query) == true ) {
-				query += line;
-				queries.insert(queries.end(), query);
-				query.clear();
-			} else
-				query += line;
+			if ( boost::regex_match(line, comment_string) == false )
+				if ( boost::regex_match(line, end_of_query) == true ) {
+					query += line;
+					queries.insert(queries.end(), query);
+					query.clear();
+				} else
+					query += line;
 		}
 	} else
 		return false;
@@ -281,12 +287,12 @@ bool	Mysql::load_file(const char* node_name, const char* file_path) {
 	if ( query.empty() == false and boost::regex_match(query, empty_string) == false  )
 		queries.insert(queries.end(), query);
 
-	return this->standalone_execute(&queries);
+	return this->standalone_execute(queries, NULL);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-MYSQL*		Mysql::init() {
+MYSQL*		Mysql::init(const char* database_name) {
 	MYSQL*	local_mysql = NULL;
 
 	mysql_thread_init();
@@ -299,7 +305,7 @@ MYSQL*		Mysql::init() {
 	}
 
 	mysql_options(local_mysql, MYSQL_READ_DEFAULT_GROUP, "libmysqld_threaded_client");
-	if ( ! mysql_real_connect(local_mysql, NULL, NULL, NULL, NULL, 0, NULL, 0) ) {
+	if ( ! mysql_real_connect(local_mysql, NULL, NULL, NULL, database_name, 0, NULL, 0) ) {
 		std::cerr << "Error: cannot connect: " << mysql_error(local_mysql) << std::endl;
 		return NULL;
 	}
