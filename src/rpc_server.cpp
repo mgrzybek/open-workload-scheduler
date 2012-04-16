@@ -157,7 +157,7 @@ void	ows_rpcHandler::reach_master(rpc::t_route& _return) {
 		}
 	}
 }
-
+/*
 void	ows_rpcHandler::get_planning(rpc::t_planning& _return) {
 	std::string*	gateway;
 
@@ -169,7 +169,7 @@ void	ows_rpcHandler::get_planning(rpc::t_planning& _return) {
 			 * - yes: give the planning
 			 * - no: forward
 			 */
-			if ( this->config->get_param("is_master")->compare("yes") != 0 ) {
+/*			if ( this->config->get_param("is_master")->compare("yes") != 0 ) {
 				gateway = this->router->get_gateway(this->config->get_master_node()->c_str());
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
@@ -221,7 +221,7 @@ bool	ows_rpcHandler::set_planning(const rpc::t_node& calling_node, const rpc::t_
 	}
 	return false;
 }
-
+*/
 bool	ows_rpcHandler::add_node(const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_add) {
 	std::string*	gateway;
 	bool			result;
@@ -263,6 +263,36 @@ bool	ows_rpcHandler::add_node(const rpc::t_node& calling_node, const rpc::t_node
 		}
 	}
 	return false;
+}
+
+void	ows_rpcHandler::get_node(rpc::t_node& _return, const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_get) {
+	std::string*	gateway;
+
+	switch (this->config->get_running_mode()) {
+		case P2P: {break;}
+		case ACTIVE: {
+			/*
+			 * am I the hosting_node?
+			 * - yes: get the node
+			 * - no: forward
+			 */
+			if ( this->config->get_param("node_name")->compare(hosting_node.name) != 0 ) {
+				gateway = this->router->get_gateway(hosting_node.name);
+				try {
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->get_handler()->get_node(_return, calling_node, hosting_node, node_to_get);
+					this->client->close();
+				} catch (rpc::ex_node e) {
+					this->client->close();
+					throw e;
+				}
+			}
+
+			this->domain->get_node(_return, node_to_get.name.c_str(), hosting_node.name.c_str());
+			break;
+		}
+		case PASSIVE: {break;}
+	}
 }
 
 void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const rpc::t_node& calling_node, const rpc::t_node& target_node) {

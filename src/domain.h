@@ -63,17 +63,15 @@ public:
 	/*
 	 * get_planning
 	 *
-	 * Gets the planning from the database
+	 * Gets the planning from the master and save it
 	 *
 	 * TODO: Two options are possible:
 	 * 1. get the dump from the master:
 	 * 	- MySQL: SQL dump
 	 * 	- SQLite: the .db file
 	 * 2. use the rpc function (add_job...)
-	 *
-	 * @arg _return		: the output
 	 */
-	void	get_planning(rpc::t_planning& _return);
+	bool	get_planning(const std::string& node_name);
 
 	/*
 	 * set_planning

@@ -58,17 +58,6 @@ Domain::~Domain() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void	Domain::get_planning(rpc::t_planning& _return) {
-/*	const char* running_node = _return.hosting_node.name.c_str();
-
-	this->get_nodes(_return.nodes, running_node);
-	this->get_jobs(_return.jobs, running_node);
-	this->get_resources(_return.resources, running_node);
-	this->get_recovery_types(_return.recoveries, running_node);
-	this->get_macro_jobs(_return.macro_jobs, running_node);
-
-	running_node = NULL;*/
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 

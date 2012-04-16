@@ -128,6 +128,11 @@ public:
 	~Router();
 
 	/*
+	 * get_node
+	 */
+	bool			get_node(rpc::t_node& node);
+
+	/*
 	 * get_next_hop
 	 *
 	 * TODO: Not implemented yet

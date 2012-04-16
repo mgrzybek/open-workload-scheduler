@@ -40,6 +40,25 @@ Router::~Router() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool	Router::get_node(rpc::t_node& node) {
+	rpc::t_node	local;
+	rpc::t_node	target;
+
+	local.name	= this->config->get_param("node_name")->c_str();
+	target.name = this->get_master_node()->c_str();
+
+	try {
+		this->rpc_client->open(this->get_gateway(*this->get_master_node())->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+		this->rpc_client->get_handler()->get_node(node, local, target, local);
+	} catch (std::exception& e) {
+		std::cerr << "Cannot get the planning" << std::endl;
+		return false;
+	}
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 bool	Router::update_peers_list() {
 	std::string		line;
 	rpc::t_node		peer;

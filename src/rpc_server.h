@@ -110,6 +110,7 @@ public:
 
 	// Nodes methods
 	bool add_node(const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_add); // TODO: fix the weight value
+	void get_node(rpc::t_node& _return, const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_get);
 
 	// Jobs methods
 	void get_jobs(rpc::v_jobs& _return, const rpc::t_node& calling_node, const rpc::t_node& target_node);

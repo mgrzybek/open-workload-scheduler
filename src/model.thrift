@@ -287,16 +287,16 @@ service ows_rpc {
 	/*
 	 * Planning
 	 */
-	t_planning	get_planning() throws (1:ex_routing r, 2:ex_planning p); 
+//	t_planning	get_planning() throws (1:ex_routing r, 2:ex_planning p); 
 
-	bool		set_planning(
+/*	bool		set_planning(
 			1: required t_node	calling_node,
 			2: required t_planning	planning,
 	) throws (
 			1:ex_routing	r,
 			2:ex_planning	p
 	);
-
+*/
 	/*
 	 * Node
 	 */
@@ -304,6 +304,15 @@ service ows_rpc {
 			1: required t_node	calling_node,
 			2: required t_node	hosting_node,
 			3: required t_node	node_to_add,
+	) throws (
+			1:ex_routing	r,
+			2:ex_node	n
+	);
+
+	t_node	get_node(
+			1: required t_node	calling_node,
+			2: required t_node	hosting_node,
+			3: required t_node	node_to_get,
 	) throws (
 			1:ex_routing	r,
 			2:ex_node	n
