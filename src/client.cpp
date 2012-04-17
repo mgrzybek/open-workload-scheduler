@@ -55,8 +55,8 @@ void	daemonnize(const char*);
 
 int		main (int argc, char * const argv[]) {
 	char*		config_file		= NULL;
-	bool		debug_mode		= false;
-	bool		daemon_mode		= false;
+//	bool		debug_mode		= false;
+//	bool		daemon_mode		= false;
 //	bool		check_mode		= false;
 	Config		conf_params;
 	Router		router(&conf_params);

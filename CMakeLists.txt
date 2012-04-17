@@ -57,10 +57,13 @@ ENDIF(PATCH_BIN)
 SET(PATCH_P_FLAG "-p0")
 SET(PATCH_T_FLAG "-t")
 SET(PATCH_N_FLAG "-N")
-SET(PATCH_FILE_FLAG "${CMAKE_CURRENT_LIST_DIR}/src/gen-cpp/ows_rpc.h")
+SET(PATCH_D_FLAG "-d")
+SET(PATCH_DIR_FLAG "${CMAKE_CURRENT_LIST_DIR}/src/gen-cpp")
+#SET(PATCH_FILE_FLAG "${CMAKE_CURRENT_LIST_DIR}/src/gen-cpp/ows_rpc.h")
+SET(PATCH_FILE_FLAG "<")
 SET(PATCH_PATCH_FLAG "${CMAKE_CURRENT_LIST_DIR}/patches/platform.patch")
 
-MESSAGE(STATUS "${PATCH_BIN} ${PATCH_P_FLAG} ${PATCH_T_FLAG} ${PATCH_N_FLAG} ${PATCH_FILE_FLAG} ${PATCH_PATCH_FLAG}")
+#MESSAGE(STATUS "${PATCH_BIN} ${PATCH_P_FLAG} ${PATCH_T_FLAG} ${PATCH_N_FLAG} ${PATCH_D_FLAG} ${PATCH_DIR_FLAG} ${PATCH_FILE_FLAG} ${PATCH_PATCH_FLAG}")
 
 #
 # External project
@@ -68,7 +71,7 @@ MESSAGE(STATUS "${PATCH_BIN} ${PATCH_P_FLAG} ${PATCH_T_FLAG} ${PATCH_N_FLAG} ${P
 ExternalProject_Add(
 	thrift
 	SOURCE_DIR	${THRIFT_GEN_CPP}
-	PATCH_COMMAND	${PATCH_BIN} ${PATCH_P_FLAG} ${PATCH_T_FLAG} ${PATCH_N_FLAG} ${PATCH_FILE_FLAG} ${PATCH_PATCH_FLAG}
+	PATCH_COMMAND	${PATCH_BIN} ${PATCH_P_FLAG} ${PATCH_T_FLAG} ${PATCH_N_FLAG} ${PATCH_D_FLAG} ${PATCH_DIR_FLAG} ${PATCH_FILE_FLAG} ${PATCH_PATCH_FLAG}
 	BUILD_COMMAND	${THRIFT_BIN} ${THRIFT_FLAGS_RECURSIVE} ${THRIFT_FLAGS_GEN_OPT} ${THRIFT_FLAGS_LANGUAGE} ${THRIFT_FLAGS_OUTPUT} ${THRIFT_FLAGS_OUTPUT_DIRECTORY} ${THRIFT_FILE}
 	INSTALL_COMMAND	${FAKE_INSTALL_BIN}
 )
@@ -209,6 +212,17 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #
 # Searching libraries
 #
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+SET(DL_LIB dl)
+SET(M_LIB m)
+SET(RT_LIB rt)
+SET(CRYPT_LIB crypt)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+SET(DL_LIB "")
+SET(M_LIB "")
+SET(RT_LIB "")
+SET(CRYPT_LIB "")
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 FIND_PROGRAM(THRIFT_LIB libthrift.a
 	/lib
@@ -272,12 +286,15 @@ FIND_PROGRAM(MYSQLD_LIB libmysqld.a
 
 # targets
 target_link_libraries(client
-	#crypto
+	${M_LIB}
+	${RT_LIB}
+	${CRYPT_LIB}
+	crypto
 	#curl
-	#dl
+	${DL_LIB}
 	pthread
-	#ssl
-	#z
+	ssl
+	z
 
 	#	${DN_LIB}
 	${MYSQLD_LIB}
@@ -289,9 +306,12 @@ target_link_libraries(client
 )
 
 target_link_libraries(master
-	crypt
+	${M_LIB}
+	${RT_LIB}
+	${CRYPT_LIB}
+	crypto
 	#curl
-	#dl
+	${DL_LIB}
 	pthread
 	ssl
 	z
@@ -306,9 +326,12 @@ target_link_libraries(master
 )
 
 target_link_libraries(shell
+	${M_LIB}
+	${RT_LIB}
+	${CRYPT_LIB}
 	#crypto
 	#curl
-	#dl
+	${DL_LIB}
 	pthread
 	#ssl
 	#z

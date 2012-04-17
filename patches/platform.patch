@@ -1,13 +1,60 @@
-9a10,21
-> #ifdef __linux__
-> #include <sys/socket.h>
-> #include <resolv.h>
-> #include <stdint.h>
-> #endif // __linux__
-> 
-> #ifdef __FreeBSD__
-> #include <sys/types.h>
-> #include <sys/socket.h>
-> #include <netinet/in.h>
-> #endif // __FreeBSD__
-> 
+diff -C 5 before/model_types.h after/model_types.h
+*** model_types.h	2012-04-17 22:19:43.749255125 +0200
+--- model_types.h	2012-04-17 22:22:34.578555800 +0200
+***************
+*** 5,14 ****
+--- 5,28 ----
+   *  @generated
+   */
+  #ifndef model_TYPES_H
+  #define model_TYPES_H
+  
++ #ifdef __linux__
++ #include <sys/socket.h>
++ #include <resolv.h>
++ #include <stdint.h>
++ #include <string.h>
++ #include <time.h>
++ #endif // __linux__
++ 
++ #ifdef __FreeBSD__
++ #include <sys/types.h>
++ #include <sys/socket.h>
++ #include <netinet/in.h>
++ #endif // __FreeBSD__
++ 
+  #include <Thrift.h>
+  #include <TApplicationException.h>
+  #include <protocol/TProtocol.h>
+  #include <transport/TTransport.h>
+  
+diff -C 5 before/ows_rpc.h after/ows_rpc.h
+*** ows_rpc.h	2012-04-17 22:19:34.002433778 +0200
+--- ows_rpc.h	2012-04-17 22:22:30.031815648 +0200
+***************
+*** 5,14 ****
+--- 5,28 ----
+   *  @generated
+   */
+  #ifndef ows_rpc_H
+  #define ows_rpc_H
+  
++ #ifdef __linux__
++ #include <sys/socket.h>
++ #include <resolv.h>
++ #include <stdint.h>
++ #include <string.h>
++ #include <time.h>
++ #endif // __linux__
++ 
++ #ifdef __FreeBSD__
++ #include <sys/types.h>
++ #include <sys/socket.h>
++ #include <netinet/in.h>
++ #endif // __FreeBSD__
++ 
+  #include <TProcessor.h>
+  #include "model_types.h"
+  
+  namespace rpc {
+  

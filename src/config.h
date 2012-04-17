@@ -62,7 +62,7 @@ typedef std::map<std::string,boost::regex> m_syntax_regex;
  * - active mode : The nodes try to reach the master to get their planning.
  * - passive mode : The nodes are passive and do not get their planning. They just wait the master to give jobs to run.
  */
-typedef enum e_running_mode {
+enum e_running_mode {
 	P2P,
 	ACTIVE,
 	PASSIVE

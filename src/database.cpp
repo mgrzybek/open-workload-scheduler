@@ -273,13 +273,14 @@ bool	Mysql::load_file(const char* node_name, const char* file_path) {
 		while ( ! f.eof() ) {
 			getline(f, line);
 			query += " ";
-			if ( boost::regex_match(line, comment_string) == false )
+			if ( boost::regex_match(line, comment_string) == false ) {
 				if ( boost::regex_match(line, end_of_query) == true ) {
 					query += line;
 					queries.insert(queries.end(), query);
 					query.clear();
 				} else
 					query += line;
+			}
 		}
 	} else
 		return false;

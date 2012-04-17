@@ -64,6 +64,7 @@
 #include <sys/socket.h>
 #include <resolv.h>
 #include <stdint.h>
+#include <string.h>
 #endif // __linux__
 
 #ifdef __FreeBSD__
