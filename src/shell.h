@@ -45,6 +45,7 @@
 
 #include <libcli.h>
 
+#include "common.h"
 #include "gen-cpp/ows_rpc.h"
 #include "gen-cpp/model_types.h"
 #include "router.h"
@@ -250,13 +251,5 @@ void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs);
  * @return	: the jobs'id vector
  */
 rpc::v_job_ids	build_v_jobs_from_string(const std::string* input);
-
-/*
- * build_string_from_job_state
- *
- * @arg	: the job's state
- * @return	: the converted state
- */
-std::string	build_string_from_job_state(const rpc::e_job_state::type js);
 
 #endif // SHELL_H

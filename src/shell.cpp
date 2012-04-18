@@ -117,7 +117,7 @@ int	cmd_hello(struct cli_def *cli, const char *command, char *argv[], int argc) 
 
 	try {
 		client.get_handler()->hello(hello_result, node);
-	} catch (const rpc::e_routing e) {
+	} catch (const rpc::ex_routing e) {
 		cli_print(cli, "e_routing: %s", e.msg.c_str());
 		return CLI_ERROR;
 	} catch (const std::exception e) {
@@ -184,7 +184,7 @@ int	cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc
 			return CLI_ERROR;
 		} else
 			cli_print(cli, "Command succeded");
-	} catch (const rpc::e_job e) {
+	} catch (const rpc::ex_job e) {
 		cli_print(cli, "%s", e.msg.c_str());
 		return CLI_ERROR;
 	}
@@ -208,15 +208,15 @@ int	cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int a
 		return CLI_ERROR;
 	}
 
-	params["id"] = "";
-	params["node_name"] = "";
+	params["name"] = "";
+	//params["node_name"] = "";
 
 	if ( get_params(&params, argc, argv) == false ) {
 		cli_print(cli, "Bad parameters");
 		return CLI_ERROR;
 	}
 
-	job.id = boost::lexical_cast<int>(params["id"]);
+	job.name = params["name"];
 	job.node_name = params["node_name"];
 
 	try {
@@ -225,7 +225,7 @@ int	cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int a
 			return CLI_ERROR;
 		} else
 			cli_print(cli, "Command succeded");
-	} catch (const rpc::e_job e) {
+	} catch (const rpc::ex_job e) {
 		cli_print(cli, "%s", e.msg.c_str());
 		return CLI_ERROR;
 	}
@@ -258,7 +258,7 @@ int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[],
 		return CLI_ERROR;
 	}
 
-	job.id = boost::lexical_cast<int>(params["id"]);
+	job.name = params["name"];
 	job.node_name = params["node_name"];
 	job.state = build_job_state_from_string(params["state"].c_str());
 
@@ -268,7 +268,7 @@ int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[],
 			return CLI_ERROR;
 		} else
 			cli_print(cli, "Command succeded");
-	} catch (const rpc::e_job e) {
+	} catch (const rpc::ex_job e) {
 		cli_print(cli, "%s", e.msg.c_str());
 		return CLI_ERROR;
 	} catch (const apache::thrift::transport::TTransportException e) {
@@ -302,7 +302,7 @@ int	cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int arg
 
 	try {
 		client.get_handler()->get_jobs(result, node, target);
-	} catch (const rpc::e_job e) {
+	} catch (const rpc::ex_job e) {
 		cli_print(cli, "Error: %s", e.msg.c_str());
 		return CLI_ERROR;
 	}
@@ -338,7 +338,7 @@ int	cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], i
 
 	try {
 		client.get_handler()->get_ready_jobs(result, node, target);
-	} catch (const rpc::e_job e) {
+	} catch (const rpc::ex_job e) {
 		cli_print(cli, "Error: %s", e.msg.c_str());
 		return CLI_ERROR;
 	}
@@ -502,7 +502,7 @@ rpc::v_job_ids	build_v_jobs_from_string(const std::string* input) {
 	boost::split(split_result, *input, boost::is_any_of(","));
 
 	BOOST_FOREACH(std::string j, split_result) {
-		jobs.push_back(boost::lexical_cast<int>(j));
+		jobs.push_back(j);
 	}
 
 	return jobs;
@@ -523,8 +523,7 @@ void	usage() {
 void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs) {
 	BOOST_FOREACH(rpc::t_job j, jobs) {
 		cli_print(cli,
-				  "id: %u\nname: %s\nnode_name: %s\ndomain: %s\ncmd_line: %s\nweight: %u",
-				  j.id,
+				  "name: %s\nnode_name: %s\ndomain: %s\ncmd_line: %s\nweight: %u",
 				  j.name.c_str(),
 				  j.node_name.c_str(),
 				  j.domain.c_str(),
