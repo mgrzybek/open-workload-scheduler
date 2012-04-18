@@ -326,8 +326,8 @@ target_link_libraries(master
 )
 
 target_link_libraries(shell
-	${M_LIB}
-	${RT_LIB}
+#	${M_LIB}
+#	${RT_LIB}
 	${CRYPT_LIB}
 	#crypto
 	#curl
