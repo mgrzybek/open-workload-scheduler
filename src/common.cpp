@@ -45,24 +45,20 @@ rpc::e_job_state::type	build_job_state_from_string(const char* state) {
 }
 
 std::string	build_string_from_job_state(const rpc::e_job_state::type& js) {
-	std::string result;
+	std::string	result;
 
 	switch (js) {
 		case rpc::e_job_state::WAITING: {
 			result = "waiting";
-			break;
 		}
 		case rpc::e_job_state::RUNNING: {
 			result = "running";
-			break;
 		}
 		case rpc::e_job_state::SUCCEDED: {
 			result = "succeded";
-			break;
 		}
 		case rpc::e_job_state::FAILED: {
 			result = "failed";
-			break;
 		}
 	}
 
