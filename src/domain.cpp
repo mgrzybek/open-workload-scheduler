@@ -250,7 +250,7 @@ bool	Domain::add_job(const rpc::t_job& j) {
 	}
 
 	BOOST_FOREACH(rpc::t_time_constraint tc, j.time_constraints) {
-		query = "INSERT INTO time_constraint (time_c_job_id, time_c_type, time_c_value) VALUES ('";
+		query = "INSERT INTO time_constraint (time_c_job_name, time_c_type, time_c_value) VALUES ('";
 		query += j.name;
 		query += "','";
 		query += build_string_from_time_constraint_type(tc.type);
@@ -261,7 +261,7 @@ bool	Domain::add_job(const rpc::t_job& j) {
 		queries.insert(queries.end(), query);
 	}
 
-	this->get_add_recovery_type_query(query, j.recovery_type);
+//	this->get_add_recovery_type_query(query, j.recovery_type);
 	queries.push_back(query);
 
 #ifdef USE_MYSQL
@@ -334,14 +334,14 @@ bool	Domain::update_job(const rpc::t_job& j) {
 		queries.insert(queries.end(), query);
 	}
 
-	query = "DELETE FROM time_constraint WHERE time_c_job_id = '";
+	query = "DELETE FROM time_constraint WHERE time_c_job_name = '";
 	query += j.name;
 	query += "');";
 
 	queries.insert(queries.end(), query);
 
 	BOOST_FOREACH(rpc::t_time_constraint tc, j.time_constraints) {
-		query = "REPLACE INTO time_constraint (time_c_job_id, time_c_type, time_c_value) VALUES ('";
+		query = "REPLACE INTO time_constraint (time_c_job_name, time_c_type, time_c_value) VALUES ('";
 		query += j.name;
 		query += "','";
 		query += build_string_from_time_constraint_type(tc.type);
@@ -352,7 +352,7 @@ bool	Domain::update_job(const rpc::t_job& j) {
 		queries.insert(queries.end(), query);
 	}
 
-	this->get_add_recovery_type_query(query, j.recovery_type);
+//	this->get_add_recovery_type_query(query, j.recovery_type);
 	queries.push_back(query);
 
 #ifdef USE_MYSQL
@@ -392,7 +392,7 @@ bool	Domain::remove_job(const std::string& running_node, const std::string& j_na
 
 	this->updates_mutex.lock();
 
-	query = "DELETE FROM job WHERE job_id = '";
+	query = "DELETE FROM job WHERE job_name = '";
 	query += j_name;
 	query += "';";
 
@@ -461,7 +461,7 @@ bool	Domain::update_job_state(const std::string& running_node, const std::string
 
 	query = "UPDATE job SET job_state = '";
 	query += build_string_from_job_state(js);
-	query += "' WHERE job_id = '";
+	query += "' WHERE job_name = '";
 	query += j_name;
 	query += "';";
 
@@ -503,7 +503,7 @@ bool	Domain::update_job_state(const std::string& running_node, const std::string
 	query += boost::lexical_cast<std::string>(start_time);
 	query += "', job_stop_time = '";
 	query += boost::lexical_cast<std::string>(stop_time);
-	query += "' WHERE job_id = '";
+	query += "' WHERE job_name = '";
 	query += j_name;
 	query += "';";
 
@@ -577,13 +577,14 @@ void	Domain::get_ready_jobs(v_jobs& _return, const char* running_node) {
 	BOOST_FOREACH(v_row job_row, jobs_matrix) {
 		delete job;
 		delete rpc_j;
+		rpc_j = new rpc::t_job();
 
 		rpc_j->name		= job_row[0];
 		rpc_j->cmd_line	= job_row[1];
 		rpc_j->node_name	= job_row[2];
 		rpc_j->weight	= boost::lexical_cast<int>(job_row[3]);
 		rpc_j->state		= build_job_state_from_string(job_row[4].c_str());
-
+/*
 		query = "SELECT job_rectype_id FROM job WHERE job_name ='";
 		query += rpc_j->name;
 		query += "';";
@@ -603,7 +604,7 @@ void	Domain::get_ready_jobs(v_jobs& _return, const char* running_node) {
 		}
 #endif
 		this->get_recovery_type(rpc_j->recovery_type, running_node, boost::lexical_cast<int>(job_row[5]));
-
+*/
 		job = new Job((Domain*)this, *rpc_j);
 		_return.push_back(*job);
 	}
@@ -750,7 +751,7 @@ void	Domain::get_jobs(rpc::v_jobs& _return, const char* running_node) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void	Domain::get_jobs_next(rpc::v_job_ids& _return, const char* running_node, const std::string& j_name) {
+void	Domain::get_jobs_next(rpc::v_job_names& _return, const char* running_node, const std::string& j_name) {
 	std::string	query("SELECT job_name_nxt FROM jobs_link WHERE job_name_prv = '");
 	v_v_row	job_links_matrix;
 
@@ -908,7 +909,7 @@ void	Domain::get_resources(rpc::v_resources& _return, const char* running_node) 
 ///////////////////////////////////////////////////////////////////////////////
 
 void	Domain::get_time_constraints(rpc::v_time_constraints& _return, const char* running_node, const std::string& job_name) {
-	std::string			query("SELECT time_c_job_id,time_c_type,time_c_value FROM time_contraint WHERE time_c_job_name = '");
+	std::string			query("SELECT time_c_job_name,time_c_type,time_c_value FROM time_contraint WHERE time_c_job_name = '");
 	v_v_row				time_contraints_matrix;
 	rpc::t_time_constraint*	time_contraint = NULL;
 
@@ -1187,7 +1188,7 @@ void	Domain::get_add_recovery_type_query(std::string& _return, const rpc::t_reco
 	_return += rc_type.label;
 	_return += "','";
 	_return += build_string_from_rectype_action(rc_type.action);
-	_return += ");";
+	_return += "');";
 }
 
 ///////////////////////////////////////////////////////////////////////////////

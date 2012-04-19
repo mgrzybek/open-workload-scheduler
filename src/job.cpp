@@ -194,12 +194,12 @@ const Domain*	Job::get_domain() const {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const rpc::v_job_ids	Job::get_next() const {
+const rpc::v_job_names	Job::get_next() const {
 	return this->job.nxt;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const rpc::v_job_ids	Job::get_prev() const {
+const rpc::v_job_names	Job::get_prev() const {
 	return this->job.prv;
 }

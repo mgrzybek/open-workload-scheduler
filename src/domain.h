@@ -222,9 +222,9 @@ public:
 	 *
 	 * @arg	_return			: the output
 	 * @arg	running_node	: the node to check
-	 * @arg j_id			: the previous job_id
+	 * @arg j_name			: the previous job_name
 	 */
-	void	get_jobs_next(rpc::v_job_ids& _return, const char* running_node, const std::string& j_name);
+	void	get_jobs_next(rpc::v_job_names& _return, const char* running_node, const std::string& j_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 

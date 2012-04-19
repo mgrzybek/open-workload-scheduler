@@ -59,7 +59,7 @@ enum	e_time_constraint_type {
 }
 
 typedef i16 integer
-typedef list<string> v_job_ids
+typedef list<string> v_job_names
 
 /*
  * t_resource
@@ -169,14 +169,14 @@ struct	t_job {
 	 *
 	 * The jobs that must be run before the job
 	 */
-	10: required v_job_ids	prv
+	10: required v_job_names	prv
 
 	/*
 	 * next
 	 *
 	 * The jobs waiting for this job to success
 	 */
-	11: required v_job_ids	nxt,
+	11: required v_job_names	nxt,
 
 	/*
 	 * time_constraints

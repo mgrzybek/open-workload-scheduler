@@ -84,8 +84,8 @@ public:
 	const int			get_weight() const;
 	const Domain*		get_domain() const;
 
-	const rpc::v_job_ids	get_next() const;
-	const rpc::v_job_ids	get_prev() const;
+	const rpc::v_job_names	get_next() const;
+	const rpc::v_job_names	get_prev() const;
 
 	/*
 	 * setters

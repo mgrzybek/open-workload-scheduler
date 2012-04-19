@@ -250,6 +250,6 @@ void	print_jobs(struct cli_def* cli, const rpc::v_jobs& jobs);
  * @arg	: the string to convert
  * @return	: the jobs'id vector
  */
-rpc::v_job_ids	build_v_jobs_from_string(const std::string* input);
+rpc::v_job_names	build_v_jobs_from_string(const std::string* input);
 
 #endif // SHELL_H

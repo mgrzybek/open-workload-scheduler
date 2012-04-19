@@ -249,7 +249,7 @@ int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[],
 		return CLI_ERROR;
 	}
 
-	params["id"] = "";
+	params["name"] = "";
 	params["node_name"] = "";
 	params["state"] = "";
 
@@ -492,9 +492,9 @@ bool	get_params(m_param* params, int argc, char* argv[]) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-rpc::v_job_ids	build_v_jobs_from_string(const std::string* input) {
+rpc::v_job_names	build_v_jobs_from_string(const std::string* input) {
 	v_args		split_result;
-	rpc::v_job_ids	jobs;
+	rpc::v_job_names	jobs;
 
 	if ( input->empty() == true )
 		return jobs;
