@@ -168,10 +168,14 @@ bool	Mysql::query_one_row(v_row& _return, const char* query, const char* databas
 	}
 
 	res = mysql_store_result(local_mysql);
-	if (res)
+	if ( res )
 		while ( ( row = mysql_fetch_row(res) ) )
-			for ( uint i=0 ; i < mysql_num_fields(res) ; i++ )
-				_return.push_back(std::string(row[i]));
+			if ( row ) {
+				for ( uint i=0 ; i < mysql_num_fields(res) ; i++ ) {
+					if ( row[i] != NULL )
+						_return.push_back(std::string(row[i]));
+				}
+			}
 	else
 		if ( mysql_field_count(local_mysql) != 0 ) {
 			std::cerr << "Erreur : " << mysql_error(local_mysql) << std::endl;
