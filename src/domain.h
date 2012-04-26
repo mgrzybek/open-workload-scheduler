@@ -90,11 +90,12 @@ public:
 	 * Adds a node to the domain
 	 * If it already exists, does not modify it
 	 *
-	 * @arg n				: the node to add
+	 * @arg domain_name	: where the node is added
+	 * @arg n			: the node to add
 	 *
 	 * @return true	: success
 	 */
-	bool	add_node(const rpc::t_node& n);
+	bool	add_node(const char* domain_name, const rpc::t_node& n);
 
 	/*
 	 * add_node
@@ -102,12 +103,12 @@ public:
 	 * Adds a node to the domain
 	 * If it already exists, does not modify it
 	 *
-	 * @arg running_node	: where the job is run
-	 * @arg n				: its name
+	 * @arg domain_name	: where the node is added
+	 * @arg n			: its name
 	 *
 	 * @return true	: success
 	 */
-	bool	add_node(const char* running_node, const char* n);
+	bool	add_node(const char* domain_name, const char* n);
 
 
 	/*
@@ -116,24 +117,24 @@ public:
 	 * Adds a node to the domain
 	 * If it already exists, does not modify it
 	 *
-	 * @arg running_node	: the node where the node is added
-	 * @arg n				: its name
-	 * @arg w				: its weight, can be null
-	 * @return true			: success
+	 * @arg domain_name	: where the node is added
+	 * @arg n			: its name
+	 * @arg w			: its weight, can be null
+	 * @return true		: success
 	 */
-	bool	add_node(const char* running_node, const std::string& n, const int&  w);
+	bool	add_node(const char* domain_name, const std::string& n, const rpc::integer& w);
 
 	/*
 	 * get_node
 	 *
 	 */
-	void	get_node(rpc::t_node& _return, const char* node_name, const char* running_node);
+	void	get_node(const char* domain_name, rpc::t_node& _return, const char* node_name);
 
 	/*
 	 * get_nodes
 	 *
 	 */
-	void	get_nodes(rpc::v_nodes& _return, const char* running_node);
+	void	get_nodes(const char* domain_name, rpc::v_nodes& _return);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -146,7 +147,7 @@ public:
 	 * @arg j		: the job to add
 	 * @return true	: sucess
 	 */
-	bool	add_job(const rpc::t_job& j);
+	bool	add_job(const char* domain_name, const rpc::t_job& j);
 
 	/*
 	 * update_job
@@ -156,7 +157,7 @@ public:
 	 * @arg			: the job to update
 	 * @return true	: success
 	 */
-	bool	update_job(const rpc::t_job&);
+	bool	update_job(const char* domain_name, const rpc::t_job&);
 
 	/*
 	 * remove_job
@@ -168,10 +169,10 @@ public:
 	 * @arg j_name			: the jobs's name
 	 * @return true			: success
 	 */
-	bool	remove_job(const rpc::t_job& j);
-	bool	remove_job(const Job*);
-	bool	remove_job(const std::string* running_node, const std::string& j_name);
-	bool	remove_job(const std::string& running_node, const std::string& j_name);
+	bool	remove_job(const char* domain_name, const rpc::t_job& j);
+	bool	remove_job(const char* domain_name, const Job*);
+	bool	remove_job(const char* domain_name, const std::string* running_node, const std::string& j_name);
+	bool	remove_job(const char* domain_name, const std::string& running_node, const std::string& j_name);
 
 	/*
 	 * update_job_state
@@ -185,11 +186,11 @@ public:
 	 *
 	 * TODO: use only the Job object (remove the second argument)
 	 */
-	bool	update_job_state(const rpc::t_job&);
-	bool	update_job_state(const Job*, const rpc::e_job_state::type);
-	bool	update_job_state(const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js);
-	bool	update_job_state(const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
-	bool	update_job_state(const Job* j, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
+	bool	update_job_state(const char* domain_name, const rpc::t_job&);
+	bool	update_job_state(const char* domain_name, const Job*, const rpc::e_job_state::type);
+	bool	update_job_state(const char* domain_name, const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js);
+	bool	update_job_state(const char* domain_name, const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
+	bool	update_job_state(const char* domain_name, const Job* j, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
 
 	/*
 	 * get_ready_jobs
@@ -199,8 +200,8 @@ public:
 	 * @arg _return			: the output
 	 * @arg	running_node	: the node to check
 	 */
-	void	get_ready_jobs(v_jobs& _return, const char* running_node);
-	void	get_ready_jobs(rpc::v_jobs& _return, const char* running_node);
+	void	get_ready_jobs(const char* domain_name, v_jobs& _return, const char* running_node);
+	void	get_ready_jobs(const char* domain_name, rpc::v_jobs& _return, const char* running_node);
 
 	/*
 	 * get_jobs
@@ -211,7 +212,7 @@ public:
 	 * @arg	running_node	: the node to check
 	 */
 //	v_jobs	get_jobs(const char* running_node);
-	void	get_jobs(rpc::v_jobs& _return, const char* running_node);
+	void	get_jobs(const char* domain_name, rpc::v_jobs& _return, const char* running_node);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -224,7 +225,7 @@ public:
 	 * @arg	running_node	: the node to check
 	 * @arg j_name			: the previous job_name
 	 */
-	void	get_jobs_next(rpc::v_job_names& _return, const char* running_node, const std::string& j_name);
+	void	get_jobs_next(const char* domain_name, rpc::v_job_names& _return, const char* running_node, const std::string& j_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -236,7 +237,7 @@ public:
 	 * @arg _return		: the output
 	 * @arg	running_node	: the node to check
 	 */
-	void	get_macro_jobs(rpc::v_macro_jobs& _return, const char* running_node);
+	void	get_macro_jobs(const char* domain_name, rpc::v_macro_jobs& _return, const char* running_node);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -244,7 +245,7 @@ public:
 	 * add_resource
 	 *
 	 */
-	bool	add_resource(const rpc::t_resource& r, const char* node_name);
+	bool	add_resource(const char* domain_name, const rpc::t_resource& r, const char* node_name);
 
 	/*
 	 * get_resources
@@ -253,7 +254,7 @@ public:
 	 *
 	 * @arg _return		: the output
 	 */
-	void	get_resources(rpc::v_resources& _return, const char* running_node);
+	void	get_resources(const char* domain_name, rpc::v_resources& _return, const char* running_node);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -264,7 +265,7 @@ public:
 	 *
 	 * @arg _return		: the output
 	 */
-	void	get_time_constraints(rpc::v_time_constraints& _return, const char* running_node, const std::string& j_name);
+	void	get_time_constraints(const char* domain_name, rpc::v_time_constraints& _return, const char* running_node, const std::string& j_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -276,7 +277,7 @@ public:
 	 * @arg _return			: the output
 	 * @arg running_node	: the node hosting the object
 	 */
-	void	get_recovery_types(rpc::v_recovery_types& _return, const char* running_node);
+	void	get_recovery_types(const char* domain_name, rpc::v_recovery_types& _return, const char* running_node);
 
 	/*
 	 * get_recovery_type
@@ -287,7 +288,7 @@ public:
 	 * @arg running_node	: the node hosting the object
 	 * @arg rec_id			: the type's id
 	 */
-	void	get_recovery_type(rpc::t_recovery_type& _return, const char* running_node, const int rec_id);
+	void	get_recovery_type(const char* domain_name, rpc::t_recovery_type& _return, const char* running_node, const int rec_id);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -305,7 +306,7 @@ public:
 	/*
 	 * Getters
 	 */
-//	std::string*		get_name() const;
+	const char*		get_name() const;
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -109,15 +109,15 @@ public:
 	bool set_planning(const rpc::t_node& calling_node, const rpc::t_planning& planning);
 
 	// Nodes methods
-	bool add_node(const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_add); // TODO: fix the weight value
-	void get_node(rpc::t_node& _return, const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_get);
+	bool add_node(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_add); // TODO: fix the weight value
+	void get_node(rpc::t_node& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get);
 
 	// Jobs methods
-	void get_jobs(rpc::v_jobs& _return, const rpc::t_node& calling_node, const rpc::t_node& target_node);
-	void get_ready_jobs(rpc::v_jobs& _return, const rpc::t_node& calling_node, const rpc::t_node& target_node);
-	bool add_job(const rpc::t_node& calling_node, const rpc::t_job& j);
-	bool remove_job(const rpc::t_node& calling_node, const rpc::t_job& j);
-	bool update_job_state(const rpc::t_node& calling_node, const rpc::t_job& j);
+	void get_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	void get_ready_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	bool add_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
+	bool remove_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
+	bool update_job_state(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
 
 	// SQL methods
 	void sql_exec(const std::string& query);

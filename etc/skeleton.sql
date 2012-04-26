@@ -49,6 +49,7 @@ COMMENT = '\'This is an abstract object' ;
 
 -- -----------------------------------------------------
 -- Table `job`
+-- job_macro_job_id should be NOT NULL
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `job` ;
 
@@ -61,7 +62,7 @@ CREATE  TABLE IF NOT EXISTS `job` (
   `job_stop_time` TIME NOT NULL ,
   `job_state` ENUM('waiting','running','succeded','failed') NULL DEFAULT 'waiting' ,
   `job_rectype_id` INT(11) NULL DEFAULT NULL ,
-  `job_macro_job_id` INT(11) NOT NULL ,
+  `job_macro_job_id` INT(11) ,
   PRIMARY KEY (`job_name`) ,
   INDEX `fk_job_node` (`job_node_name` ASC) ,
   INDEX `fk_rectype_id` (`job_rectype_id` ASC) ,

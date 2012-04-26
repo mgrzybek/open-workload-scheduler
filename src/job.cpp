@@ -141,14 +141,14 @@ bool	Job::run() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Job::update_state(const rpc::e_job_state::type js) {
-	return this->domain->update_job_state(this, js);
+	return this->domain->update_job_state(this->domain->get_name(), this, js);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 // TODO: fix it
 bool	Job::update_state(const rpc::e_job_state::type js, time_t start_time, time_t stop_time) {
-	return this->domain->update_job_state(this, js, start_time, stop_time);
+	return this->domain->update_job_state(this->domain->get_name(), this, js, start_time, stop_time);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

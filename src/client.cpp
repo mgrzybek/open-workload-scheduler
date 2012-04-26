@@ -80,7 +80,7 @@ int		main (int argc, char * const argv[]) {
 			config_file = argv[i+1];
 			continue;
 		}
-		if ( strcmp(argv[i], "-v" ) == 0 ) {
+/*		if ( strcmp(argv[i], "-v" ) == 0 ) {
 			debug_mode = true;
 			continue;
 		}
@@ -88,7 +88,7 @@ int		main (int argc, char * const argv[]) {
 			daemon_mode = true;
 			continue;
 		}
-	}
+*/	}
 
 	if ( config_file == NULL ) {
 		std::cerr << "No config file given" << std::endl;
@@ -133,11 +133,11 @@ int		main (int argc, char * const argv[]) {
 	rpc::t_node	node;
 	Domain		domain(&conf_params);
 
-	while ( router.get_node(node) == false ) {
+	while ( router.get_node(conf_params.get_param("domain_name")->c_str(), node) == false ) {
 		std::cout << "Cannot get the planning" << std::endl;
 		sleep(30);
 	}
-	if ( domain.add_node(node) == false ) {
+	if ( domain.add_node(conf_params.get_param("domain_name")->c_str(), node) == false ) {
 		std::cerr << "Cannot load the planning" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -165,7 +165,7 @@ int		main (int argc, char * const argv[]) {
 	v_jobs	jobs;
 	boost::thread_group	running_jobs;
 	while (1) {
-		domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
+		domain.get_ready_jobs(conf_params.get_param("domain_name")->c_str(), jobs, conf_params.get_param("node_name")->c_str());
 		std::cout << "jobs size: " << jobs.size() << std::endl; // TODO: remove it
 		BOOST_FOREACH(Job j, jobs) {
 			running_jobs.create_thread(boost::bind(&Job::run, &j));

@@ -282,6 +282,7 @@ service ows_rpc {
 	t_hello	hello(
 			1: required t_node	target_node
 	) throws (1:ex_routing e);
+
 	t_route	reach_master() throws (1:ex_routing e);
 
 	/*
@@ -301,18 +302,20 @@ service ows_rpc {
 	 * Node
 	 */
 	bool	add_node(
-			1: required t_node	calling_node,
-			2: required t_node	hosting_node,
-			3: required t_node	node_to_add,
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
+			4: required t_node	node_to_add,
 	) throws (
 			1:ex_routing	r,
 			2:ex_node	n
 	);
 
 	t_node	get_node(
-			1: required t_node	calling_node,
-			2: required t_node	hosting_node,
-			3: required t_node	node_to_get,
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
+			4: required t_node	node_to_get,
 	) throws (
 			1:ex_routing	r,
 			2:ex_node	n
@@ -322,24 +325,27 @@ service ows_rpc {
 	 * Jobs
 	 */
 	v_jobs	get_jobs(
-			1: required t_node	calling_node,
-			2: required t_node	target_node,
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j
 	);
 
 	v_jobs	get_ready_jobs(
-			1: required t_node	calling_node,
-			2: required t_node	target_node,
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j
 	);
 
 	bool	add_job(
-			1: required t_node	calling_node,
-			2: required t_job	j,
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_job	j,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j
@@ -347,8 +353,9 @@ service ows_rpc {
 
 
 	bool	remove_job(
-			1: required t_node	calling_node,
-			2: required t_job	j,
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_job	j,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	e
@@ -360,8 +367,9 @@ service ows_rpc {
 //	) throws (1:ex_job e);
 
 	bool	update_job_state(
-			1: required t_node	calling_node,
-			2: required t_job	j,
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_job	j,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	e

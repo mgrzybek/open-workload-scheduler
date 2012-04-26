@@ -179,7 +179,7 @@ int	cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc
 	job.nxt		= build_v_jobs_from_string(&params["nj"]);
 
 	try {
-		if ( client.get_handler()->add_job(node, job) == false ) {
+		if ( client.get_handler()->add_job(params["domain_name"], node, job) == false ) {
 			cli_print(cli, "RPC call failed");
 			return CLI_ERROR;
 		} else
@@ -220,7 +220,7 @@ int	cmd_remove_job(struct cli_def *cli, const char *command, char *argv[], int a
 	job.node_name = params["node_name"];
 
 	try {
-		if ( client.get_handler()->remove_job(node, job) == false ) {
+		if ( client.get_handler()->remove_job(params["domain_name"], node, job) == false ) {
 			cli_print(cli, "RPC call failed");
 			return CLI_ERROR;
 		} else
@@ -263,7 +263,7 @@ int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[],
 	job.state = build_job_state_from_string(params["state"].c_str());
 
 	try {
-		if ( client.get_handler()->update_job_state(node, job) == false ) {
+		if ( client.get_handler()->update_job_state(params["domain_name"], node, job) == false ) {
 			cli_print(cli, "RPC call failed");
 			return CLI_ERROR;
 		} else
@@ -282,6 +282,7 @@ int	cmd_update_job_state(struct cli_def *cli, const char *command, char *argv[],
 ///////////////////////////////////////////////////////////////////////////////
 
 int	cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int argc) {
+	m_param		params;
 	rpc::v_jobs	result;
 
 	rpc::t_node	node;
@@ -290,18 +291,18 @@ int	cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int arg
 
 	rpc::t_node	target;
 
-	// TODO: use domain.node syntax for the target
-	if ( argc == 0 )
-		target.name = connected_node_name;
-	else if ( argc == 1 )
-		target.name = argv[0];
-	else {
-		cli_print(cli, "Error: missing one arg : running_node");
-		return CLI_ERROR_ARG;
+	params["domain_name"]	= "";
+
+	if ( get_params(&params, argc, argv) == false ) {
+		cli_print(cli, "Bad parameters");
+		return CLI_ERROR;
 	}
 
+	// TODO: use domain.node syntax for the target
+	target.name = connected_node_name;
+
 	try {
-		client.get_handler()->get_jobs(result, node, target);
+		client.get_handler()->get_jobs(result, params["domain_name"], node, target);
 	} catch (const rpc::ex_job e) {
 		cli_print(cli, "Error: %s", e.msg.c_str());
 		return CLI_ERROR;
@@ -337,7 +338,7 @@ int	cmd_get_ready_jobs(struct cli_def *cli, const char *command, char *argv[], i
 	}
 
 	try {
-		client.get_handler()->get_ready_jobs(result, node, target);
+		client.get_handler()->get_ready_jobs(result, *conf_params.get_param("domain_name"), node, target);
 	} catch (const rpc::ex_job e) {
 		cli_print(cli, "Error: %s", e.msg.c_str());
 		return CLI_ERROR;

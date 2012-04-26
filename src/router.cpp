@@ -40,7 +40,7 @@ Router::~Router() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Router::get_node(rpc::t_node& node) {
+bool	Router::get_node(const std::string& domain_name, rpc::t_node& node) {
 	rpc::t_node	local;
 	rpc::t_node	target;
 
@@ -49,7 +49,7 @@ bool	Router::get_node(rpc::t_node& node) {
 
 	try {
 		this->rpc_client->open(this->get_gateway(*this->get_master_node())->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
-		this->rpc_client->get_handler()->get_node(node, local, target, local);
+		this->rpc_client->get_handler()->get_node(node, domain_name, local, target, local);
 	} catch (std::exception& e) {
 		std::cerr << "Cannot get the planning" << std::endl;
 		return false;

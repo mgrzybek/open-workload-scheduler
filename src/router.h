@@ -130,7 +130,7 @@ public:
 	/*
 	 * get_node
 	 */
-	bool			get_node(rpc::t_node& node);
+	bool			get_node(const std::string& domain_name, rpc::t_node& node);
 
 	/*
 	 * get_next_hop
