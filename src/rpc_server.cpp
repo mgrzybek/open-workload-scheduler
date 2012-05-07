@@ -30,7 +30,7 @@
 Rpc_Object::Rpc_Object(Config* c, Router* r) {
 	this->config		= c;
 	this->router		= r;
-	this->client		= new Rpc_Client(c, r);
+	this->client		= new Rpc_Client();
 }
 
 Rpc_Object::~Rpc_Object() {

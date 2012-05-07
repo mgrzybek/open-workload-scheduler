@@ -64,7 +64,7 @@ public:
 protected:
 	Config*		config;
 	Router*		router;
-	Rpc_Client*	client;
+	Rpc_Client*	client; // TODO: create rpc_clients on demand to by multi-thread compatible
 };
 
 ///////////////////////////////////////////////////////////////////////////////

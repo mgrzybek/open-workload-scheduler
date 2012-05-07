@@ -29,8 +29,7 @@
 
 Router::Router(Config* c) {
 	this->config		= c;
-	this->rpc_client	= new Rpc_Client(c, this);
-
+	this->rpc_client	= new Rpc_Client();
 }
 
 Router::~Router() {

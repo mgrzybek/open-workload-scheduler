@@ -37,9 +37,6 @@
 
 // common.h must be included before using the USE_* macros
 #include "common.h"
-#include "job.h"
-#include "router.h"
-#include "config.h"
 
 #ifdef USE_THRIFT
 // RPC Stuff
@@ -53,11 +50,8 @@
 
 // namespace ows {
 
-class Router;
-
 class Rpc_Client {
 public:
-	Rpc_Client(Config* c, Router* r);
 	Rpc_Client();
 	~Rpc_Client();
 
@@ -89,36 +83,6 @@ public:
 	 * @return true	: success
 	 */
 	bool			close();
-
-#endif //USE_THRIFT
-
-protected:
-	/*
-	 * get_planning
-	 *
-	 * @arg : none
-	 * @return : planning's file path
-	 *
-	 * Downloads the planning from the master and write it to a file
-	 */
-//	std::string		get_planning();
-
-private:
-	/*
-	 * config
-	 *
-	 * The map containing the paramaters read from the .cfg file
-	 */
-	Config*					config;
-
-	/*
-	 * router
-	 *
-	 * Tells us how to reach nodes
-	 */
-	Router*					router;
-
-#ifdef USE_THRIFT
 
 	/*
 	 * transport

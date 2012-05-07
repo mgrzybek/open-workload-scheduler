@@ -27,14 +27,6 @@
 
 #include "rpc_client.h"
 
-Rpc_Client::Rpc_Client(Config* c, Router* r) {
-	this->config	= c;
-	this->router	= r;
-#ifdef USE_THRIFT
-	this->handler	= NULL;
-#endif // USE_THRIFT
-}
-
 Rpc_Client::Rpc_Client() {
 #ifdef USE_THRIFT
 	this->handler	= NULL;
@@ -42,8 +34,8 @@ Rpc_Client::Rpc_Client() {
 }
 
 Rpc_Client::~Rpc_Client() {
-	this->config	= NULL;
-	this->router	= NULL;
+	//	this->config	= NULL;
+	//	this->router	= NULL;
 #ifdef USE_THRIFT
 	if ( this->handler != NULL ) {
 		delete this->handler;
@@ -79,10 +71,10 @@ rpc::ows_rpcClient*	Rpc_Client::get_handler() const {
 }
 
 //TODO: find a clean transport->close()
-bool    Rpc_Client::close() {
+bool	Rpc_Client::close() {
 	delete this->handler;
 	this->handler = NULL;
-/*
+	/*
 	try {
 		this->transport->close();
 	} catch (const apache::thrift::transport::TTransportException e) {
