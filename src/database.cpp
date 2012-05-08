@@ -198,9 +198,11 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 	MYSQL*		local_mysql = this->init(database_name);
 	v_row		line;
 
-	if ( query == NULL )
+	if ( local_mysql == NULL )
 		return false;
 
+	if ( query == NULL )
+		return false;
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
 		std::cerr << query << std::endl << mysql_error(local_mysql);
@@ -299,20 +301,24 @@ bool	Mysql::load_file(const char* node_name, const char* file_path) {
 
 MYSQL*		Mysql::init(const char* database_name) {
 	MYSQL*	local_mysql = NULL;
+	rpc::ex_processing e;
 
 	mysql_thread_init();
 
 	local_mysql = mysql_init(NULL);
 
 	if ( local_mysql == NULL ) {
-		std::cerr << "Error: cannot init a MySQL connector" << std::endl;
-		return NULL;
+		e.msg = "Error: cannot init a MySQL connector";
+		mysql_thread_end();
+		throw e;
 	}
 
 	mysql_options(local_mysql, MYSQL_READ_DEFAULT_GROUP, "libmysqld_threaded_client");
 	if ( ! mysql_real_connect(local_mysql, NULL, NULL, NULL, database_name, 0, NULL, 0) ) {
-		std::cerr << "Error: cannot connect: " << mysql_error(local_mysql) << std::endl;
-		return NULL;
+		e.msg = "Error: cannot connect: ";
+		e.msg += mysql_error(local_mysql);
+		mysql_thread_end();
+		throw e;
 	}
 
 	return local_mysql;
