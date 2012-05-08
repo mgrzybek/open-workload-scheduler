@@ -111,6 +111,7 @@ public:
 	// Nodes methods
 	bool add_node(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_add); // TODO: fix the weight value
 	void get_node(rpc::t_node& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get);
+	void get_nodes(rpc::v_nodes& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
 
 	// Jobs methods
 	void get_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
@@ -137,6 +138,18 @@ private:
 	 * @throw ex_routing		: the check failed
 	 */
 	void	check_master_node(const std::string& calling_node_name, const std::string& job_node_name);
+
+	/*
+	 * check_routing_args
+	 *
+	 * Used to check if the args are empty or usable
+	 *
+	 * @arg domain_name		: the string that should not be empty
+	 * @arg calling_node	: its name and its domain_name should be filled in
+	 * @throw ex_routing	: the raised exception
+	 */
+	void	check_routing_args(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	void	check_routing_args(const std::string& domain_name, const rpc::t_node& calling_node);
 };
 
 #endif // USE_THRIFT

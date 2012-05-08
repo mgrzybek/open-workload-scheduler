@@ -295,9 +295,42 @@ void	ows_rpcHandler::get_node(rpc::t_node& _return, const std::string& domain_na
 	}
 }
 
+void ows_rpcHandler::get_nodes(rpc::v_nodes& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+	std::string*	gateway;
+
+	this->check_routing_args(domain_name, calling_node, target_node);
+
+	switch (this->config->get_running_mode()) {
+		case P2P: {break;}
+		case ACTIVE: {
+			/*
+			 * am I the hosting_node?
+			 * - yes: get the node
+			 * - no: forward
+			 */
+			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(target_node.name);
+				try {
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->get_handler()->get_nodes(_return, domain_name, calling_node, target_node);
+					this->client->close();
+				} catch (rpc::ex_node e) {
+					this->client->close();
+					throw e;
+				}
+			}
+
+			this->domain->get_nodes(domain_name.c_str(), _return);
+			break;
+		}
+		case PASSIVE: {break;}
+	}
+}
+
 void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
 	std::string*	gateway;
-	rpc::ex_routing	e;
+
+	this->check_routing_args(domain_name, calling_node, target_node);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -538,6 +571,41 @@ void	ows_rpcHandler::check_master_node(const std::string& calling_node_name, con
 	if ( this->router->get_master_node()->compare(calling_node_name) != 0 or this->config->get_param("node_name")->compare(target_node_name) != 0 ) {
 		e.msg = calling_node_name;
 		e.msg += " is not the master_node";
+		throw e;
+	}
+}
+
+void	ows_rpcHandler::check_routing_args(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+	rpc::ex_routing e;
+
+	this->check_routing_args(domain_name, calling_node);
+
+	if ( target_node.name.empty() == true ) {
+		e.msg = "target_node's name is empty";
+		throw e;
+	}
+
+	if ( target_node.domain_name.empty() == true ) {
+		e.msg = "target_node's domain_name is empty";
+		throw e;
+	}
+}
+
+void	ows_rpcHandler::check_routing_args(const std::string& domain_name, const rpc::t_node& calling_node) {
+	rpc::ex_routing e;
+
+	if ( domain_name.empty() == true ) {
+		e.msg = "domain_name is empty";
+		throw e;
+	}
+
+	if ( calling_node.name.empty() == true ) {
+		e.msg = "calling_node's name is empty";
+		throw e;
+	}
+
+	if ( calling_node.domain_name.empty() == true ) {
+		e.msg = "calling_node's domain_name is empty";
 		throw e;
 	}
 }

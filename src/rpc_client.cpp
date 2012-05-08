@@ -34,8 +34,6 @@ Rpc_Client::Rpc_Client() {
 }
 
 Rpc_Client::~Rpc_Client() {
-	//	this->config	= NULL;
-	//	this->router	= NULL;
 #ifdef USE_THRIFT
 	if ( this->handler != NULL ) {
 		delete this->handler;

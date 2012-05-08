@@ -1116,9 +1116,12 @@ void	Domain::get_nodes(const char* domain_name, rpc::v_nodes& _return) {
 
 	BOOST_FOREACH(v_row node_row, nodes_matrix) {
 		delete node;
+		node = new rpc::t_node();
 
 		node->weight	= boost::lexical_cast<int>(node_row[0]);
 		node->name		= node_row[1];
+
+		this->get_node(domain_name, *node, node_row[1].c_str());
 
 		_return.push_back(*node);
 	}
