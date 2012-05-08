@@ -227,6 +227,8 @@ bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node&
 	bool			result;
 	rpc::ex_routing	e;
 
+	this->check_routing_args(domain_name, calling_node, hosting_node);
+
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
 		case ACTIVE: {
@@ -267,6 +269,8 @@ bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node&
 
 void	ows_rpcHandler::get_node(rpc::t_node& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get) {
 	std::string*	gateway;
+
+	this->check_routing_args(domain_name, calling_node, target_node);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -373,6 +377,8 @@ void	ows_rpcHandler::get_ready_jobs(rpc::v_jobs& _return, const std::string& dom
 	std::string*	gateway;
 	rpc::ex_routing	e;
 
+	this->check_routing_args(domain_name, calling_node, target_node);
+
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
 		case ACTIVE: {
@@ -414,6 +420,8 @@ void	ows_rpcHandler::get_ready_jobs(rpc::v_jobs& _return, const std::string& dom
 bool	ows_rpcHandler::add_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j) {
 	std::string*	gateway;
 	rpc::ex_routing	e;
+
+	this->check_routing_args(domain_name, calling_node);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -458,6 +466,8 @@ bool	ows_rpcHandler::remove_job(const std::string& domain_name, const rpc::t_nod
 	std::string*	gateway;
 	rpc::ex_routing	e;
 
+	this->check_routing_args(domain_name, calling_node);
+
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
 		case ACTIVE: {
@@ -499,6 +509,8 @@ bool	ows_rpcHandler::remove_job(const std::string& domain_name, const rpc::t_nod
 bool	ows_rpcHandler::update_job_state(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j) {
 	std::string*	gateway;
 	rpc::ex_routing	e;
+
+	this->check_routing_args(domain_name, calling_node);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}

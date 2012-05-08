@@ -275,6 +275,10 @@ exception ex_planning {
 	1: string	msg,
 }
 
+exception ex_processing {
+	1: string msg,
+}
+
 service ows_rpc {
 	/*
 	 * Routing
@@ -308,7 +312,8 @@ service ows_rpc {
 			4: required t_node	node_to_add,
 	) throws (
 			1:ex_routing	r,
-			2:ex_node	n
+			2:ex_node	n,
+			3:ex_processing p
 	);
 
 	t_node	get_node(
@@ -318,7 +323,9 @@ service ows_rpc {
 			4: required t_node	node_to_get,
 	) throws (
 			1:ex_routing	r,
-			2:ex_node	n
+			2:ex_node	n,
+			3:ex_processing p
+
 	);
 
 	v_nodes	get_nodes(
@@ -327,7 +334,9 @@ service ows_rpc {
 			3: required t_node	target_node,
 	) throws (
 			1:ex_routing	r,
-			2:ex_node	n
+			2:ex_node	n,
+			3:ex_processing p
+
 	);
 
 	/*
@@ -339,7 +348,9 @@ service ows_rpc {
 			3: required t_node	target_node,
 	) throws (
 			1:ex_routing	r,
-			2:ex_job	j
+			2:ex_job	j,
+			3:ex_processing p
+
 	);
 
 	v_jobs	get_ready_jobs(
@@ -348,7 +359,9 @@ service ows_rpc {
 			3: required t_node	target_node,
 	) throws (
 			1:ex_routing	r,
-			2:ex_job	j
+			2:ex_job	j,
+			3:ex_processing p
+
 	);
 
 	bool	add_job(
@@ -357,7 +370,9 @@ service ows_rpc {
 			3: required t_job	j,
 	) throws (
 			1:ex_routing	r,
-			2:ex_job	j
+			2:ex_job	j,
+			3:ex_processing p
+
 	);
 
 
@@ -367,7 +382,9 @@ service ows_rpc {
 			3: required t_job	j,
 	) throws (
 			1:ex_routing	r,
-			2:ex_job	e
+			2:ex_job	j,
+			3:ex_processing p
+
 	);
 
 //	bool	remove_job(
@@ -381,7 +398,9 @@ service ows_rpc {
 			3: required t_job	j,
 	) throws (
 			1:ex_routing	r,
-			2:ex_job	e
+			2:ex_job	j,
+			3:ex_processing p
+
 	);
 
 //	bool	update_job_state(
