@@ -229,6 +229,12 @@ bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node&
 
 	this->check_routing_args(domain_name, calling_node, hosting_node);
 
+	if ( node_to_add.name.empty() == true or node_to_add.weight < 0 ) {
+		rpc::ex_node e;
+		e.msg = "The node to add does not contain the minimal attributes";
+		throw e;
+	}
+
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
 		case ACTIVE: {
