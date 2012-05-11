@@ -834,9 +834,9 @@ bool	Domain::add_resource(const char* domain_name, const rpc::t_resource& r, con
 	query += "','";
 	query += node_name;
 	query += "','";
-	query += r.current_value;
+	query += boost::lexical_cast<std::string>(r.current_value);
 	query += "','";
-	query += r.initial_value;
+	query += boost::lexical_cast<std::string>(r.initial_value);
 	query += "');";
 
 	queries.push_back(query);

@@ -256,7 +256,7 @@ bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node&
 				return result;
 			}
 
-			return this->domain->add_node(domain_name.c_str(), node_to_add.name, node_to_add.weight);
+			return this->domain->add_node(domain_name.c_str(), node_to_add);
 			break;
 		}
 		case PASSIVE: {
