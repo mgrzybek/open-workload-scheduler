@@ -86,8 +86,6 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 	MYSQL_ROW	row;
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
 
-	std::cout << query.c_str() << std::endl;
-
 	if ( query.empty() == true or boost::regex_match(query, empty_string) == true ) {
 		std::cerr << "Error : query is empty !" << std::endl;
 		return false;
@@ -96,7 +94,8 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 	if ( mysql_query(m, query.c_str()) != 0 ) {
 		std::cerr << query.c_str() << std::endl << mysql_error(m);
 		return false;
-	}
+	} else
+		std::cout << query.c_str() << std::endl;
 
 	res = mysql_store_result(m);
 	if (res)
@@ -205,7 +204,7 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 		return false;
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
-		std::cerr << query << std::endl << mysql_error(local_mysql);
+		std::cerr << "Error: " << query << std::endl << mysql_error(local_mysql);
 		return false;
 	}
 

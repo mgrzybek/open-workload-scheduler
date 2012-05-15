@@ -226,7 +226,7 @@ bool	Domain::add_job(const char* domain_name, const rpc::t_job& j) {
 	query += boost::lexical_cast<std::string>(j.weight);
 	query += "');";
 
-	queries.insert(queries.end(), query);
+	queries.push_back(query);
 
 	BOOST_FOREACH(std::string i, j.prv) {
 		query = "INSERT INTO ";
@@ -236,7 +236,7 @@ bool	Domain::add_job(const char* domain_name, const rpc::t_job& j) {
 		query += j.name;
 		query += "');";
 
-		queries.insert(queries.end(), query);
+		queries.push_back(query);
 	}
 
 	BOOST_FOREACH(std::string i, j.nxt) {
@@ -246,7 +246,7 @@ bool	Domain::add_job(const char* domain_name, const rpc::t_job& j) {
 		query += boost::lexical_cast<std::string>(j.name);
 		query += "');";
 
-		queries.insert(queries.end(), query);
+		queries.push_back(query);
 	}
 
 	BOOST_FOREACH(rpc::t_time_constraint tc, j.time_constraints) {
@@ -258,11 +258,11 @@ bool	Domain::add_job(const char* domain_name, const rpc::t_job& j) {
 		query += boost::lexical_cast<std::string>(tc.value);
 		query += "');";
 
-		queries.insert(queries.end(), query);
+		queries.push_back(query);
 	}
 
 //	this->get_add_recovery_type_query(query, j.recovery_type);
-	queries.push_back(query);
+//	queries.push_back(query);
 
 #ifdef USE_MYSQL
 	if ( this->database.standalone_execute(queries, domain_name) == true ) {

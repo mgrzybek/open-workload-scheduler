@@ -144,7 +144,7 @@ int		main (int argc, char * const argv[]) {
 	while (1) {
 		v_jobs	jobs;
 		domain.get_ready_jobs(domain.get_name(), jobs, conf_params.get_param("node_name")->c_str());
-		std::cout << "jobs size: " << jobs.size() << std::endl; // TODO: remove it
+		std::cout << "ready jobs: " << jobs.size() << std::endl; // TODO: remove it
 		BOOST_FOREACH(Job j, jobs) {
 			running_jobs.create_thread(boost::bind(&Job::run, &j));
 		}

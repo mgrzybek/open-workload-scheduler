@@ -168,6 +168,9 @@ int	cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc
 	job.node_name	= params["node_name"].c_str();
 	job.cmd_line	= params["cmd_line"].c_str();
 
+	node.name = conf_params.get_param("node_name")->c_str();
+	node.domain_name = conf_params.get_param("domain_name")->c_str();
+
 	try {
 		job.weight = boost::lexical_cast<int>(params["weight"].c_str());
 	} catch (const std::exception e) {
@@ -184,7 +187,7 @@ int	cmd_add_job(struct cli_def *cli, const char *command, char *argv[], int argc
 			return CLI_ERROR;
 		} else
 			cli_print(cli, "Command succeded");
-	} catch (const rpc::ex_job e) {
+	} catch (const rpc::ex_routing& e) {
 		cli_print(cli, "%s", e.msg.c_str());
 		return CLI_ERROR;
 	}
@@ -300,6 +303,7 @@ int	cmd_get_jobs(struct cli_def *cli, const char *command, char *argv[], int arg
 
 	// TODO: use domain.node syntax for the target
 	target.name = connected_node_name;
+	target.domain_name = params["domain_name"];
 
 	try {
 		client.get_handler()->get_jobs(result, params["domain_name"], node, target);
