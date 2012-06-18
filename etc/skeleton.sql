@@ -43,7 +43,7 @@ CREATE  TABLE IF NOT EXISTS `macro_job` (
   INDEX `fk_macro_id` (`macro_id` ASC) )
 ENGINE = InnoDB
 AUTO_INCREMENT = 4
-DEFAULT CHARACTER SET = latin1, 
+DEFAULT CHARACTER SET = latin1,
 COMMENT = '\'This is an abstract object' ;
 
 
@@ -184,7 +184,7 @@ CREATE TABLE IF NOT EXISTS `get_available_resource` (`resource_id` INT, `resourc
 DROP VIEW IF EXISTS `get_ready_job` ;
 DROP TABLE IF EXISTS `get_ready_job`;
 
-CREATE  OR REPLACE ALGORITHM=UNDEFINED   
+CREATE  OR REPLACE ALGORITHM=UNDEFINED
          VIEW `get_ready_job` AS select `j`.`job_name` AS `job_name`,`j`.`job_cmd_line` AS `job_cmd_line`,`j`.`job_node_name` AS `job_node_name`,`j`.`job_weight` AS `job_weight`,`j`.`job_state` AS `job_state`,`j`.`job_rectype_id` AS `job_rectype_id` from `job` `j`
 where (
   (
@@ -202,7 +202,7 @@ where (
 DROP VIEW IF EXISTS `get_ready_time` ;
 DROP TABLE IF EXISTS `get_ready_time`;
 
-CREATE  OR REPLACE ALGORITHM=UNDEFINED   
+CREATE  OR REPLACE ALGORITHM=UNDEFINED
          VIEW `get_ready_time` AS select job_name from job j
 where
    j.job_name not in (select time_c_job_name from time_constraint)
@@ -219,7 +219,7 @@ where
 DROP VIEW IF EXISTS `get_ready_links` ;
 DROP TABLE IF EXISTS `get_ready_links`;
 
-CREATE  OR REPLACE ALGORITHM=UNDEFINED   
+CREATE  OR REPLACE ALGORITHM=UNDEFINED
          VIEW `get_ready_links` AS select distinct `jl`.`job_name_nxt` AS `job_name` from (`jobs_link` `jl` join `job` `j`) where (`jl`.`job_name_prv` = `j`.`job_name`) and (`j`.`job_state` = 'succeded')
 ;
 
@@ -229,7 +229,7 @@ CREATE  OR REPLACE ALGORITHM=UNDEFINED
 DROP VIEW IF EXISTS `get_ready_linkless` ;
 DROP TABLE IF EXISTS `get_ready_linkless`;
 
-CREATE  OR REPLACE ALGORITHM=UNDEFINED   
+CREATE  OR REPLACE ALGORITHM=UNDEFINED
          VIEW `get_ready_linkless` AS SELECT `job_name` FROM `job` WHERE `job_state` = 'waiting' AND `job_name` NOT IN ( SELECT `job_name_nxt` FROM `jobs_link` )
 ;
 
@@ -239,10 +239,9 @@ CREATE  OR REPLACE ALGORITHM=UNDEFINED
 DROP VIEW IF EXISTS `get_available_resource` ;
 DROP TABLE IF EXISTS `get_available_resource`;
 
-CREATE  OR REPLACE ALGORITHM=UNDEFINED   
+CREATE  OR REPLACE ALGORITHM=UNDEFINED
          VIEW `get_available_resource` AS select `resource`.`resource_name` AS `resource_name`,`resource`.`resource_node_name` AS `resource_node_name`,`resource`.`resource_current_value` AS `resource_current_value` from `resource` where (`resource`.`resource_current_value` > 0)
 ;
-
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
