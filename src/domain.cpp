@@ -721,13 +721,6 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 	jobs_matrix = this->get_database(running_node)->query_full_result(query.c_str());
 #endif
 
-	if ( jobs_matrix.empty() == true ) {
-		rpc::ex_job	e;
-		e.msg = "The database returned an empty result";
-		throw e;
-	}
-
-
 	BOOST_FOREACH(v_row job_row, jobs_matrix) {
 		delete job;
 
@@ -1077,8 +1070,8 @@ void	Domain::get_node(const char* domain_name, rpc::t_node& _return, const char*
 	}
 #endif
 
-	_return.name	= node_row[0];
-	_return.weight	= boost::lexical_cast<int>(node_row[1]);
+	_return.name	= node_row[0].c_str();
+	_return.weight	= boost::lexical_cast<rpc::integer>(node_row[1]);
 	_return.domain_name	= this->name.c_str();
 	this->get_resources(domain_name, _return.resources, _return.name.c_str());
 	this->get_jobs(domain_name, _return.jobs, _return.name.c_str());
@@ -1118,10 +1111,10 @@ void	Domain::get_nodes(const char* domain_name, rpc::v_nodes& _return) {
 		delete node;
 		node = new rpc::t_node();
 
-		node->weight	= boost::lexical_cast<int>(node_row[0]);
-		node->name		= node_row[1];
+		node->name		= node_row[0];
+		node->weight	= boost::lexical_cast<rpc::integer>(node_row[1]);
 
-		this->get_node(domain_name, *node, node_row[1].c_str());
+		this->get_node(domain_name, *node, node_row[0].c_str());
 
 		_return.push_back(*node);
 	}
