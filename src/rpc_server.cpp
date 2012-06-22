@@ -428,6 +428,7 @@ bool	ows_rpcHandler::add_job(const std::string& domain_name, const rpc::t_node& 
 	rpc::ex_routing	e;
 
 	this->check_routing_args(domain_name, calling_node);
+	this->check_job_arg(j);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -624,6 +625,35 @@ void	ows_rpcHandler::check_routing_args(const std::string& domain_name, const rp
 
 	if ( calling_node.domain_name.empty() == true ) {
 		e.msg = "calling_node's domain_name is empty";
+		throw e;
+	}
+}
+
+void	ows_rpcHandler::check_job_arg(const rpc::t_job job) {
+	rpc::ex_job e;
+
+	if ( job.name.empty() == true ) {
+		e.msg = "job_name is empty";
+		throw e;
+	}
+
+	if ( job.domain.empty() == true ) {
+		e.msg = "domain_name is empty";
+		throw e;
+	}
+
+	if ( job.cmd_line.empty() == true ) {
+		e.msg = "cmd_line is empty";
+		throw e;
+	}
+
+	if ( job.node_name.empty() == true ) {
+		e.msg = "node_name is empty";
+		throw e;
+	}
+
+	if ( job.weight < 1 ) {
+		e.msg = "weight must be higher than 0";
 		throw e;
 	}
 }

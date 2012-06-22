@@ -150,6 +150,16 @@ private:
 	 */
 	void	check_routing_args(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
 	void	check_routing_args(const std::string& domain_name, const rpc::t_node& calling_node);
+
+	/*
+	 * check_job_arg
+	 *
+	 * Used to check if the job given as argument is valid
+	 *
+	 * @arg job			: the job to check
+	 * @throw ex_job	: the check failed
+	 */
+	void	check_job_arg(const rpc::t_job job);
 };
 
 #endif // USE_THRIFT
