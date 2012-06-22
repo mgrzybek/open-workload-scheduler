@@ -1070,11 +1070,13 @@ void	Domain::get_node(const char* domain_name, rpc::t_node& _return, const char*
 	}
 #endif
 
-	_return.name	= node_row[0].c_str();
-	_return.weight	= boost::lexical_cast<rpc::integer>(node_row[1]);
-	_return.domain_name	= this->name.c_str();
-	this->get_resources(domain_name, _return.resources, _return.name.c_str());
-	this->get_jobs(domain_name, _return.jobs, _return.name.c_str());
+	if ( node_row.size() > 0 ) {
+		_return.name	= node_row[0].c_str();
+		_return.weight	= boost::lexical_cast<rpc::integer>(node_row[1]);
+		_return.domain_name	= this->name.c_str();
+		this->get_resources(domain_name, _return.resources, _return.name.c_str());
+		this->get_jobs(domain_name, _return.jobs, _return.name.c_str());
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
