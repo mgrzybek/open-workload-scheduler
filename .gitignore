@@ -3,7 +3,7 @@ CMakeFiles
 CMakeScripts
 cmake_install.cmake
 Makefile
-ows.xcodeproj
+*.xcodeproj
 ows.build
 build
 Debug
