@@ -1,10 +1,13 @@
 QT	-= core gui
-CONFIG	+= link_pkgconfig
+CONFIG	+= link_pkgconfig debug_and_release
 
-TARGET = master
+#TARGET = master
 
-QMAKE_EXTRA_TARGET += src/gen-cpp/ows_rpc.cpp
-#PRE_TARGETDEPS += thrift
+CONFIG(debug, debug|release) {
+        TARGET = master_debug
+} else {
+        TARGET = master_release
+}
 
 include(qmake_conf/linux.pro)
 include(qmake_conf/macx.pro)
@@ -38,4 +41,3 @@ HEADERS	+= src/common.h \
 	src/gen-cpp/model_constants.h \
 	src/gen-cpp/model_types.h \
 	src/gen-cpp/ows_rpc.h
-
