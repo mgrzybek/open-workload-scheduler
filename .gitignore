@@ -1,8 +1,4 @@
-CMakeCache.txt
-CMakeFiles
-CMakeScripts
-cmake_install.cmake
-Makefile
+Makefile*
 *.xcodeproj
 *.plist
 *.app
@@ -11,8 +7,6 @@ build
 Debug
 Release
 .DS_Store
-.svn
 ows_*
 model_*
 data
-thrift-prefix
