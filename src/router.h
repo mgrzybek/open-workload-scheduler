@@ -32,6 +32,7 @@
 #include <map>
 #include <string>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>

@@ -32,11 +32,14 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <time.h>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
+#include <boost/regex.hpp>
 
 #include "common.h"
+#include "convertions.h"
 #include "config.h"
 #include "database.h"
 #include "job.h"
@@ -47,11 +50,7 @@
 
 class Job;
 
-typedef	std::vector<Job>				v_jobs;
-#ifdef USE_SQLITE
-typedef	std::map<std::string, Sqlite*>	m_nodes;
-typedef	std::pair<std::string, Sqlite*>	p_nodes;
-#endif
+typedef	std::vector<Job>	v_jobs;
 
 class Domain {
 public:
@@ -65,22 +64,26 @@ public:
 	 *
 	 * Gets the planning from the master and save it
 	 *
-	 * TODO: Two options are possible:
-	 * 1. get the dump from the master:
-	 * 	- MySQL: SQL dump
-	 * 	- SQLite: the .db file
-	 * 2. use the rpc function (add_job...)
 	 */
-	bool	get_planning(const std::string& node_name);
+	bool	get_planning(rpc::t_planning& _return, const char* domain_name, const char* node_name);
 
 	/*
 	 * set_planning
 	 *
-	 * Sets the planning according to the t_planning
+	 * Sets the planning according to the template
 	 *
 	 * @arg planning	: the planning to insert
+	 * @return			: sucscess or failure
 	 */
-	bool	set_planning(const rpc::t_planning& planning);
+	bool	set_next_planning();
+
+	/*
+	 * get_next_planning_start_time
+	 *
+	 * Gets when the next planning should start
+	 *
+	 */
+	time_t	get_next_planning_start_time();
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -200,8 +203,8 @@ public:
 	 * @arg _return			: the output
 	 * @arg	running_node	: the node to check
 	 */
-	void	get_ready_jobs(const char* domain_name, v_jobs& _return, const char* running_node);
-	void	get_ready_jobs(const char* domain_name, rpc::v_jobs& _return, const char* running_node);
+	void	get_ready_jobs(v_jobs& _return, const char* running_node);
+	void	get_ready_jobs(rpc::v_jobs& _return, const char* running_node);
 
 	/*
 	 * get_jobs
@@ -213,6 +216,17 @@ public:
 	 */
 //	v_jobs	get_jobs(const char* running_node);
 	void	get_jobs(const char* domain_name, rpc::v_jobs& _return, const char* running_node);
+
+	/*
+	 * get_job
+	 *
+	 * Gets the job
+	 *
+	 * @arg _return			: the output
+	 * @arg	running_node	: the node to check
+	 * @arg job_name		: the job to get
+	 */
+	void	get_job(const char* domain_name, rpc::t_job& _return, const char* running_node, const char* job_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -308,19 +322,12 @@ public:
 	 */
 	const char*		get_name() const;
 
-////////////////////////////////////////////////////////////////////////////////
-
-#ifdef USE_SQLITE
 	/*
-	 * get_database
+	 * get_current_name
 	 *
-	 * Gets the node's database
-	 *
-	 * @arg	node_name	: the node's name
-	 * @return			: the SQLite handler
+	 * Get the current running domain's name (domain_name + "_" + start_time)
 	 */
-	Sqlite*				get_database(const char* node_name);
-#endif
+	std::string		get_current_name();
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -339,14 +346,6 @@ private:
 	 */
 	Mysql			database;
 #endif
-#ifdef USE_SQLITE
-	/*
-	 * databases
-	 *
-	 * The SQLite handlers {node <=> handler}
-	 */
-	m_nodes			databases;
-#endif
 
 	/*
 	 * name
@@ -354,6 +353,21 @@ private:
 	 * The domain's name
 	 */
 	std::string		name;
+
+	/*
+	 * planning_start_unix_time
+	 *
+	 * When the initial planning started
+	 */
+	time_t			planning_start_time;
+	time_t			initial_planning_start_time;
+
+	/*
+	 * planning_duration
+	 *
+	 * How long a day is
+	 */
+	time_t			planning_duration;
 
 	/*
 	 * updates_mutex

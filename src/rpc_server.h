@@ -105,7 +105,7 @@ public:
 	void reach_master(rpc::t_route& _return);
 
 	// Planning methods
-	void get_planning(rpc::t_planning& _return);
+	void get_planning(rpc::t_planning& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get);
 	bool set_planning(const rpc::t_node& calling_node, const rpc::t_planning& planning);
 
 	// Nodes methods
@@ -116,7 +116,9 @@ public:
 	// Jobs methods
 	void get_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
 	void get_ready_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	void get_job(rpc::t_job& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_job& job_to_get);
 	bool add_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
+	bool update_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
 	bool remove_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
 	bool update_job_state(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
 

@@ -30,82 +30,123 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// TODO: use day_{start_date,start_time,duration} to fill in planning_{start_time,duration}
 Domain::Domain(Config* c) {
-	if ( c == NULL )
-		throw "The config is null";
+	boost::regex	duration_matching("^(([[:digit:]]+)h)?(([[:digit:]]+)min)?$", boost::regex::perl);
+	boost::regex	time_matching("^([[:digit:]]{2}):([[:digit:]]{2})$", boost::regex::perl);
 
-	this->config = c;
+	boost::smatch			what;
+	//boost::match_flag_type		flags = boost::match_default;
+	std::string::const_iterator	start = c->get_param("day_duration")->begin();
+	std::string::const_iterator	end = c->get_param("day_duration")->end();
 
-	this->name = this->config->get_param("domain_name")->c_str();
+	if ( c == NULL ) {
+		rpc::ex_processing e;
+		e.msg = "The config is null";
+		throw e;
+	}
 
-#ifdef USE_MYSQL
-	if ( this->database.prepare(this->config->get_param("domain_name"), this->config->get_param("db_skeleton")) == false )
-		throw "Error: cannot prepare the database";
-#endif
-#ifdef USE_SQLITE
-	Sqlite*	sqlite_buf = new Sqlite();
-	if ( sqlite_buf->prepare(this->config->get_param("node_name")->c_str(), this->config->get_param("db_data"), this->config->get_param("db_skeleton")) == false )
-		throw "Error: cannot prepare the database";
-	this->databases.insert(p_nodes(*this->config->get_param("node_name"), sqlite_buf));
-#endif
+	this->config	= c;
+	this->name	= this->config->get_param("domain_name")->c_str();
+
+	/*
+	 * Make sure the duration and the start time are zero before calculating them
+	 */
+	this->planning_duration = 0;
+	this->initial_planning_start_time = 0;
+	
+	try {
+		if ( boost::regex_search(start, end, what, duration_matching) ) {
+			/*
+			 * what[0] empty -> problem
+			 * what[2] hours -> convert to seconds (*3600)
+			 * what[4] minutes -> convert to seconds (*60)
+			 */
+			if ( what[0].length() == 0 ) {
+				rpc::ex_processing e;
+				e.msg = "Error: duration is empty";
+				throw e;
+			}
+
+			if ( what[2].length() != 0 )
+				this->planning_duration += boost::lexical_cast<int>(what[1]) * 3600;
+
+			if ( what[4].length() != 0 )
+				this->planning_duration += boost::lexical_cast<int>(what[4]) * 60;
+		} else {
+			rpc::ex_processing	e;
+			e.msg = "Error: cannot get the planning's duration";
+			throw e;
+		}
+
+		std::cout << "Planning duration is: " << this->planning_duration << std::endl;
+
+		start = c->get_param("day_start_time")->begin();
+		end = c->get_param("day_start_time")->end();
+
+		if ( boost::regex_search(start, end, what, time_matching) ) {
+			this->initial_planning_start_time = boost::lexical_cast<int>(what[1]) * 3600 + boost::lexical_cast<int>(what[2]) * 60;
+			std::cout << "Initial planning start time is: " << boost::lexical_cast<int>(what[1]) << ":" << boost::lexical_cast<int>(what[2]) << " -> " << this->initial_planning_start_time << std::endl;
+		}
+	} catch (const std::exception& e) {
+		std::cerr << e.what();
+	}
+
+	this->planning_start_time = this->get_next_planning_start_time();
+	std::cout << "Next start time is: " << this->planning_start_time << std::endl;
+
+	if ( this->database.prepare(this->config->get_param("domain_name"), this->config->get_param("db_skeleton")) == false ) {
+		rpc::ex_processing e;
+		e.msg = "Error: cannot prepare the database";
+		throw e;
+	}
 }
 
 Domain::~Domain() {
-#ifdef USE_SQLITE
-	// TODO: delete the Sqlite* objects from the map
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
+bool	Domain::get_planning(rpc::t_planning& _return, const char* domain_name, const char* node_name) {
+	rpc::t_node	node;
+
+	this->get_node(domain_name, node, node_name);
+
+	_return.day.begin_time = this->get_next_planning_start_time();
+	_return.day.duration = this->planning_duration;
+	_return.nodes.push_back(node);
+
+	return true;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Domain::set_planning(const rpc::t_planning& planning) {
-/*	v_queries	queries;
-	std::string	query; // TODO: remove query
+bool	Domain::set_next_planning() {
+	rpc::v_nodes	nodes;
+	std::string		planning_name;
 
-	this->updates_mutex.lock();
+	this->get_nodes(this->name.c_str(), nodes);
 
-	BOOST_FOREACH(rpc::t_node node, planning.nodes) {
-		this->get_add_node_query(query, node);
-		queries.push_back(query);
+	planning_name = this->name.c_str();
+	planning_name += "_";
+	planning_name += boost::lexical_cast<std::string>(this->get_next_planning_start_time());
+
+	this->database.init_domain_structure(planning_name, this->config->get_param("db_skeleton")->c_str());
+
+	BOOST_FOREACH(rpc::t_node node, nodes) {
+		if ( this->add_node(planning_name.c_str(), node) == false )
+			return false;
 	}
 
-	BOOST_FOREACH(rpc::t_job job, planning.jobs) {
-		this->get_add_job_query(query, job);
-		queries.push_back(query);
-	}
-
-	BOOST_FOREACH(rpc::t_resource resource, planning.resources) {
-		this->get_add_resource_query(query, resource);
-		queries.push_back(query);
-	}
-
-	BOOST_FOREACH(rpc::t_recovery_type recovery, planning.recoveries) {
-		this->get_add_recovery_type_query(query, recovery);
-		queries.push_back(query);
-	}
-
-	BOOST_FOREACH(rpc::t_macro_job macro_job, planning.macro_jobs) {
-		this->get_add_macro_job_query(query, macro_job);
-		queries.push_back(query);
-	}
-
-#ifdef USE_MYSQL
-	if ( this->database.standalone_execute(&queries, planning.hosting_node.name.c_str()) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
-#ifdef USE_SQLITE
-	if ( this->get_database(running_node)->standalone_execute(&queries) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
-*/
 	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+time_t	Domain::get_next_planning_start_time() {
+	time_t now = time(NULL);
+
+	return now + this->planning_duration - ( now - this->initial_planning_start_time) % this->planning_duration;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -145,9 +186,6 @@ bool	Domain::add_node(const char* domain_name, const char* n) {
 
 	this->updates_mutex.lock();
 
-#ifdef USE_SQLITE
-	query = "INSERT OR IGNORE INTO ";
-#endif
 #ifdef USE_MYSQL
 	query = "INSERT IGNORE INTO ";
 #endif
@@ -159,12 +197,6 @@ bool	Domain::add_node(const char* domain_name, const char* n) {
 
 #ifdef USE_MYSQL
 	if ( this->database.standalone_execute(queries, domain_name) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
-#ifdef USE_SQLITE
-	if ( this->get_database(domain_name)->standalone_execute(&queries) == true ) {
 		this->updates_mutex.unlock();
 		return true;
 	}
@@ -195,12 +227,6 @@ bool	Domain::add_node(const char* domain_name, const std::string& n, const rpc::
 		return true;
 	}
 #endif
-#ifdef USE_SQLITE
-	if ( this->get_database(domain_name)->standalone_execute(&queries) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
 	this->updates_mutex.unlock();
 	return false;
 }
@@ -212,7 +238,7 @@ bool	Domain::add_job(const char* domain_name, const rpc::t_job& j) {
 	const char*		running_node = j.node_name.c_str();
 	v_queries		queries;
 
-	this->add_node(this->name.c_str(), running_node); // TODO: think of removing it
+//	this->add_node(this->name.c_str(), running_node); // TODO: think of removing it
 
 	this->updates_mutex.lock();
 
@@ -254,25 +280,19 @@ bool	Domain::add_job(const char* domain_name, const rpc::t_job& j) {
 		query += j.name;
 		query += "','";
 		query += build_string_from_time_constraint_type(tc.type);
-		query += "','";
+		query += "',SEC_TO_TIME(";
 		query += boost::lexical_cast<std::string>(tc.value);
-		query += "');";
+		query += "));";
 
 		queries.push_back(query);
 	}
 
+	// TODO: add recovery types
 //	this->get_add_recovery_type_query(query, j.recovery_type);
 //	queries.push_back(query);
 
 #ifdef USE_MYSQL
 	if ( this->database.standalone_execute(queries, domain_name) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
-#ifdef USE_SQLITE
-	if ( this->get_database(running_node)->standalone_execute(&queries) == true ) {
-		j.id = this->get_database(running_node)->get_inserted_id();
 		this->updates_mutex.unlock();
 		return true;
 	}
@@ -361,13 +381,6 @@ bool	Domain::update_job(const char* domain_name, const rpc::t_job& j) {
 		return true;
 	}
 #endif
-#ifdef USE_SQLITE
-	if ( this->get_database(running_node)->standalone_execute(&queries) == true ) {
-		j.id = this->get_database(running_node)->get_inserted_id();
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
 	this->updates_mutex.unlock();
 	return false;
 }
@@ -414,12 +427,6 @@ bool	Domain::remove_job(const char*domain_name, const std::string& running_node,
 
 #ifdef USE_MYSQL
 	if ( this->database.standalone_execute(queries, domain_name) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
-#ifdef USE_SQLITE
-	if ( this->get_database(domain_name)->standalone_execute(&queries) == true ) {
 		this->updates_mutex.unlock();
 		return true;
 	}
@@ -473,12 +480,6 @@ bool	Domain::update_job_state(const char* domain_name, const std::string& runnin
 		return true;
 	}
 #endif
-#ifdef USE_SQLITE
-	if ( this->get_database(running_node.c_str())->standalone_execute(&queries) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
 	this->updates_mutex.unlock();
 	return false;
 }
@@ -515,12 +516,6 @@ bool	Domain::update_job_state(const char* domain_name, const std::string& runnin
 		return true;
 	}
 #endif
-#ifdef USE_SQLITE
-	if ( this->get_database(running_node.c_str())->standalone_execute(&queries) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
 	this->updates_mutex.unlock();
 	return false;
 }
@@ -533,7 +528,7 @@ bool	Domain::update_job_state(const char* domain_name, const Job* j, const rpc::
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void	Domain::get_ready_jobs(const char* domain_name, v_jobs& _return, const char* running_node) {
+void	Domain::get_ready_jobs(v_jobs& _return, const char* running_node) {
 	std::string	query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM get_ready_job");
 	v_row		job_rectype;
 	v_v_row		jobs_matrix;
@@ -548,32 +543,13 @@ void	Domain::get_ready_jobs(const char* domain_name, v_jobs& _return, const char
 		query += "';";
 	}
 
-#ifdef USE_SQLITE
-	//Sqlite*				database;
-#endif
 #ifdef USE_MYSQL
-	if ( this->database.query_full_result(jobs_matrix, query.c_str(), domain_name) == false ) {
+	if ( this->database.query_full_result(jobs_matrix, query.c_str(), this->get_current_name().c_str()) == false ) {
 		rpc::ex_job e;
 		e.msg = "The database query failed";
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-/*	database = this->get_database(running_node);
-
-	if ( database == NULL ) {
-		rpc::ex_job e;
-		e.msg = "Cannot find the database";
-		throw e;
-	}
-*/
-	if ( this->get_database(running_node)->query_full_result(jobs_matrix, query.c_str()) == false )   {
-		rpc::ex_job	e;
-		e.msg = "The query failed";
-		throw e;
-	}
-#endif
-
 	BOOST_FOREACH(v_row job_row, jobs_matrix) {
 		delete job;
 		delete rpc_j;
@@ -596,13 +572,6 @@ void	Domain::get_ready_jobs(const char* domain_name, v_jobs& _return, const char
 			throw e;
 		}
 #endif
-#ifdef USE_SQLITE
-		if ( this->get_database(running_node)->query_full_result(job_rectype, query.c_str()) == false ) {
-			rpc::ex_job e;
-			e.msg = "The database query failed";
-			throw e;
-		}
-#endif
 		this->get_recovery_type(rpc_j->recovery_type, running_node, boost::lexical_cast<int>(job_row[5]));
 */
 		job = new Job((Domain*)this, *rpc_j);
@@ -616,17 +585,14 @@ void	Domain::get_ready_jobs(const char* domain_name, v_jobs& _return, const char
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void	Domain::get_ready_jobs(const char* domain_name, rpc::v_jobs& _return, const char* running_node) {
-	std::string			query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM get_ready_job");
-	v_v_row				jobs_matrix;
-	rpc::t_job*			job	= NULL;
+void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
+	std::string		query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM get_ready_job");
+	v_v_row			jobs_matrix;
+	rpc::t_job*		job	= NULL;
 
-	std::string			buf_name;
-	std::string			buf_node_name;
-	std::string			buf_cmd_line;
-#ifdef USE_SQLITE
-	Sqlite*				database;
-#endif
+	std::string		buf_name;
+	std::string		buf_node_name;
+	std::string		buf_cmd_line;
 
 	if ( running_node == NULL )
 		query += ";";
@@ -637,22 +603,7 @@ void	Domain::get_ready_jobs(const char* domain_name, rpc::v_jobs& _return, const
 	}
 
 #ifdef USE_MYSQL
-	if ( this->database.query_full_result(jobs_matrix, query.c_str(), domain_name) == false )   {
-		rpc::ex_job	e;
-		e.msg = "The query failed";
-		throw e;
-	}
-#endif
-#ifdef USE_SQLITE
-	database = this->get_database(running_node);
-
-	if ( database == NULL ) {
-		rpc::ex_job e;
-		e.msg = "Cannot find the database";
-		throw e;
-	}
-
-	if ( this->get_database(running_node)->query_full_result(jobs_matrix, query.c_str()) == false )   {
+	if ( this->database.query_full_result(jobs_matrix, query.c_str(), this->get_current_name().c_str()) == false )   {
 		rpc::ex_job	e;
 		e.msg = "The query failed";
 		throw e;
@@ -690,10 +641,6 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 	v_v_row				jobs_matrix;
 	rpc::t_job*			job	= NULL;
 
-#ifdef USE_SQLITE
-	Sqlite*				database;
-#endif
-
 	if ( running_node == NULL )
 		query += ";";
 	else {
@@ -709,21 +656,8 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-	database = this->get_database(running_node);
-
-	if ( database == NULL ) {
-		rpc::ex_job e;
-		e.msg = "Cannot find the database";
-		throw e;
-	}
-
-	jobs_matrix = this->get_database(running_node)->query_full_result(query.c_str());
-#endif
-
 	BOOST_FOREACH(v_row job_row, jobs_matrix) {
 		delete job;
-
 		job = new rpc::t_job();
 
 		job->domain		= this->name.c_str();
@@ -734,6 +668,7 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 		job->state		= build_job_state_from_string(job_row[4].c_str());
 
 		this->get_jobs_next(domain_name, job->nxt, running_node, job->name);
+		this->get_time_constraints(domain_name, job->time_constraints, running_node, job->name);
 
 		_return.push_back(*job);
 	}
@@ -744,13 +679,44 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void	Domain::get_job(const char* domain_name, rpc::t_job& _return, const char* running_node, const char* job_name) {
+	std::string	query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM job");
+	v_row		job_row;
+
+	query += " WHERE job_name = '";
+	query += job_name;
+	query += "'";
+
+	if ( running_node == NULL ) {
+		query += ";";
+	} else {
+		query += " AND job_node_name = '";
+		query += running_node;
+		query += "';";
+	}
+
+	if ( this->database.query_one_row(job_row, query.c_str(), domain_name) == false )   {
+		rpc::ex_job	e;
+		e.msg = "The query failed";
+		throw e;
+	}
+
+	_return.domain		= this->name.c_str();
+	_return.name		= job_row[0];
+	_return.node_name	= job_row[2];
+	_return.cmd_line	= job_row[1];
+	_return.weight		= boost::lexical_cast<int>(job_row[3]);
+	_return.state		= build_job_state_from_string(job_row[4].c_str());
+
+	this->get_jobs_next(domain_name, _return.nxt, running_node, _return.name);
+	this->get_time_constraints(domain_name, _return.time_constraints, running_node, _return.name);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void	Domain::get_jobs_next(const char* domain_name, rpc::v_job_names& _return, const char* running_node, const std::string& j_name) {
 	std::string	query("SELECT job_name_nxt FROM jobs_link WHERE job_name_prv = '");
 	v_v_row	job_links_matrix;
-
-#ifdef USE_SQLITE
-	Sqlite*		database;
-#endif
 
 	query += j_name;
 	query += "';";
@@ -762,10 +728,6 @@ void	Domain::get_jobs_next(const char* domain_name, rpc::v_job_names& _return, c
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-	job_links_matrix = this->get_database(running_node)->query_full_result(query.c_str());
-#endif
-
 	BOOST_FOREACH(v_row job_next_row, job_links_matrix) {
 		_return.push_back(job_next_row[0]);
 	}
@@ -780,10 +742,6 @@ void	Domain::get_macro_jobs(const char* domain_name, rpc::v_macro_jobs& _return,
 	v_v_row				macro_jobs_matrix;
 	rpc::t_macro_job*	macro_job = NULL;
 
-#ifdef USE_SQLITE
-	Sqlite*				database;
-#endif
-
 #ifdef USE_MYSQL
 	if ( this->database.query_full_result(macro_jobs_matrix, query.c_str(), domain_name) == false )   {
 		rpc::ex_job	e;
@@ -791,19 +749,6 @@ void	Domain::get_macro_jobs(const char* domain_name, rpc::v_macro_jobs& _return,
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-	database = this->get_database(running_node);
-
-	if ( macro_jobs_matrix == NULL ) {
-		rpc::ex_job	e;
-		e.msg = "The database returned an empty result";
-		throw e;
-	}
-
-	query += "macro_job;";
-	macro_jobs_matrix = this->get_database(running_node)->query_full_result(query.c_str());
-#endif
-
 	BOOST_FOREACH(v_row macro_job_row, macro_jobs_matrix) {
 		delete macro_job;
 
@@ -842,12 +787,6 @@ bool	Domain::add_resource(const char* domain_name, const rpc::t_resource& r, con
 		return true;
 	}
 #endif
-#ifdef USE_SQLITE
-	if ( this->get_database(running_node)->standalone_execute(queries) == true ) {
-		this->updates_mutex.unlock();
-		return true;
-	}
-#endif
 	this->updates_mutex.unlock();
 	return false;
 }
@@ -859,10 +798,6 @@ void	Domain::get_resources(const char* domain_name, rpc::v_resources& _return, c
 	v_v_row			resources_matrix;
 	rpc::t_resource*	resource = NULL;
 
-#ifdef USE_SQLITE
-	Sqlite*				database;
-#endif
-
 #ifdef USE_MYSQL
 	 if ( this->database.query_full_result(resources_matrix, query.c_str(), domain_name) == false )   {
 		rpc::ex_job	e;
@@ -870,22 +805,9 @@ void	Domain::get_resources(const char* domain_name, rpc::v_resources& _return, c
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-	database = this->get_database(running_node);
-
-	if ( database == NULL ) {
-		rpc::ex_job e;
-		e.msg = "Cannot find the database";
-		throw e;
-	}
-
-	query += "resource;";
-	resources_matrix = this->get_database(running_node)->query_full_result(query.c_str());
-#endif
-
 	BOOST_FOREACH(v_row resource_row, resources_matrix) {
 		delete resource;
-
+		resource = new rpc::t_resource();
 
 		resource->name		= resource_row[1];
 //		resource->node_name	= resource_row[2];
@@ -902,48 +824,36 @@ void	Domain::get_resources(const char* domain_name, rpc::v_resources& _return, c
 ///////////////////////////////////////////////////////////////////////////////
 
 void	Domain::get_time_constraints(const char* domain_name, rpc::v_time_constraints& _return, const char* running_node, const std::string& job_name) {
-	std::string			query("SELECT time_c_job_name,time_c_type,time_c_value FROM time_contraint WHERE time_c_job_name = '");
-	v_v_row				time_contraints_matrix;
-	rpc::t_time_constraint*	time_contraint = NULL;
-
-#ifdef USE_SQLITE
-	Sqlite*				database;
-#endif
+	std::string			query("SELECT time_c_job_name,time_c_type,TIME_TO_SEC(time_c_value) FROM time_constraint WHERE time_c_job_name = '");
+	v_v_row				time_constraints_matrix;
+	rpc::t_time_constraint*	time_constraint = NULL;
 
 	query += job_name;
 	query += "';";
 
 #ifdef USE_MYSQL
-	if ( this->database.query_full_result(time_contraints_matrix, query.c_str(), domain_name) == false )  {
+	if ( this->database.query_full_result(time_constraints_matrix, query.c_str(), domain_name) == false )  {
 		rpc::ex_job	e;
 		e.msg = "The query failed";
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-	database = this->get_database(running_node);
+	BOOST_FOREACH(v_row time_constraint_row, time_constraints_matrix) {
+		delete time_constraint;
+		time_constraint = new rpc::t_time_constraint();
 
-	if ( database == NULL ) {
-		rpc::ex_job e;
-		e.msg = "Cannot find the database";
-		throw e;
+		std::cout << "job_name -> " << time_constraint_row[0].c_str() << std::endl;
+		time_constraint->job_name	= time_constraint_row[0].c_str();
+		std::cout << "type -> " << build_time_constraint_type_from_string(time_constraint_row[1].c_str()) << std::endl;
+		time_constraint->type		= build_time_constraint_type_from_string(time_constraint_row[1].c_str());
+		std::cout << "value -> " << time_constraint_row[2] << std::endl;
+		time_constraint->value		= boost::lexical_cast<rpc::integer>(time_constraint_row[2]);
+
+		_return.push_back(*time_constraint);
 	}
 
-	time_contraints_matrix = this->get_database(running_node)->query_full_result(query.c_str());
-#endif
-
-	BOOST_FOREACH(v_row time_contraint_row, time_contraints_matrix) {
-		delete time_contraint;
-
-		time_contraint->id		= boost::lexical_cast<int>(time_contraint_row[0]);
-		time_contraint->type	= build_time_constraint_type_from_string(time_contraint_row[1].c_str());
-		time_contraint->value	= boost::lexical_cast<int>(time_contraint_row[2]);
-
-		_return.push_back(*time_contraint);
-	}
-
-	delete time_contraint;
-	time_contraints_matrix.clear(); // TODO: is it really useful ?
+	delete time_constraint;
+	time_constraints_matrix.clear(); // TODO: is it really useful ?
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -953,10 +863,6 @@ void	Domain::get_recovery_types(const char* domain_name, rpc::v_recovery_types& 
 	v_v_row				recoveries_matrix;
 	rpc::t_recovery_type*	recovery = NULL;
 
-#ifdef USE_SQLITE
-	Sqlite*				database;
-#endif
-
 #ifdef USE_MYSQL
 	if ( this->database.query_full_result(recoveries_matrix, query.c_str(), domain_name) == false ) {
 		rpc::ex_job	e;
@@ -964,19 +870,6 @@ void	Domain::get_recovery_types(const char* domain_name, rpc::v_recovery_types& 
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-	database = this->get_database(running_node);
-
-	if ( database == NULL ) {
-		rpc::ex_job e;
-		e.msg = "Cannot find the database";
-		throw e;
-	}
-
-	query += "recovery_type;";
-	resources_matrix = this->get_database(running_node)->query_full_result(query.c_str());
-#endif
-
 	BOOST_FOREACH(v_row recovery_row, recoveries_matrix) {
 		delete recovery;
 
@@ -998,10 +891,6 @@ void	Domain::get_recovery_type(const char* domain_name, rpc::t_recovery_type& _r
 	std::string	query("SELECT rectype_id,rectype_short_label,rectype_label,rectype_action FROM recovery_type WHERE rectype_id = '");
 	v_row				recovery_row;
 
-#ifdef USE_SQLITE
-	Sqlite*				database;
-#endif
-
 	query += rec_id;
 	query += "';";
 
@@ -1012,22 +901,6 @@ void	Domain::get_recovery_type(const char* domain_name, rpc::t_recovery_type& _r
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-	database = this->get_database(running_node);
-
-	if ( database == NULL ) {
-		rpc::ex_job e;
-		e.msg = "Cannot find the database";
-		throw e;
-	}
-
-	if ( this->get_database(running_node)->query_full_result(recovery_row, query.c_str()) == false ) {
-		rpc::ex_job	e;
-		e.msg = "The query failed";
-		throw e;
-	}
-#endif
-
 	_return.id			= boost::lexical_cast<int>(recovery_row[0]);
 	_return.short_label	= recovery_row[1];
 	_return.label		= recovery_row[2];
@@ -1040,10 +913,6 @@ void	Domain::get_node(const char* domain_name, rpc::t_node& _return, const char*
 	std::string	query("SELECT node_name,node_weight FROM node WHERE node_name = '");
 	v_row				node_row;
 
-#ifdef USE_SQLITE
-	Sqlite*				database;
-#endif
-
 	query += node_name;
 	query += "';";
 
@@ -1054,22 +923,6 @@ void	Domain::get_node(const char* domain_name, rpc::t_node& _return, const char*
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-	database = this->get_database(domain_name);
-
-	if ( database == NULL ) {
-		rpc::ex_job e;
-		e.msg = "Cannot find the database";
-		throw e;
-	}
-
-	if ( this->get_database(domain_name)->query_full_result(node_row, query.c_str()) == false ) {
-		rpc::ex_job	e;
-		e.msg = "The query failed";
-		throw e;
-	}
-#endif
-
 	if ( node_row.size() > 0 ) {
 		_return.name	= node_row[0].c_str();
 		_return.weight	= boost::lexical_cast<rpc::integer>(node_row[1]);
@@ -1086,10 +939,6 @@ void	Domain::get_nodes(const char* domain_name, rpc::v_nodes& _return) {
 	v_v_row			nodes_matrix;
 	rpc::t_node*	node = NULL;
 
-#ifdef USE_SQLITE
-	Sqlite*				database;
-#endif
-
 #ifdef USE_MYSQL
 	if ( this->database.query_full_result(nodes_matrix, query.c_str(), domain_name) == false ) {
 		rpc::ex_job	e;
@@ -1097,18 +946,6 @@ void	Domain::get_nodes(const char* domain_name, rpc::v_nodes& _return) {
 		throw e;
 	}
 #endif
-#ifdef USE_SQLITE
-	database = this->get_database(domain_name);
-
-	if ( database == NULL ) {
-		rpc::ex_job e;
-		e.msg = "Cannot find the database";
-		throw e;
-	}
-
-	nodes_matrix = this->get_database(domain_name)->query_full_result(query.c_str());
-#endif
-
 	BOOST_FOREACH(v_row node_row, nodes_matrix) {
 		delete node;
 		node = new rpc::t_node();
@@ -1132,9 +969,6 @@ void	Domain::sql_exec(const std::string& running_node, const std::string& s) {
 #ifdef USE_MYSQL
 	this->database.query_full_result(result, s.c_str(), running_node.c_str());
 #endif
-#ifdef USE_SQLITE
-	this->get_database(result, running_node.c_str())->query_full_result(s.c_str());
-#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1154,16 +988,15 @@ const char*	Domain::get_name() const {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifdef USE_SQLITE
-Sqlite*			Domain::get_database(const char* node_name) {
-	m_nodes::iterator	it = this->databases.find(node_name);
+std::string	Domain::get_current_name() {
+	std::string result;
 
-	if ( it == this->databases.end() )
-		return NULL;
+	result = get_name();
+	result += "_";
+	result += boost::lexical_cast<std::string>(this->planning_start_time);
 
-	return it->second;
+	return result;
 }
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 

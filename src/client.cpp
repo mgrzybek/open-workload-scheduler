@@ -26,6 +26,7 @@
  */
 
 // Generic stuff
+#include <string>
 #include <csignal>
 #include <iostream>
 #include <boost/thread.hpp>

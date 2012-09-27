@@ -4,6 +4,8 @@ CMakeScripts
 cmake_install.cmake
 Makefile
 *.xcodeproj
+*.plist
+*.app
 ows.build
 build
 Debug

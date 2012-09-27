@@ -35,6 +35,7 @@ Mysql::Mysql() {
 }
 
 Mysql::~Mysql() {
+	mysql_library_end();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,9 +51,6 @@ bool	Mysql::prepare(const std::string* domain_name, const std::string* db_skelet
 		"this_program_SERVER",
 		(char *)NULL
 	};
-	std::string	query;
-	v_queries	queries;
-
 
 	// DB init
 	if ( mysql_library_init(sizeof(server_args) / sizeof(char *), server_args, server_groups) )
@@ -63,20 +61,30 @@ bool	Mysql::prepare(const std::string* domain_name, const std::string* db_skelet
 		return false;
 	}
 
+	//return this->init_planning(this->translate_into_db(domain_name), *db_skeleton);
+	return this->init_domain_structure("template", *db_skeleton);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool	Mysql::init_domain_structure(const std::string& domain_name, const std::string& db_skeleton) {
+	std::string	query;
+	v_queries	queries;
+	
 	// Creates the schema
 	query = "CREATE SCHEMA IF NOT EXISTS ";
-	query += this->translate_into_db(domain_name);
+	query += domain_name;
 	query += " DEFAULT CHARACTER SET latin1;";
-
+	
 	queries.insert(queries.end(), query);
 	query.clear();
-
+	
 	if ( this->standalone_execute(queries, NULL) == false ) {
 		return false;
 	}
-
+	
 	// Loads the skeleton from file
-	return this->load_file(domain_name->c_str(), db_skeleton->c_str());
+	return this->load_file(domain_name.c_str(), db_skeleton.c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -167,7 +175,7 @@ bool	Mysql::query_one_row(v_row& _return, const char* query, const char* databas
 	}
 
 	res = mysql_store_result(local_mysql);
-	if ( res )
+	if ( res ) {
 		while ( ( row = mysql_fetch_row(res) ) )
 			if ( row ) {
 				for ( uint i=0 ; i < mysql_num_fields(res) ; i++ ) {
@@ -175,13 +183,14 @@ bool	Mysql::query_one_row(v_row& _return, const char* query, const char* databas
 						_return.push_back(std::string(row[i]));
 				}
 			}
-	else
+	} else {
 		if ( mysql_field_count(local_mysql) != 0 ) {
 			std::cerr << "Erreur : " << mysql_error(local_mysql) << std::endl;
 			mysql_free_result(res);
 			this->end(local_mysql);
 			return false;
 		}
+	}
 
 	mysql_free_result(res);
 	this->end(local_mysql);

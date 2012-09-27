@@ -87,6 +87,17 @@ public:
 	bool	prepare(const std::string* domain_name, const std::string* db_skeleton);
 
 	/*
+	 * init_domain_structure
+	 *
+	 * Creates a planning using the given name
+	 *
+	 * @arg domain_name	: the domain's name
+	 * @arg db_skeleton	: the SQL file to use to create the planning
+	 * @return			: success (true) or failure (false)
+	 */
+	bool	init_domain_structure(const std::string& domain_name, const std::string& db_skeleton);
+
+	/*
 	 * execute
 	 *
 	 * Executes an SQL query without result

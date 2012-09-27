@@ -80,7 +80,7 @@ typedef list<t_resource>	v_resources
  * Linked to a job
  */
 struct	t_time_constraint {
-	1: required integer			id,
+	1: required string			job_name,
 	2: required e_time_constraint_type	type,
 	3: required i64				value,
 }
@@ -223,21 +223,23 @@ struct	t_macro_job {
 typedef list<t_macro_job>	v_macro_jobs
 
 /*
+ * t_day
+ *
+ * Defines what is a day
+ */
+struct	t_day {
+	1: required i64		begin_time,
+	2: required integer	duration,
+}
+
+/*
  * t_planning
  *
- * TODO: we could use a node instead (v_jobs -> v_*)
+ * Defines what a given node needs to create to be able to run
  */
 struct	t_planning {
-	1: required t_node		hosting_node,
-
-	2: required v_nodes		nodes,
-
-	3: required v_jobs		jobs,
-	4: required v_recovery_types	recoveries,
-	5: required v_resources		resources,
-	6: required v_time_constraints	time_constraints,
-
-	7: required v_macro_jobs	macro_jobs,
+	1: required t_day	day,
+	2: required v_nodes	nodes,
 }
 
 /*
@@ -259,26 +261,46 @@ struct t_route {
 	2: required integer	hops,
 }
 
+/*
+ * ex_routing
+ */
 exception ex_routing {
 	1: string	msg,
 }
 
+/*
+ * ex_job
+ */
 exception ex_job {
 	1: string	msg,
 }
 
+/*
+ * ex_node
+ */
 exception ex_node {
 	1: string	msg,
 }
 
+/*
+ * ex_planning
+ */
 exception ex_planning {
 	1: string	msg,
 }
 
+/*
+ * ex_processing
+ */
 exception ex_processing {
 	1: string msg,
 }
 
+/*
+ * ows_rpc
+ *
+ * The services we use to make nodes communicate
+ */
 service ows_rpc {
 	/*
 	 * Routing
@@ -292,7 +314,15 @@ service ows_rpc {
 	/*
 	 * Planning
 	 */
-//	t_planning	get_planning() throws (1:ex_routing r, 2:ex_planning p); 
+	t_planning	get_planning(
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
+			4: required t_node	node_to_get,
+	) throws (
+			1:ex_routing r,
+			2:ex_processing p
+	);
 
 /*	bool		set_planning(
 			1: required t_node	calling_node,
@@ -364,6 +394,18 @@ service ows_rpc {
 
 	);
 
+	t_job	get_job(
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
+			4: required t_job	job_to_get,
+	) throws (
+			1:ex_routing	r,
+			2:ex_job	j,
+			3:ex_processing p
+
+	);
+
 	bool	add_job(
 			1: required string	domain_name,
 			2: required t_node	calling_node,
@@ -375,6 +417,16 @@ service ows_rpc {
 
 	);
 
+	bool	update_job(
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_job	j,
+	) throws (
+			1:ex_routing	r,
+			2:ex_job	j,
+			3:ex_processing p
+
+	);
 
 	bool	remove_job(
 			1: required string	domain_name,

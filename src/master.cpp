@@ -28,6 +28,7 @@
 // Generic stuff
 #include <csignal>
 #include <iostream>
+#include <string>
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -117,6 +118,7 @@ int		main (int argc, char * const argv[]) {
 	 * Planning loading
 	 *
 	 * - Create the domain
+	 * - Create the current planning from the template
 	 */
 	Domain domain(&conf_params);
 
@@ -139,6 +141,7 @@ int		main (int argc, char * const argv[]) {
 	 * Domain routine
 	 *
 	 * - Check for ready jobs every minute
+	 * - Check if we need to initialize the next planning (buffer == 1 minute)
 	 */
 	boost::thread_group	running_jobs;
 
@@ -146,7 +149,11 @@ int		main (int argc, char * const argv[]) {
 		v_jobs	jobs;
 
 		try {
-			domain.get_ready_jobs(domain.get_name(), jobs, conf_params.get_param("node_name")->c_str());
+			domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
+
+			if ( domain.get_next_planning_start_time() - time(NULL) <= 60 )
+				domain.set_next_planning();
+
 		} catch ( const rpc::ex_processing& e ) {
 			std::cerr << e.msg << std::endl;
 		}
