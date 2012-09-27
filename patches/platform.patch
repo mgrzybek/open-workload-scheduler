@@ -17,11 +17,11 @@ diff -C 5 before/model_types.h after/model_types.h
 + #include <time.h>
 + #endif // __linux__
 + 
-+ #ifdef __FreeBSD__
++ #if defined(__FreeBSD__) || defined(__APPLE__)
 + #include <sys/types.h>
 + #include <sys/socket.h>
 + #include <netinet/in.h>
-+ #endif // __FreeBSD__
++ #endif // __FreeBSD__ || __APPLE__
 + 
   #include <Thrift.h>
   #include <TApplicationException.h>
@@ -47,11 +47,11 @@ diff -C 5 before/ows_rpc.h after/ows_rpc.h
 + #include <time.h>
 + #endif // __linux__
 + 
-+ #ifdef __FreeBSD__
++ #if defined(__FreeBSD__) || defined(__APPLE__)
 + #include <sys/types.h>
 + #include <sys/socket.h>
 + #include <netinet/in.h>
-+ #endif // __FreeBSD__
++ #endif // __FreeBSD__ || __APPLE__
 + 
   #include <TProcessor.h>
   #include "model_types.h"
