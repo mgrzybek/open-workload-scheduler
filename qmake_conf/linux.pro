@@ -7,13 +7,14 @@ linux {
 		/usr/local/lib/libboost_regex.a \
 		/usr/local/lib/libboost_thread-mt.a \
 		/usr/local/lib/libboost_filesystem.a \
+		/usr/local/lib/libboost_system-mt.a \
 		-lssl \
 		-lpthread \
 		-lcrypto \
 		-lm \
 		-ldl \
 		-lz
-	
+
 	INCLUDEPATH +=  /usr/local/include \
 		/usr/local/include/mysql \
 		/usr/local/include/thrift \

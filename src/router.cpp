@@ -47,7 +47,7 @@ bool	Router::get_node(const std::string& domain_name, rpc::t_node& node) {
 	target.name	= this->get_master_node()->c_str();
 
 	try {
-		this->rpc_client->open(this->get_gateway(*this->get_master_node())->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+		this->rpc_client->open(this->get_gateway(*this->get_master_node())->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 		this->rpc_client->get_handler()->get_node(node, domain_name, local, target, local);
 	} catch (std::exception& e) {
 		std::cerr << "Cannot get the planning" << std::endl;
@@ -95,7 +95,7 @@ bool	Router::update_peers_list() {
 
 			if ( position != 0 ) {
 				try {
-					this->rpc_client->open(peer.name.c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->rpc_client->open(peer.name.c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					this->rpc_client->get_handler()->hello(hello_result, peer);
 				} catch (std::exception& e) {
 					this->hosts_keys.erase(peer.name);
@@ -258,7 +258,7 @@ bool	Router::reach_master() {
 bool	Router::reach_master(const char* target) {
 	rpc::t_route	result;
 
-	this->rpc_client->open(target, boost::lexical_cast<int>(this->config->get_param("port")));
+	this->rpc_client->open(target, boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 	this->rpc_client->get_handler()->reach_master(result);
 
 	// We may have found the master, so update the routing table

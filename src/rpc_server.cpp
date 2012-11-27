@@ -104,12 +104,13 @@ void	ows_rpcHandler::hello(rpc::t_hello& _return, const rpc::t_node& target_node
 		_return.domain = result->c_str();
 
 		result = this->config->get_param("is_master");
-		if ( result != NULL )
+		if ( result != NULL ) {
 			if ( result->compare("yes") == 0 ) {
 				_return.is_master = true;
 			} else {
 				_return.is_master = false;
 			}
+		}
 	} else {
 		// Get the better gateway to reach the host
 		gateway = this->router->get_gateway(target_node.name);
@@ -121,7 +122,7 @@ void	ows_rpcHandler::hello(rpc::t_hello& _return, const rpc::t_node& target_node
 			throw e;
 		} else {
 			try {
-				this->client->open(target_node.name.c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+				this->client->open(target_node.name.c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 				this->client->get_handler()->hello(_return, target_node);
 				this->client->close();
 			} catch (rpc::ex_routing e) {
@@ -173,7 +174,7 @@ void	ows_rpcHandler::get_planning(rpc::t_planning& _return, const std::string& d
 			if ( this->config->get_param("is_master")->compare("yes") != 0 ) {
 				gateway = this->router->get_gateway(this->config->get_master_node()->c_str());
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					this->client->get_handler()->get_planning(_return, domain_name, calling_node, target_node, node_to_get);
 					this->client->close();
 				} catch (rpc::ex_planning e) {
@@ -247,7 +248,7 @@ bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node&
 			if ( this->config->get_param("node_name")->compare(hosting_node.name) != 0 ) {
 				gateway = this->router->get_gateway(hosting_node.name);
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					result = this->client->get_handler()->add_node(domain_name, calling_node, hosting_node, node_to_add);
 					this->client->close();
 				} catch (rpc::ex_node e) {
@@ -290,7 +291,7 @@ void	ows_rpcHandler::get_node(rpc::t_node& _return, const std::string& domain_na
 			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
 				gateway = this->router->get_gateway(target_node.name);
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					this->client->get_handler()->get_node(_return, domain_name, calling_node, target_node, node_to_get);
 					this->client->close();
 				} catch (rpc::ex_node e) {
@@ -322,7 +323,7 @@ void ows_rpcHandler::get_nodes(rpc::v_nodes& _return, const std::string& domain_
 			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
 				gateway = this->router->get_gateway(target_node.name);
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					this->client->get_handler()->get_nodes(_return, domain_name, calling_node, target_node);
 					this->client->close();
 				} catch (rpc::ex_node e) {
@@ -354,7 +355,7 @@ void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const std::string& domain_na
 			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
 				gateway = this->router->get_gateway(target_node.name);
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					this->client->get_handler()->get_jobs(_return, domain_name, calling_node, target_node);
 					this->client->close();
 				} catch (rpc::ex_job e) {
@@ -397,7 +398,7 @@ void	ows_rpcHandler::get_ready_jobs(rpc::v_jobs& _return, const std::string& dom
 			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
 				gateway = this->router->get_gateway(target_node.name);
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					this->client->get_handler()->get_ready_jobs(_return, domain_name, calling_node, target_node);
 					this->client->close();
 				} catch (rpc::ex_job e) {
@@ -440,7 +441,7 @@ void	ows_rpcHandler::get_job(rpc::t_job& _return, const std::string& domain_name
 			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
 				gateway = this->router->get_gateway(target_node.name);
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					this->client->get_handler()->get_job(_return, domain_name, calling_node, target_node, job_to_get);
 					this->client->close();
 				} catch (rpc::ex_job e) {
@@ -489,7 +490,7 @@ bool	ows_rpcHandler::add_job(const std::string& domain_name, const rpc::t_node& 
 				}
 
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					return this->client->get_handler()->add_job(domain_name, calling_node, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
@@ -540,7 +541,7 @@ bool	ows_rpcHandler::update_job(const std::string& domain_name, const rpc::t_nod
 				}
 
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					return this->client->get_handler()->update_job(domain_name, calling_node, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
@@ -585,7 +586,7 @@ bool	ows_rpcHandler::remove_job(const std::string& domain_name, const rpc::t_nod
 			if ( this->config->get_param("node_name")->compare(j.node_name) != 0 ) {
 				gateway = this->router->get_gateway(j.node_name);
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					return this->client->get_handler()->remove_job(domain_name, calling_node, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
@@ -629,7 +630,7 @@ bool	ows_rpcHandler::update_job_state(const std::string& domain_name, const rpc:
 			if ( this->config->get_param("node_name")->compare(j.node_name) != 0 ) {
 				gateway = this->router->get_gateway(j.node_name);
 				try {
-					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
 					return this->client->get_handler()->update_job_state(domain_name, calling_node, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
