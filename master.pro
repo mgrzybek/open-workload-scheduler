@@ -1,13 +1,7 @@
 QT	-= core gui
 CONFIG	+= link_pkgconfig debug_and_release
 
-#TARGET = master
-
-CONFIG(debug, debug|release) {
-        TARGET = master_debug
-} else {
-        TARGET = master_release
-}
+TARGET	= master
 
 include(qmake_conf/linux.pro)
 include(qmake_conf/macx.pro)
@@ -41,3 +35,4 @@ HEADERS	+= src/common.h \
 	src/gen-cpp/model_constants.h \
 	src/gen-cpp/model_types.h \
 	src/gen-cpp/ows_rpc.h
+

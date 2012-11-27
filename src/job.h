@@ -76,12 +76,12 @@ public:
 	 * getters
 	 */
 	const rpc::t_job*	get_job() const;
-	const int			get_id()  const;
+	int			get_id()  const;
 	const std::string	get_name() const;
 	const std::string	get_cmd_line() const;
-	const char*	get_node_name() const;
+	const char*		get_node_name() const;
 	const std::string	get_node_name2() const;
-	const int			get_weight() const;
+	int			get_weight() const;
 	const Domain*		get_domain() const;
 
 	const rpc::v_job_names	get_next() const;

@@ -44,7 +44,7 @@ bool	Router::get_node(const std::string& domain_name, rpc::t_node& node) {
 	rpc::t_node	target;
 
 	local.name	= this->config->get_param("node_name")->c_str();
-	target.name = this->get_master_node()->c_str();
+	target.name	= this->get_master_node()->c_str();
 
 	try {
 		this->rpc_client->open(this->get_gateway(*this->get_master_node())->c_str(), boost::lexical_cast<int>(this->config->get_param("port")));
@@ -90,8 +90,8 @@ bool	Router::update_peers_list() {
 				return false;
 			}
 
-			peer.name		= line.substr(0, position);
-			public_key		= line.substr(position+1, line.length());
+			peer.name	= line.substr(0, position);
+			public_key	= line.substr(position+1, line.length());
 
 			if ( position != 0 ) {
 				try {
@@ -137,7 +137,7 @@ bool	Router::update_routing_table() {
 
 bool	Router::insert_route(const std::string& destination, const std::string& gateway, const u_int& weight) {
 	m_routing_table::iterator	iter_t;
-	m_weighted_gateway*			mm_g;
+	m_weighted_gateway*		mm_g;
 
 	iter_t = this->routing_table.find(destination);
 
@@ -157,9 +157,9 @@ bool	Router::insert_route(const std::string& destination, const std::string& gat
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Router::delete_route(const std::string* destination, const std::string* gateway) {
-	m_routing_table::iterator		iter_t;
+	m_routing_table::iterator	iter_t;
 	m_weighted_gateway::iterator	iter_g;
-	m_weighted_gateway*				mm_g;
+	m_weighted_gateway*		mm_g;
 
 	if ( this->routing_table.empty() == true )
 		return false;
@@ -186,8 +186,8 @@ bool	Router::delete_route(const std::string* destination, const std::string* gat
 
 ///////////////////////////////////////////////////////////////////////////////
 
-p_weighted_gateway*		Router::get_route(const std::string& destination) {
-	m_routing_table::iterator			iter_dst;
+p_weighted_gateway*	Router::get_route(const std::string& destination) {
+	m_routing_table::iterator		iter_dst;
 	m_weighted_gateway::const_iterator	iter_gtw;
 
 	iter_dst = this->routing_table.find(destination);

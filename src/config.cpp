@@ -90,9 +90,9 @@ bool	Config::parse_file(const char* file_path) {
 		return false;
 
 	std::map<std::string,std::string>::iterator it;
-	std::cout << "config contains:\n";
+	std::cout << "config contains:" << std::endl;
 	for ( it = this->config_options.begin() ; it != this->config_options.end(); it++ )
-		std::cout << (*it).first << " => " << (*it).second << "\n";
+		std::cout << (*it).first << " => " << (*it).second << std::endl;
 
 	f.close();
 

@@ -28,16 +28,16 @@
 #ifndef ROUTER_H
 #define ROUTER_H
 
-#include <fstream>
 #include <map>
 #include <string>
+#include <fstream>
 
+#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
+#include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#include <boost/foreach.hpp>
 
 #include "common.h"
 #include "rpc_client.h"

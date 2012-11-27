@@ -182,7 +182,7 @@ const std::string	Job::get_node_name2() const {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const int	Job::get_weight() const {
+int	Job::get_weight() const {
 	return this->job.weight;
 }
 
