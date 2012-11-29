@@ -4,7 +4,7 @@ macx {
 	LIBS += -lthrift \
 		-lzmq \
 		-L/opt/local/lib \
-		/opt/local/lib/mysql55/mysql/libmysqlservices.a \
+		/opt/local/lib/mysql55/mysql/libmysqld.a \
 		-L/usr/lib \
 		-L/usr/local/lib \
 		/opt/local/lib/libboost_regex-mt.a \

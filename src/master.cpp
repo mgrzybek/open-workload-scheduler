@@ -167,7 +167,7 @@ int		main (int argc, char * const argv[]) {
 
 	running_jobs.join_all();
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
