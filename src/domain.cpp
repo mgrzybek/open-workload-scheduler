@@ -40,8 +40,6 @@ Domain::Domain(Config* c) {
 	std::string::const_iterator	start = c->get_param("day_duration")->begin();
 	std::string::const_iterator	end = c->get_param("day_duration")->end();
 
-	rpc::v_nodes	nodes;
-
 	if ( c == NULL ) {
 		rpc::ex_processing e;
 		e.msg = "The config is null";
@@ -112,17 +110,10 @@ Domain::Domain(Config* c) {
 	/*
 	 * Let's prepare and populate the next planning to start
 	 */
-	if ( this->database.init_domain_structure(this->get_current_name(), *this->config->get_param("db_skeleton")) == false ) {
+	if ( this->set_next_planning() == false ) {
 		rpc::ex_processing e;
-		e.msg = "Error: cannot prepare the database";
+		e.msg = "Error: cannot prepare the next planning";
 		throw e;
-	}
-
-	this->get_nodes("template", nodes);
-
-	// We could use a method called "add_nodes" as well
-	BOOST_FOREACH(rpc::t_node node, nodes) {
-		this->add_node(this->get_current_name().c_str(), node);
 	}
 }
 
@@ -147,30 +138,47 @@ bool	Domain::get_planning(rpc::t_planning& _return, const char* domain_name, con
 
 bool	Domain::set_next_planning() {
 	rpc::v_nodes	nodes;
-	std::string		planning_name;
 
-	this->get_nodes(this->name.c_str(), nodes);
-
-	planning_name = this->name.c_str();
-	planning_name += "_";
-	planning_name += boost::lexical_cast<std::string>(this->get_next_planning_start_time());
-
-	this->database.init_domain_structure(planning_name, this->config->get_param("db_skeleton")->c_str());
-
-	BOOST_FOREACH(rpc::t_node node, nodes) {
-		if ( this->add_node(planning_name.c_str(), node) == false )
-			return false;
+	if ( this->database.init_domain_structure(this->get_current_name(), *this->config->get_param("db_skeleton")) == false ) {
+		return false;
 	}
 
-	return false;
+	this->get_nodes("template", nodes);
+
+	// We could use a method called "add_nodes" as well
+	BOOST_FOREACH(rpc::t_node node, nodes) {
+		if ( this->add_node(this->get_current_name().c_str(), node) == false ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool	Domain::switch_planning() {
+	if ( this->set_next_planning() == false )
+		return false;
+
+	this->planning_start_time = this->get_next_planning_start_time();
+
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 time_t	Domain::get_next_planning_start_time() {
-	time_t now = time(NULL);
+	time_t	now = time(NULL);
 
 	return now + this->planning_duration - ( now - this->initial_planning_start_time) % this->planning_duration;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+time_t	Domain::get_current_planning_remaining_time() {
+	time_t	now = time(NULL);
+
+	return this->planning_start_time + this->planning_duration - now;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -610,10 +618,6 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 	std::string		query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM get_ready_job");
 	v_v_row			jobs_matrix;
 	rpc::t_job*		job	= NULL;
-
-	std::string		buf_name;
-	std::string		buf_node_name;
-	std::string		buf_cmd_line;
 
 	if ( running_node == NULL )
 		query += ";";

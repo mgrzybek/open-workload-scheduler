@@ -162,6 +162,11 @@ int		main (int argc, char * const argv[]) {
 		BOOST_FOREACH(Job j, jobs) {
 			running_jobs.create_thread(boost::bind(&Job::run, &j));
 		}
+
+		if ( domain.get_current_planning_remaining_time() <= 60 ) {
+			domain.switch_planning();
+		}
+
 		sleep(60);
 	}
 

@@ -73,9 +73,18 @@ public:
 	 * Sets the planning according to the template
 	 *
 	 * @arg planning	: the planning to insert
-	 * @return			: sucscess or failure
+	 * @return			: success or failure
 	 */
 	bool	set_next_planning();
+
+	/*
+	 * switch_planning
+	 *
+	 * Activates the next planning
+	 *
+	 * @return	: success or failure
+	 */
+	bool	switch_planning();
 
 	/*
 	 * get_next_planning_start_time
@@ -84,6 +93,15 @@ public:
 	 *
 	 */
 	time_t	get_next_planning_start_time();
+
+	/*
+	 * get_current_planning_remaining_time
+	 *
+	 * Gives the remaning time before the end of the current planning
+	 *
+	 * @return	: the time
+	 */
+	time_t	get_current_planning_remaining_time();
 
 ////////////////////////////////////////////////////////////////////////////////
 
