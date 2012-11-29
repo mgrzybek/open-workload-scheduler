@@ -40,20 +40,22 @@ Mysql::~Mysql() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Mysql::prepare(const std::string* domain_name, const std::string* db_skeleton) {
+bool	Mysql::prepare(const std::string* db_skeleton) {
 	static char* server_args[] = {
-		"this_program",	// this string is not used
-		"--datadir=."
+		(char*)"this_program",	// this string is not used
+		(char*)"--datadir=/tmp",
+		(char*)"--innodb_data_home_dir=/tmp/innodb"
 	};
 	static char* server_groups[] = {
-		"embedded",
-		"server",
-		"this_program_SERVER",
-		(char *)NULL
+		(char*)"ows",
+		(char*)"server",
+		(char*)"this_program_SERVER",
+		(char*)NULL
 	};
 
 	// DB init
-	if ( mysql_library_init(sizeof(server_args) / sizeof(char *), server_args, server_groups) )
+	//if ( mysql_library_init(sizeof(server_args) / sizeof(char *), server_args, server_groups) )
+	if ( mysql_library_init(0, NULL, NULL) )
 		std::cerr << "could not initialize MySQL library" << std::endl;
 
 	if ( ! mysql_thread_safe() ) {
@@ -70,19 +72,19 @@ bool	Mysql::prepare(const std::string* domain_name, const std::string* db_skelet
 bool	Mysql::init_domain_structure(const std::string& domain_name, const std::string& db_skeleton) {
 	std::string	query;
 	v_queries	queries;
-	
+
 	// Creates the schema
 	query = "CREATE SCHEMA IF NOT EXISTS ";
 	query += domain_name;
 	query += " DEFAULT CHARACTER SET latin1;";
-	
+
 	queries.insert(queries.end(), query);
 	query.clear();
-	
+
 	if ( this->standalone_execute(queries, NULL) == false ) {
 		return false;
 	}
-	
+
 	// Loads the skeleton from file
 	return this->load_file(domain_name.c_str(), db_skeleton.c_str());
 }

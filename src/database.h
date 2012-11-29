@@ -79,12 +79,11 @@ public:
 	 * - creates the schema
 	 * - loads the skeleton from file
 	 *
-	 * @arg domain_name	: domain's name
 	 * @arg db_skeleton	: the SQL file to use
 	 *
 	 * @return true		: success
 	 */
-	bool	prepare(const std::string* domain_name, const std::string* db_skeleton);
+	bool	prepare(const std::string* db_skeleton);
 
 	/*
 	 * init_domain_structure
