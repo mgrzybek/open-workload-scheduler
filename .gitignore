@@ -2,6 +2,7 @@ Makefile*
 *.xcodeproj
 *.plist
 *.app
+*.pro.*
 ows.build
 build
 Debug
