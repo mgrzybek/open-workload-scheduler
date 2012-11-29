@@ -484,8 +484,8 @@ bool	Domain::update_job_state(const char* domain_name, const Job* j, const rpc::
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::update_job_state(const char* domain_name, const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js) {
-	std::string		query;
-	v_queries		queries;
+	std::string	query;
+	v_queries	queries;
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
 
 	if ( running_node.empty() == true or boost::regex_match(query, empty_string) == true ) {
@@ -516,8 +516,8 @@ bool	Domain::update_job_state(const char* domain_name, const std::string& runnin
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::update_job_state(const char* domain_name, const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time) {
-	std::string		query;
-	v_queries		queries;
+	std::string	query;
+	v_queries	queries;
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
 
 	if ( running_node.empty() == true or boost::regex_match(query, empty_string) == true ) {
@@ -615,9 +615,9 @@ void	Domain::get_ready_jobs(v_jobs& _return, const char* running_node) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
-	std::string		query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM get_ready_job");
-	v_v_row			jobs_matrix;
-	rpc::t_job*		job	= NULL;
+	std::string	query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM get_ready_job");
+	v_v_row		jobs_matrix;
+	rpc::t_job*	job	= NULL;
 
 	if ( running_node == NULL )
 		query += ";";
@@ -745,7 +745,7 @@ void	Domain::get_job(const char* domain_name, rpc::t_job& _return, const char* r
 
 void	Domain::get_jobs_next(const char* domain_name, rpc::v_job_names& _return, const char* running_node, const std::string& j_name) {
 	std::string	query("SELECT job_name_nxt FROM jobs_link WHERE job_name_prv = '");
-	v_v_row	job_links_matrix;
+	v_v_row		job_links_matrix;
 
 	query += j_name;
 	query += "';";
@@ -767,8 +767,8 @@ void	Domain::get_jobs_next(const char* domain_name, rpc::v_job_names& _return, c
 ///////////////////////////////////////////////////////////////////////////////
 
 void	Domain::get_macro_jobs(const char* domain_name, rpc::v_macro_jobs& _return, const char* running_node) {
-	std::string			query("SELECT macro_id,macro_name FROM macro_job;");
-	v_v_row				macro_jobs_matrix;
+	std::string		query("SELECT macro_id,macro_name FROM macro_job;");
+	v_v_row			macro_jobs_matrix;
 	rpc::t_macro_job*	macro_job = NULL;
 
 #ifdef USE_MYSQL
@@ -823,7 +823,7 @@ bool	Domain::add_resource(const char* domain_name, const rpc::t_resource& r, con
 ///////////////////////////////////////////////////////////////////////////////
 
 void	Domain::get_resources(const char* domain_name, rpc::v_resources& _return, const char* running_node) {
-	std::string			query("SELECT resource_name,resource_node_name,resource_current_value,resource_initial_value FROM resource;");
+	std::string		query("SELECT resource_name,resource_node_name,resource_current_value,resource_initial_value FROM resource;");
 	v_v_row			resources_matrix;
 	rpc::t_resource*	resource = NULL;
 
@@ -855,7 +855,7 @@ void	Domain::get_resources(const char* domain_name, rpc::v_resources& _return, c
 void	Domain::get_time_constraints(const char* domain_name, rpc::v_time_constraints& _return, const char* running_node, const std::string& job_name) {
 	std::string			query("SELECT time_c_job_name,time_c_type,TIME_TO_SEC(time_c_value) FROM time_constraint WHERE time_c_job_name = '");
 	v_v_row				time_constraints_matrix;
-	rpc::t_time_constraint*	time_constraint = NULL;
+	rpc::t_time_constraint*		time_constraint = NULL;
 
 	query += job_name;
 	query += "';";
@@ -888,8 +888,8 @@ void	Domain::get_time_constraints(const char* domain_name, rpc::v_time_constrain
 ///////////////////////////////////////////////////////////////////////////////
 
 void	Domain::get_recovery_types(const char* domain_name, rpc::v_recovery_types& _return, const char* running_node) {
-	std::string	query("SELECT rectype_id,rectype_short_label,rectype_label,rectype_action FROM recovery_type;");
-	v_v_row				recoveries_matrix;
+	std::string		query("SELECT rectype_id,rectype_short_label,rectype_label,rectype_action FROM recovery_type;");
+	v_v_row			recoveries_matrix;
 	rpc::t_recovery_type*	recovery = NULL;
 
 #ifdef USE_MYSQL
@@ -902,10 +902,10 @@ void	Domain::get_recovery_types(const char* domain_name, rpc::v_recovery_types& 
 	BOOST_FOREACH(v_row recovery_row, recoveries_matrix) {
 		delete recovery;
 
-		recovery->id			= boost::lexical_cast<int>(recovery_row[0]);
+		recovery->id		= boost::lexical_cast<int>(recovery_row[0]);
 		recovery->short_label	= recovery_row[1];
-		recovery->label			= recovery_row[2];
-		recovery->action		= build_rectype_action_from_string(recovery_row[3].c_str());
+		recovery->label		= recovery_row[2];
+		recovery->action	= build_rectype_action_from_string(recovery_row[3].c_str());
 
 		_return.push_back(*recovery);
 	}
@@ -918,7 +918,7 @@ void	Domain::get_recovery_types(const char* domain_name, rpc::v_recovery_types& 
 
 void	Domain::get_recovery_type(const char* domain_name, rpc::t_recovery_type& _return, const char* running_node, const int rec_id) {
 	std::string	query("SELECT rectype_id,rectype_short_label,rectype_label,rectype_action FROM recovery_type WHERE rectype_id = '");
-	v_row				recovery_row;
+	v_row		recovery_row;
 
 	query += rec_id;
 	query += "';";
@@ -930,7 +930,7 @@ void	Domain::get_recovery_type(const char* domain_name, rpc::t_recovery_type& _r
 		throw e;
 	}
 #endif
-	_return.id			= boost::lexical_cast<int>(recovery_row[0]);
+	_return.id		= boost::lexical_cast<int>(recovery_row[0]);
 	_return.short_label	= recovery_row[1];
 	_return.label		= recovery_row[2];
 	_return.action		= build_rectype_action_from_string(recovery_row[3].c_str());
@@ -940,7 +940,7 @@ void	Domain::get_recovery_type(const char* domain_name, rpc::t_recovery_type& _r
 
 void	Domain::get_node(const char* domain_name, rpc::t_node& _return, const char* node_name) {
 	std::string	query("SELECT node_name,node_weight FROM node WHERE node_name = '");
-	v_row				node_row;
+	v_row		node_row;
 
 	query += node_name;
 	query += "';";
@@ -965,7 +965,7 @@ void	Domain::get_node(const char* domain_name, rpc::t_node& _return, const char*
 
 void	Domain::get_nodes(const char* domain_name, rpc::v_nodes& _return) {
 	std::string	query("SELECT node_name,node_weight FROM node;");
-	v_v_row			nodes_matrix;
+	v_v_row		nodes_matrix;
 	rpc::t_node*	node = NULL;
 
 #ifdef USE_MYSQL
