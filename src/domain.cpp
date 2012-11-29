@@ -40,6 +40,8 @@ Domain::Domain(Config* c) {
 	std::string::const_iterator	start = c->get_param("day_duration")->begin();
 	std::string::const_iterator	end = c->get_param("day_duration")->end();
 
+	rpc::v_nodes	nodes;
+
 	if ( c == NULL ) {
 		rpc::ex_processing e;
 		e.msg = "The config is null";
@@ -54,7 +56,10 @@ Domain::Domain(Config* c) {
 	 */
 	this->planning_duration = 0;
 	this->initial_planning_start_time = 0;
-	
+
+	/*
+	 * Let's calculate the duration and the start time
+	 */
 	try {
 		if ( boost::regex_search(start, end, what, duration_matching) ) {
 			/*
@@ -95,10 +100,29 @@ Domain::Domain(Config* c) {
 	this->planning_start_time = this->get_next_planning_start_time();
 	std::cout << "Next start time is: " << this->planning_start_time << std::endl;
 
-	if ( this->database.prepare(this->config->get_param("domain_name"), this->config->get_param("db_skeleton")) == false ) {
+	/*
+	 * Let's prepare the template database
+	 */
+	if ( this->database.prepare(this->config->get_param("db_skeleton")) == false ) {
 		rpc::ex_processing e;
 		e.msg = "Error: cannot prepare the database";
 		throw e;
+	}
+
+	/*
+	 * Let's prepare and populate the next planning to start
+	 */
+	if ( this->database.init_domain_structure(this->get_current_name(), *this->config->get_param("db_skeleton")) == false ) {
+		rpc::ex_processing e;
+		e.msg = "Error: cannot prepare the database";
+		throw e;
+	}
+
+	this->get_nodes("template", nodes);
+
+	// We could use a method called "add_nodes" as well
+	BOOST_FOREACH(rpc::t_node node, nodes) {
+		this->add_node(this->get_current_name().c_str(), node);
 	}
 }
 
@@ -152,9 +176,6 @@ time_t	Domain::get_next_planning_start_time() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::add_node(const char* domain_name, const rpc::t_node& n) {
-	std::string	query;
-	v_queries	queries;
-
 	if ( this->add_node(domain_name, n.name, n.weight) == false )
 		return false;
 
@@ -626,6 +647,9 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 		job->node_name	= job_row[2];
 		job->cmd_line	= job_row[1];
 		job->weight		= boost::lexical_cast<int>(job_row[3]);
+		job->state		= build_job_state_from_string(job_row[4].c_str());
+
+		this->get_recovery_type(this->get_current_name().c_str(), job->recovery_type, running_node, boost::lexical_cast<int>(job_row[5].c_str()));
 
 		_return.push_back(*job);
 	}
@@ -637,9 +661,9 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char* running_node) {
-	std::string			query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM job");
-	v_v_row				jobs_matrix;
-	rpc::t_job*			job	= NULL;
+	std::string	query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM job");
+	v_v_row		jobs_matrix;
+	rpc::t_job*	job	= NULL;
 
 	if ( running_node == NULL )
 		query += ";";
@@ -650,7 +674,7 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 	}
 
 #ifdef USE_MYSQL
-	if ( this->database.query_full_result(jobs_matrix, query.c_str(), domain_name) == false )   {
+	if ( this->database.query_full_result(jobs_matrix, query.c_str(), domain_name) == false ) {
 		rpc::ex_job	e;
 		e.msg = "The query failed";
 		throw e;
@@ -669,6 +693,7 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 
 		this->get_jobs_next(domain_name, job->nxt, running_node, job->name);
 		this->get_time_constraints(domain_name, job->time_constraints, running_node, job->name);
+		this->get_recovery_type(domain_name, job->recovery_type, running_node, boost::lexical_cast<int>(job_row[5].c_str()));
 
 		_return.push_back(*job);
 	}

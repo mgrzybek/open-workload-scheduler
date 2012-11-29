@@ -195,6 +195,8 @@ public:
 	bool	update_job_state(const char* domain_name, const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
 	bool	update_job_state(const char* domain_name, const Job* j, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
 
+////////////////////////////////////////////////////////////////////////////////
+
 	/*
 	 * get_ready_jobs
 	 *
@@ -216,6 +218,8 @@ public:
 	 */
 //	v_jobs	get_jobs(const char* running_node);
 	void	get_jobs(const char* domain_name, rpc::v_jobs& _return, const char* running_node);
+
+////////////////////////////////////////////////////////////////////////////////
 
 	/*
 	 * get_job
