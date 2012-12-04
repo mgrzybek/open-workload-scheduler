@@ -139,7 +139,7 @@ bool	Domain::get_planning(rpc::t_planning& _return, const char* domain_name, con
 bool	Domain::set_next_planning() {
 	rpc::v_nodes	nodes;
 
-	if ( this->database.init_domain_structure(this->get_current_name(), *this->config->get_param("db_skeleton")) == false ) {
+	if ( this->database.init_domain_structure(this->get_current_planning_name().c_str(), *this->config->get_param("db_skeleton")) == false ) {
 		return false;
 	}
 
@@ -147,7 +147,7 @@ bool	Domain::set_next_planning() {
 
 	// We could use a method called "add_nodes" as well
 	BOOST_FOREACH(rpc::t_node node, nodes) {
-		if ( this->add_node(this->get_current_name().c_str(), node) == false ) {
+		if ( this->add_node(this->get_current_planning_name().c_str(), node) == false ) {
 			return false;
 		}
 	}
@@ -573,7 +573,7 @@ void	Domain::get_ready_jobs(v_jobs& _return, const char* running_node) {
 	}
 
 #ifdef USE_MYSQL
-	if ( this->database.query_full_result(jobs_matrix, query.c_str(), this->get_current_name().c_str()) == false ) {
+	if ( this->database.query_full_result(jobs_matrix, query.c_str(), this->get_current_planning_name().c_str()) == false ) {
 		rpc::ex_job e;
 		e.msg = "The database query failed";
 		throw e;
@@ -628,7 +628,7 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 	}
 
 #ifdef USE_MYSQL
-	if ( this->database.query_full_result(jobs_matrix, query.c_str(), this->get_current_name().c_str()) == false )   {
+	if ( this->database.query_full_result(jobs_matrix, query.c_str(), this->get_current_planning_name().c_str()) == false )   {
 		rpc::ex_job	e;
 		e.msg = "The query failed";
 		throw e;
@@ -653,7 +653,7 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 		job->weight		= boost::lexical_cast<int>(job_row[3]);
 		job->state		= build_job_state_from_string(job_row[4].c_str());
 
-		this->get_recovery_type(this->get_current_name().c_str(), job->recovery_type, running_node, boost::lexical_cast<int>(job_row[5].c_str()));
+		this->get_recovery_type(this->get_current_planning_name().c_str(), job->recovery_type, running_node, boost::lexical_cast<int>(job_row[5].c_str()));
 
 		_return.push_back(*job);
 	}
@@ -1017,14 +1017,28 @@ const char*	Domain::get_name() const {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-std::string	Domain::get_current_name() {
-	std::string result;
+std::string Domain::get_current_planning_name() {
+	std::string	result;
 
 	result = get_name();
 	result += "_";
 	result += boost::lexical_cast<std::string>(this->planning_start_time);
 
-	return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void	Domain::get_available_planning_names(std::vector<std::string>& _return) {
+	std::string	query;
+	v_v_row		result;
+
+	query = "SHOW DATABASES WHERE database LIKE '%_%'";
+
+	this->database.query_full_result(result, query.c_str(), NULL);
+
+	BOOST_FOREACH(v_row line, result) {
+		_return.push_back(line.at(0));
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////

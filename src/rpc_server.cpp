@@ -160,6 +160,82 @@ void	ows_rpcHandler::reach_master(rpc::t_route& _return) {
 	}
 }
 
+void	ows_rpcHandler::get_current_planning_name(std::string& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+	std::string*	gateway;
+
+	switch (this->config->get_running_mode()) {
+		case P2P: {break;}
+		case ACTIVE: {
+			/*
+			 * am I the master?
+			 * - yes: give the plannings
+			 * - no: forward
+			 */
+			if ( this->config->get_param("is_master")->compare("yes") != 0 ) {
+				gateway = this->router->get_gateway(this->config->get_master_node()->c_str());
+				try {
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
+					this->client->get_handler()->get_current_planning_name(_return, domain_name, calling_node, target_node);
+					this->client->close();
+				} catch (rpc::ex_planning e) {
+					this->client->close();
+					throw e;
+				}
+				break;
+			}
+
+			_return = this->domain->get_current_planning_name();
+
+			break;
+		}
+		case PASSIVE: {
+			rpc::ex_routing	e;
+			e.msg = this->config->get_param("node_name")->c_str();
+			e.msg += " is not the master_node";
+			throw e;
+			break;
+		}
+	}
+}
+
+void	ows_rpcHandler::get_available_planning_names(std::vector<std::string>& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+	std::string*	gateway;
+
+	switch (this->config->get_running_mode()) {
+		case P2P: {break;}
+		case ACTIVE: {
+			/*
+			 * am I the master?
+			 * - yes: give the plannings
+			 * - no: forward
+			 */
+			if ( this->config->get_param("is_master")->compare("yes") != 0 ) {
+				gateway = this->router->get_gateway(this->config->get_master_node()->c_str());
+				try {
+					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
+					this->client->get_handler()->get_available_planning_names(_return, domain_name, calling_node, target_node);
+					this->client->close();
+				} catch (rpc::ex_planning e) {
+					this->client->close();
+					throw e;
+				}
+				break;
+			}
+
+			this->domain->get_available_planning_names(_return);
+
+			break;
+		}
+		case PASSIVE: {
+			rpc::ex_routing	e;
+			e.msg = this->config->get_param("node_name")->c_str();
+			e.msg += " is not the master_node";
+			throw e;
+			break;
+		}
+	}
+}
+
 void	ows_rpcHandler::get_planning(rpc::t_planning& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get) {
 	std::string*	gateway;
 

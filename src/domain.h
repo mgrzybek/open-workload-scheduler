@@ -73,7 +73,7 @@ public:
 	 * Sets the planning according to the template
 	 *
 	 * @arg planning	: the planning to insert
-	 * @return			: success or failure
+	 * @return		: success or failure
 	 */
 	bool	set_next_planning();
 
@@ -85,6 +85,27 @@ public:
 	 * @return	: success or failure
 	 */
 	bool	switch_planning();
+
+	/*
+	 * dump_planning
+	 *
+	 * Provides a dump of the database schema
+	 * TODO: determine dump's data type as its size can be huge
+	 * @arg	planning_name	: its name
+	 * @return		: the dump
+	 */
+	std::string	dump_planning(const char* planning_name);
+
+	/*
+	 * drop_planning
+	 *
+	 * Drop the database schema representing the planning
+	 * For security reasons a dump is generated
+	 *
+	 * @arg	planning_name	: its name
+	 * @return		: the dump
+	 */
+	std::string	drop_planning(const char* planning_name);
 
 	/*
 	 * get_next_planning_start_time
@@ -345,11 +366,18 @@ public:
 	const char*		get_name() const;
 
 	/*
-	 * get_current_name
+	 * get_current_planning_name
 	 *
 	 * Get the current running domain's name (domain_name + "_" + start_time)
 	 */
-	std::string		get_current_name();
+	std::string	get_current_planning_name();
+
+	/*
+	 * get_available_planning_names
+	 *
+	 * Get the whole available plannings (the past ones)
+	 */
+	void	get_available_planning_names(std::vector<std::string>& _return);
 
 ////////////////////////////////////////////////////////////////////////////////
 

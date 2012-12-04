@@ -105,6 +105,8 @@ public:
 	void reach_master(rpc::t_route& _return);
 
 	// Planning methods
+	void get_current_planning_name(std::string& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	void get_available_planning_names(std::vector<std::string>& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
 	void get_planning(rpc::t_planning& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get);
 	bool set_planning(const rpc::t_node& calling_node, const rpc::t_planning& planning);
 

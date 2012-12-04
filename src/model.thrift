@@ -305,11 +305,32 @@ service ows_rpc {
 	/*
 	 * Routing
 	 */
-	t_hello	hello(
+	t_hello	hello (
 			1: required t_node	target_node
 	) throws (1:ex_routing e);
 
 	t_route	reach_master() throws (1:ex_routing e);
+
+	/*
+	 * Domain
+	 */
+	string		get_current_planning_name(
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
+	) throws (
+			1:ex_routing r,
+			2:ex_processing p
+	);
+
+	list<string>	get_available_planning_names(
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
+	) throws (
+			1:ex_routing r,
+			2:ex_processing p
+	);
 
 	/*
 	 * Planning
@@ -355,7 +376,6 @@ service ows_rpc {
 			1:ex_routing	r,
 			2:ex_node	n,
 			3:ex_processing p
-
 	);
 
 	v_nodes	get_nodes(
@@ -366,7 +386,6 @@ service ows_rpc {
 			1:ex_routing	r,
 			2:ex_node	n,
 			3:ex_processing p
-
 	);
 
 	/*
@@ -380,7 +399,6 @@ service ows_rpc {
 			1:ex_routing	r,
 			2:ex_job	j,
 			3:ex_processing p
-
 	);
 
 	v_jobs	get_ready_jobs(
@@ -391,7 +409,6 @@ service ows_rpc {
 			1:ex_routing	r,
 			2:ex_job	j,
 			3:ex_processing p
-
 	);
 
 	t_job	get_job(
@@ -403,7 +420,6 @@ service ows_rpc {
 			1:ex_routing	r,
 			2:ex_job	j,
 			3:ex_processing p
-
 	);
 
 	bool	add_job(
@@ -414,7 +430,6 @@ service ows_rpc {
 			1:ex_routing	r,
 			2:ex_job	j,
 			3:ex_processing p
-
 	);
 
 	bool	update_job(
@@ -425,7 +440,6 @@ service ows_rpc {
 			1:ex_routing	r,
 			2:ex_job	j,
 			3:ex_processing p
-
 	);
 
 	bool	remove_job(
@@ -436,7 +450,6 @@ service ows_rpc {
 			1:ex_routing	r,
 			2:ex_job	j,
 			3:ex_processing p
-
 	);
 
 //	bool	remove_job(
@@ -452,7 +465,6 @@ service ows_rpc {
 			1:ex_routing	r,
 			2:ex_job	j,
 			3:ex_processing p
-
 	);
 
 //	bool	update_job_state(
