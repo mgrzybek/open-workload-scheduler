@@ -1,6 +1,6 @@
 diff -C 5 before/model_types.h after/model_types.h
-*** model_types.h	2012-04-17 22:19:43.749255125 +0200
---- model_types.h	2012-04-17 22:22:34.578555800 +0200
+*** /tmp/model_types.h	2012-12-04 22:29:34.000000000 +0000
+--- model_types.h	2012-12-04 22:30:36.000000000 +0000
 ***************
 *** 5,14 ****
 --- 5,28 ----
@@ -23,14 +23,13 @@ diff -C 5 before/model_types.h after/model_types.h
 + #include <netinet/in.h>
 + #endif // __FreeBSD__ || __APPLE__
 + 
-  #include <Thrift.h>
-  #include <TApplicationException.h>
-  #include <protocol/TProtocol.h>
-  #include <transport/TTransport.h>
-  
-diff -C 5 before/ows_rpc.h after/ows_rpc.h
-*** ows_rpc.h	2012-04-17 22:19:34.002433778 +0200
---- ows_rpc.h	2012-04-17 22:22:30.031815648 +0200
+  #include <thrift/Thrift.h>
+  #include <thrift/TApplicationException.h>
+  #include <thrift/protocol/TProtocol.h>
+  #include <thrift/transport/TTransport.h>
+ 
+*** /tmp/ows_rpc.h	2012-12-04 22:29:42.000000000 +0000
+--- ows_rpc.h	2012-12-04 22:30:23.000000000 +0000
 ***************
 *** 5,14 ****
 --- 5,28 ----
@@ -53,7 +52,7 @@ diff -C 5 before/ows_rpc.h after/ows_rpc.h
 + #include <netinet/in.h>
 + #endif // __FreeBSD__ || __APPLE__
 + 
-  #include <TProcessor.h>
+  #include <thrift/TDispatchProcessor.h>
   #include "model_types.h"
   
   namespace rpc {
