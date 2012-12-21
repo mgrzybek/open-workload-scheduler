@@ -168,6 +168,35 @@ bool	Domain::switch_planning() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+std::string	Domain::dump_planning(const char* planning_name) {
+	std::string	query;
+	v_queries	queries;
+	std::string	result;
+
+	if ( planning_name == NULL ) {
+		rpc::ex_processing e;
+		e.msg = "planning_name is NULL";
+		throw e;
+	}
+
+	result = this->dump_planning(planning_name);
+
+	query = "DROP DATABASE ";
+	query += planning_name;
+
+	queries.push_back(query);
+
+	if ( this->database.standalone_execute(queries, NULL) == false ) {
+		rpc::ex_processing e;
+		e.msg = "Query failed";
+		throw e;
+	}
+
+	return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 time_t	Domain::get_next_planning_start_time() {
 	time_t	now = time(NULL);
 

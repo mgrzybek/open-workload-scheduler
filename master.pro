@@ -22,17 +22,16 @@ SOURCES += src/convertions.cpp \
 	src/gen-cpp/model_types.cpp \
 	src/gen-cpp/ows_rpc.cpp
 
-HEADERS	+= src/common.h \
-	src/convertions.h \
-	src/config.h \
-	src/database.h \
-	src/domain.h \
-	src/job.h \
-	src/node.h \
-	src/router.h \
-	src/rpc_client.h \
-	src/rpc_server.h \
+HEADERS	+= include/common.h \
+	include/convertions.h \
+	include/config.h \
+	include/database.h \
+	include/domain.h \
+	include/job.h \
+	include/node.h \
+	include/router.h \
+	include/rpc_client.h \
+	include/rpc_server.h \
 	src/gen-cpp/model_constants.h \
 	src/gen-cpp/model_types.h \
 	src/gen-cpp/ows_rpc.h
-
