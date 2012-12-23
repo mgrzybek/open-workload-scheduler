@@ -90,7 +90,7 @@ public:
 	 *
 	 * Sets the planning according to the template
 	 *
-	 * @return		: success or failure
+	 * @return	success or failure
 	 */
 	bool	set_next_planning();
 
@@ -99,7 +99,7 @@ public:
 	 *
 	 * Activates the next planning
 	 *
-	 * @return	: success or failure
+	 * @return	success or failure
 	 */
 	bool	switch_planning();
 
