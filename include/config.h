@@ -38,14 +38,14 @@
 
 #include "common.h"
 
-/*
+/**
  * m_config
  *
  * Defines the { key => value } map
  */
 typedef std::map<std::string,std::string> m_config;
 
-/*
+/**
  * m_syntax_regex
  *
  * Defines the { key => regexp } map
@@ -54,7 +54,7 @@ typedef std::map<std::string,std::string> m_config;
 typedef std::map<std::string,boost::regex> m_syntax_regex;
 
 
-/*
+/**
  * running_mode
  *
  * Describes how the scheduler should behave:
@@ -75,36 +75,41 @@ public:
 	Config();
 	~Config();
 
-	/*
+	/**
 	 * parse_file
-	 *
-	 * @arg : the file
-	 * @return : true (sucess) / false (failure)
 	 *
 	 * Comments use "#". They can be at the beginning of the line or after
 	 * a key=value couple
 	 * Spaces and tabulations are deleted
+	 *
+	 * @param	the file
+	 *
+	 * @return	true (sucess) / false (failure)
+	 *
 	 */
-	bool			parse_file(const char*);
+	bool	parse_file(const char*);
 
-	/*
+	/**
 	 * get_param
 	 *
-	 * @arg : the key
-	 * @return : the value or NULL
-	 *
 	 * Gets the value associated to a key
+	 *
+	 * @param	the key
+	 *
+	 * @return	the value or NULL
 	 */
 	std::string*	get_param(const char*);
 
-	/*
+	/**
 	 * get_master_node
 	 *
 	 * Gives the master_node's name
+	 *
+	 * @return	the name
 	 */
 	const std::string*	get_master_node();
 
-	/*
+	/**
 	 * get_running_mode
 	 *
 	 * @return : the selected mode
@@ -112,39 +117,42 @@ public:
 	e_running_mode	get_running_mode();
 
 private:
-	/*
+	/**
 	 * check_syntax
 	 *
-	 * @arg : key
-	 * @arg : value
-	 * @return : true (yes) / false (no)
-	 *
 	 * Checks if the stored key matches its regexp
+	 *
+	 * @param : key
+	 * @param : value
+	 *
+	 * @return : true (yes) / false (no)
 	 */
-	bool			check_syntax(const char* key, const char* value);
+	bool	check_syntax(const char* key, const char* value);
 
-	/*
+	/**
 	 * set_private_attributes
 	 *
 	 * Sets the typed variables such as the running mode
 	 */
-	bool			set_private_attributes();
+	bool	set_private_attributes();
 
-	/*
+	/**
 	 * get_running_mode
+	 *
+	 * @param	rm	the running mode to set
 	 *
 	 * @return : the selected mode
 	 */
-	void			set_running_mode(const e_running_mode rm);
+	void	set_running_mode(const e_running_mode rm);
 
-	/*
+	/**
 	 * config_options
 	 *
 	 * The config file's content
 	 */
-	m_config		config_options;
+	m_config	config_options;
 
-	/*
+	/**
 	 * syntex_regex
 	 *
 	 * TODO: implement it
@@ -152,14 +160,14 @@ private:
 	 */
 	m_syntax_regex	syntax_regex;
 
-	/*
+	/**
 	 * master_node
 	 *
 	 * The name of the node managing the domain
 	 */
-	std::string		master_node;
+	std::string	master_node;
 
-	/*
+	/**
 	 * running_mode
 	 *
 	 * How the scheduler should behave

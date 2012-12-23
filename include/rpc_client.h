@@ -52,64 +52,79 @@
 
 class Rpc_Client {
 public:
+	/**
+	 * Rpc_Client
+	 *
+	 * The constructor
+	 */
 	Rpc_Client();
+
+	/**
+	 * Rpc_Client
+	 *
+	 * The destructor
+	 */
 	~Rpc_Client();
 
 #ifdef USE_THRIFT
 
-	/*
+	/**
 	 * open
 	 *
 	 * Open a connection to a remote noode
 	 *
-	 * @arg	hostname	: target's name
-	 * @arg	port		: the TCP port to use
-	 * @return true		: success
+	 * @param	hostname	target's name
+	 * @param	port		the TCP port to use
+	 *
+	 * @return	true		success
 	 */
-	bool			open(const char* hostname, const int& port);
+	bool	open(const char* hostname, const int& port);
 
-	/*
+	/**
 	 * get_handler
 	 *
 	 * Gets the client handler
+	 *
+	 * @return	the Rpc_Client object
 	 */
 	rpc::ows_rpcClient*	get_handler() const;
 
-	/*
+	/**
 	 * close
 	 *
 	 * Closes the connection
 	 *
-	 * @return true	: success
+	 * @return	true on success
 	 */
-	bool			close();
+	bool	close();
 
-	/*
+	/**
 	 * transport
 	 *
 	 * Thrift's connection handler
 	 */
 	boost::shared_ptr<apache::thrift::transport::TTransport>	transport;
 
-	/*
+	/**
 	 * handler
 	 *
 	 * Thrift's interface
 	 */
-	rpc::ows_rpcClient*		handler;
+	rpc::ows_rpcClient*	handler;
 
 #endif // USE_THRIFT
 
-	/*
+	/**
 	 * build_url
-	 *
-	 * @arg : the target hostname
-	 * @return : the complete URL
 	 *
 	 * Creates a complete URL :
 	 * "http://" + target + ":" port + "/" + rpc_path
+	 *
+	 * @param	target	the target hostname
+	 *
+	 * @return	the complete URL
 	 */
-	std::string*			build_url(const std::string* target);
+	std::string*	build_url(const std::string* target);
 };
 
 // } // namespace ows

@@ -48,9 +48,9 @@
 
 // namespace ows {
 
-typedef	std::vector<std::string>			v_row;
-typedef	std::vector<v_row>					v_v_row;
-typedef	std::vector<std::string>			v_queries;
+typedef	std::vector<std::string>	v_row;
+typedef	std::vector<v_row>		v_v_row;
+typedef	std::vector<std::string>	v_queries;
 
 ///////////////////////////////////////////////////////////////////////////////
 /*
@@ -71,7 +71,7 @@ public:
 	Mysql();
 	~Mysql();
 
-	/*
+	/**
 	 * prepare
 	 *
 	 * Prepares the domain to be used :
@@ -79,69 +79,74 @@ public:
 	 * - creates the schema
 	 * - loads the skeleton from file
 	 *
-	 * @arg db_skeleton	: the SQL file to use
+	 * @param	db_skeleton	the SQL file to use
 	 *
-	 * @return true		: success
+	 * @return	true		success
 	 */
 	bool	prepare(const std::string* db_skeleton);
 
-	/*
+	/**
 	 * init_domain_structure
 	 *
 	 * Creates a planning using the given name
 	 *
-	 * @arg domain_name	: the domain's name
-	 * @arg db_skeleton	: the SQL file to use to create the planning
-	 * @return			: success (true) or failure (false)
+	 * @param	domain_name	the domain's name
+	 * @param	db_skeleton	the SQL file to use to create the planning
+	 *
+	 * @return	success (true) or failure (false)
 	 */
 	bool	init_domain_structure(const std::string& domain_name, const std::string& db_skeleton);
 
-	/*
+	/**
 	 * execute
 	 *
 	 * Executes an SQL query without result
 	 *
-	 * @arg query			: SQL query
-	 * @arg database_name	: the schema to use
-	 * @return true			: success
+	 * @param	query		SQL query
+	 * @param	database_name	the schema to use
+	 *
+	 * @return	true		success
 	 */
 	bool	standalone_execute(const v_queries& queries, const char* database_name);
 
-	/*
+	/**
 	 * query_one_row
 	 *
 	 * Executes a SQL query returing a single-row result
 	 *
-	 * @arg _return			: the result
-	 * @arg query			: SQL query
-	 * @arg database_name	: the schema to use
-	 * @return true			: success
+	 * @param	_return		the result
+	 * @param	query		SQL query
+	 * @param	database_name	the schema to use
+	 *
+	 * @return	true		success
 	 */
 	bool	query_one_row(v_row& _return, const char* query, const char* database_name);
 
-	/*
+	/**
 	 * query_full_result
 	 *
 	 * Executes a SQL query returning several rows
 	 *
-	 * @arg	_return			: the output
-	 * @arg query			: SQL query
-	 * @arg database_name	: the schema to use
-	 * @return true			: success
+	 * @param	_return		the output
+	 * @param	query		SQL query
+	 * @param	database_name	the schema to use
+	 *
+	 * @return	true		success
 	 */
 	bool	query_full_result(v_v_row& _return, const char* query, const char* database_name);
 
-	/*
+	/**
 	 * get_inserted_id
 	 *
 	 * Gives mysql_insert_id(). It is used to update the object's id
 	 *
-	 * @arg database_name	: the schema to use
-	 * @return	: the id
+	 * @param	database_name	the schema to use
+	 *
+	 * @return	the id
 	 */
 	int		get_inserted_id(const char* database_name);
 
-	/*
+	/**
 	 * shutdown
 	 *
 	 * Makes a clean database shutdown
@@ -151,100 +156,103 @@ public:
 	bool	shutdown();
 
 private:
-	/*
+	/**
 	 * mysql
 	 *
 	 * This is the MySQL server
-	 *
 	 */
 	MYSQL*			mysql;
 
-	/*
+	/**
 	 * results
 	 *
 	 * Used to store the query's result
 	 */
 //	MYSQL_RES*		results;
 
-	/*
+	/**
 	 * record
 	 *
 	 * Used to store each row of the result
 	 */
 //	MYSQL_ROW		record;
 
-	/*
+	/**
 	 * updates_mutex
 	 *
 	 * This mutex is used to secure the database's access
 	 * MySQLe does not support multi access
-	 *
 	 */
 //	boost::mutex	updates_mutex;
 
-	/*
+	/**
 	 * execute
 	 *
 	 * Executes an SQL query without result
 	 *
-	 * @arg query	: SQL query
-	 * @arg	mysql	: the MySQL connector
-	 * @return true	: success
+	 * @param	query	SQL query
+	 * @param	mysql	the MySQL connector
+	 *
+	 * @return	true	success
 	 */
 	bool	atomic_execute(const std::string& query, MYSQL* m);
 
-	/*
+	/**
 	 * load_file
 	 *
 	 * Reads an SQL file and execute the queries
 	 *
-	 * @arg file_path	: the SQL file
-	 * @return true		: success
+	 * @param	file_path	the SQL file
+	 *
+	 * @return	true		success
 	 */
 	bool	load_file(const char* node_name, const char* file_path);
 
-	/*
+	/**
 	 * init
 	 *
 	 * Initializes the MySQL connection to the embedded server
 	 * - must be called on each thread
 	 * - basically it is called at the beginning of each method
 	 *
-	 * @arg database_name	: the schema to use
-	 * @return				: the MYSQL object
+	 * @param	database_name	the schema to use
+	 *
+	 * @return	the MYSQL object
 	 */
 	MYSQL*		init(const char* database_name);
 
-	/*
+	/**
 	 * end
 	 *
 	 * Ends the MySQL connection to the embedded server
 	 * - must be called on each thread
 	 * - basically it is called at the end of each method
 	 *
-	 * @arg db	: the MYSQL object to destroy
+	 * @param	db	the MYSQL object to destroy
 	 */
 	void		end(MYSQL* db);
 
-	/*
+	/**
 	 * translate_into_db
 	 *
 	 * Replaces the dots by underlines to be compatible with
 	 * MySQL's schemas' syntax
 	 *
-	 * @arg str	: the string to convert
-	 * @return	: the translated string
+	 * @param	str	the string to convert
+	 *
+	 * @return	the translated string
 	 */
 	std::string	translate_into_db(const std::string*);
 
-	/*
+	/**
 	 * translate_into_prog
 	 *
 	 * Replaces the underlines by bots to be compatible with
 	 * OWS's syntax
 	 *
-	 * @arg str	: the string to convert
-	 * @return	: the translated string
+	 * @param	str	the string to convert
+	 *
+	 * @return	the translated string
 	 */
 	std::string translate_into_prog(const std::string*);
 };
@@ -258,64 +266,77 @@ private:
 //class Sqlite : public Database {
 class Sqlite {
 public:
+	/**
+	 * Sqlite
+	 *
+	 * The constructor
+	 */
 	Sqlite();
+
+	/**
+	 * ~Sqlite
+	 *
+	 * The destructor
+	 */
 	~Sqlite();
 
-	/*
+	/**
 	 * prepare
 	 *
 	 * Prepares the domain to be used :
 	 * - creates the database file from the template
 	 *
-	 * @arg node_name	: node's name
-	 * @arg db_skeleton	: the SQL skeleton to use
+	 * @param	node_name	node's name
+	 * @param	db_skeleton	the SQL skeleton to use
 	 *
-	 * @return true		: success
+	 * @return	true		success
 	 */
 	bool	prepare(const char* node_name, const std::string* db_data, const std::string* db_skeleton );
 
-	/*
+	/**
 	 * standaline_execute
 	 *
 	 * Executes an SQL query without result
 	 *
-	 * @arg query	: SQL queries
-	 * @return true	: success
+	 * @param	query	SQL queries
+	 *
+	 * @return	true	success
 	 */
 	bool	standalone_execute(const v_queries* queries);
 
-	/*
+	/**
 	 * query_one_row
 	 *
 	 * Executes a SQL query returing a single-row result
 	 *
-	 * @arg query	: SQL query
-	 * @return true	: success
+	 * @param	query	SQL query
+	 *
+	 * @return	true	success
 	 */
 	v_row	query_one_row(const char* query);
 
-	/*
+	/**
 	 * query_full_result
 	 *
 	 * Executes a SQL query returning several rows
 	 *
-	 * @arg query		: SQL query
-	 * @arg	result		: the rows
-	 * @return true		: the success
+	 * @param	query		SQL query
+	 * @param	result		the rows
+	 *
+	 * @return	true		the success
 	 */
 	v_v_row*	query_full_result(const char* query);
 
-	/*
+	/**
 	 * get_inserted_id
 	 *
 	 * Gives mysql_insert_id(). It is used to update the object's id
 	 *
-	 * @arg		: none
-	 * @return	: the id
+	 * @return	the id
 	 */
 	int		get_inserted_id();
 
-	/*
+	/**
 	 * shutdown
 	 *
 	 * Makes a clean database shutdown
@@ -325,68 +346,80 @@ public:
 	bool	shutdown();
 
 private:
-	/*
+	/**
 	 * updates_mutex
 	 *
 	 * This mutex is used to secure the database's access
 	 * MySQLe does not support multi access
-	 *
 	 */
 //	boost::mutex	updates_mutex;
 
-	/*
+	/**
 	 * pp_db
 	 *
 	 * This SQLite db handler
 	 */
-//	sqlite3*		p_db;
-	std::string		db;
+//	sqlite3*	p_db;
+	std::string	db;
 
-	/*
+	/**
 	 * execute
 	 *
 	 * Executes an SQL query without result
 	 *
-	 * @arg query	: SQL query
-	 * @arg	mysql	: the MySQL connector
-	 * @return true	: success
+	 * @param	query	SQL query
+	 * @param	mysql	the MySQL connector
+	 *
+	 * @return	true	success
 	 */
 	bool	atomic_execute(const std::string& query, sqlite3* p_db);
 
-	/*
+	/**
 	 * load_file
 	 *
 	 * Reads an SQL file and execute the queries
 	 *
-	 * @arg file_path	: the SQL file
-	 * @return true		: success
+	 * @param	file_path	the SQL file
+	 *
+	 * @return	true		success
 	 */
 	bool	load_file(const char* node_name, const char* file_path);
 
-	/*
+	/**
 	 * init
 	 *
 	 * Initializes the SQLite connection to the embedded server
 	 * - must be called on each thread
 	 * - basically it is called at the beginning of each method
+	 *
+	 * @return	the sqlite3 object
 	 */
 	sqlite3*	init();
 
-	/*
+	/**
 	 * end
 	 *
 	 * Ends the SQLite connection to the embedded server
 	 * - must be called on each thread
 	 * - basically it is called at the end of each method
+	 *
+	 * @param	sqlite3	the db object
 	 */
-	void		end(sqlite3* p_db);
+	void	end(sqlite3* p_db);
 
-	/*
+	/**
 	 * callback
 	 *
 	 * The SQLite's callback function from the quickstart guide
 	 * Must be declared and defined here, otherwise it won't be usable into
 	 * sqlite3_exec calls
+	 *
+	 * @param	NotUsed	not used
+	 * @param	argc	the number of arguments
+	 * @param	argv	the arguments
+	 * @param	asColName	the name of the column to process
+	 *
+	 * @return	the return code
 	 */
 	static int	callback(void *NotUsed, int argc, char **argv, char **azColName) {
 		int i;

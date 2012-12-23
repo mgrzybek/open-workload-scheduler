@@ -59,10 +59,10 @@ bool	Router::get_node(const std::string& domain_name, rpc::t_node& node) {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Router::update_peers_list() {
-	std::string		line;
-	rpc::t_node		peer;
-	std::string		public_key;
-	size_t			position	= 0;
+	std::string	line;
+	rpc::t_node	peer;
+	std::string	public_key;
+	size_t		position	= 0;
 	rpc::t_hello	hello_result;
 	std::string*	peers_keys	= this->config->get_param("peers_keys");
 
@@ -219,8 +219,8 @@ std::string*	Router::get_gateway(const std::string* destination) {
 ///////////////////////////////////////////////////////////////////////////////
 
 std::string*	Router::get_gateway(const std::string& destination) {
-	m_routing_table::iterator			iter_dst;
 	m_weighted_gateway::const_iterator	iter_gtw;
+	m_routing_table::iterator		iter_dst;
 
 	iter_dst = this->routing_table.find(destination);
 

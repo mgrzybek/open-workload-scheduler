@@ -54,30 +54,47 @@ typedef	std::vector<Job>	v_jobs;
 
 class Domain {
 public:
+	/**
+	 * Domain
+	 *
+	 * The constructor
+	 *
+	 * @arg	the configuration object
+	 */
 	Domain(Config*);
+
+	/**
+	 * ~Domain
+	 *
+	 * The destructor
+	 */
 	~Domain();
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * get_planning
 	 *
 	 * Gets the planning from the master and save it
 	 *
+	 * @param	_return	the planning to use as output
+	 * @param	domain_name	the name of the domain to get
+	 * @param	node_name	the node to focus on
+	 *
+	 * @return	true on success
 	 */
 	bool	get_planning(rpc::t_planning& _return, const char* domain_name, const char* node_name);
 
-	/*
+	/**
 	 * set_planning
 	 *
 	 * Sets the planning according to the template
 	 *
-	 * @arg planning	: the planning to insert
 	 * @return		: success or failure
 	 */
 	bool	set_next_planning();
 
-	/*
+	/**
 	 * switch_planning
 	 *
 	 * Activates the next planning
@@ -86,273 +103,406 @@ public:
 	 */
 	bool	switch_planning();
 
-	/*
+	/**
 	 * dump_planning
 	 *
 	 * Provides a dump of the database schema
 	 * TODO: determine dump's data type as its size can be huge
-	 * @arg	planning_name	: its name
-	 * @return		: the dump
+	 *
+	 * @param	planning_name	its name
+	 *
+	 * @return	the dump
 	 */
 	std::string	dump_planning(const char* planning_name);
 
-	/*
+	/**
 	 * drop_planning
 	 *
 	 * Drop the database schema representing the planning
 	 * For security reasons a dump is generated
 	 *
-	 * @arg	planning_name	: its name
-	 * @return		: the dump
+	 * @param	planning_name	its name
+	 *
+	 * @return	the dump
 	 */
 	std::string	drop_planning(const char* planning_name);
 
-	/*
+	/**
 	 * get_next_planning_start_time
 	 *
 	 * Gets when the next planning should start
 	 *
+	 * @return	the start time
 	 */
 	time_t	get_next_planning_start_time();
 
-	/*
+	/**
 	 * get_current_planning_remaining_time
 	 *
 	 * Gives the remaning time before the end of the current planning
 	 *
-	 * @return	: the time
+	 * @return	the remaining time
 	 */
 	time_t	get_current_planning_remaining_time();
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * add_node
 	 *
 	 * Adds a node to the domain
 	 * If it already exists, does not modify it
 	 *
-	 * @arg domain_name	: where the node is added
-	 * @arg n			: the node to add
+	 * @param	domain_name	where the node is added
+	 * @param	n		the node to add
 	 *
-	 * @return true	: success
+	 * @return	true on success
 	 */
 	bool	add_node(const char* domain_name, const rpc::t_node& n);
 
-	/*
+	/**
 	 * add_node
 	 *
 	 * Adds a node to the domain
 	 * If it already exists, does not modify it
 	 *
-	 * @arg domain_name	: where the node is added
-	 * @arg n			: its name
+	 * @param	domain_name	where the node is added
+	 * @param	n		its name
 	 *
-	 * @return true	: success
+	 * @return	true on success
 	 */
 	bool	add_node(const char* domain_name, const char* n);
 
 
-	/*
+	/**
 	 * add_node
 	 *
 	 * Adds a node to the domain
 	 * If it already exists, does not modify it
 	 *
-	 * @arg domain_name	: where the node is added
-	 * @arg n			: its name
-	 * @arg w			: its weight, can be null
-	 * @return true		: success
+	 * @param	domain_name	where the node is added
+	 * @param	n		its name
+	 * @param	w		its weight, can be null
+	 *
+	 * @return	true	success
 	 */
 	bool	add_node(const char* domain_name, const std::string& n, const rpc::integer& w);
 
-	/*
+	/**
 	 * get_node
 	 *
+	 * Get the node according to its name and its domain
+	 *
+	 * @param	domain_name	the name of the domain hosting the node
+	 * @param	_return		the node to use as output
+	 * @param	node_name	its name
 	 */
 	void	get_node(const char* domain_name, rpc::t_node& _return, const char* node_name);
 
-	/*
+	/**
 	 * get_nodes
 	 *
+	 * Gets the nodes hosted by a domain
+	 *
+	 * @param	domain_name	the name of the domain hosting the nodes
+	 * @param	_return		the nodes vector to use as output
 	 */
 	void	get_nodes(const char* domain_name, rpc::v_nodes& _return);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * add_job
 	 *
 	 * Adds a job to the domain
 	 * Is updates the job's id
 	 *
-	 * @arg j		: the job to add
-	 * @return true	: sucess
+	 * @param	j	the job to add
+	 * @return	true on success
 	 */
 	bool	add_job(const char* domain_name, const rpc::t_job& j);
 
-	/*
+	/**
 	 * update_job
 	 *
 	 * Updates the given job (the id remains the same)
 	 *
-	 * @arg			: the job to update
-	 * @return true	: success
+	 * @param	domain_name	the name of the domain hosting the nodes
+	 * @param	j		the job to update
+	 *
+	 * @return true on success
 	 */
 	bool	update_job(const char* domain_name, const rpc::t_job&);
 
-	/*
+	/**
 	 * remove_job
 	 *
 	 * Removes a job from the domain
 	 *
-	 * @arg					: the job to remove
-	 * @arg	running_node	: the name of the node running the job
-	 * @arg j_name			: the jobs's name
-	 * @return true			: success
+	 * @param	domain_name	the domain hosting the job
+	 * @param	j		the job to remove
+	 *
+	 * @return	true on success
+	 *
 	 */
 	bool	remove_job(const char* domain_name, const rpc::t_job& j);
-	bool	remove_job(const char* domain_name, const Job*);
+
+	/**
+	 * remove_job
+	 *
+	 * Removes a job from the domain
+	 *
+	 * @param	domain_name	the domain hosting the job
+	 * @param	j		the job to remove
+	 *
+	 * @return	true on success
+	 *
+	 */
+	bool	remove_job(const char* domain_name, const Job* j);
+
+	/**
+	 * remove_job
+	 *
+	 * Removes a job from the domain
+	 *
+	 * @param	domain_name	the domain hosting the job
+	 * @param	running_node	the name of the node running the job
+	 * @param	j_name		the jobs's name
+	 *
+	 * @return	true on success
+	 *
+	 */
 	bool	remove_job(const char* domain_name, const std::string* running_node, const std::string& j_name);
+
+	/**
+	 * remove_job
+	 *
+	 * Removes a job from the domain
+	 *
+	 * @param	domain_name	the domain hosting the job
+	 * @param	running_node	the name of the node running the job
+	 * @param	j_name		the jobs's name
+	 *
+	 * @return	true on success
+	 *
+	 */
 	bool	remove_job(const char* domain_name, const std::string& running_node, const std::string& j_name);
 
-	/*
+	/**
 	 * update_job_state
 	 *
 	 * Updates the job's state
 	 *
-	 * @arg					; the job to update
-	 * @arg running_node	: the name of the node running the job
-	 * @arg j_name			: the job's name
-	 * @arg js				: the new job's state
+	 * @param	domain_name	the domain hosting the job
+	 * @param	j		the job to update
+	 *
+	 * @return	true on success
 	 *
 	 * TODO: use only the Job object (remove the second argument)
 	 */
-	bool	update_job_state(const char* domain_name, const rpc::t_job&);
-	bool	update_job_state(const char* domain_name, const Job*, const rpc::e_job_state::type);
+	bool	update_job_state(const char* domain_name, const rpc::t_job& j);
+
+	/**
+	 * update_job_state
+	 *
+	 * Updates the job's state
+	 *
+	 * @param	domain_name	the domain hosting the job
+	 * @param	j		the job to update
+	 * @param	js		the new job's state
+	 *
+	 * @return	true on success
+	 *
+	 * TODO: use only the Job object (remove the second argument)
+	 */
+	bool	update_job_state(const char* domain_name, const Job* j, const rpc::e_job_state::type js);
+
+	/**
+	 * update_job_state
+	 *
+	 * Updates the job's state
+	 *
+	 * @param	domain_name	the domain hosting the job
+	 * @param	running_node	the name of the node running the job
+	 * @param	j_name		the job's name
+	 * @param	js		the new job's state
+	 *
+	 * @return	true on success
+	 *
+	 * TODO: use only the Job object (remove the second argument)
+	 */
 	bool	update_job_state(const char* domain_name, const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js);
+
+	/**
+	 * update_job_state
+	 *
+	 * Updates the job's state
+	 *
+	 * @param	domain_name	the domain hosting the job
+	 * @param	running_node	the name of the node running the job
+	 * @param	j_name		the job's name
+	 * @param	js		the new job's state
+	 * @param	start_time	the start time of the job
+	 * @param	stop_time	the stop time of the job
+	 *
+	 * @return	true on success
+	 *
+	 * TODO: use only the Job object (remove the second argument)
+	 */
 	bool	update_job_state(const char* domain_name, const std::string& running_node, const std::string& j_name, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
+
+	/**
+	 * update_job_state
+	 *
+	 * Updates the job's state
+	 *
+	 * @param	domain_name	the domain hosting the job
+	 * @param	j		the job to update
+	 * @param	js		the new job's state
+	 * @param	start_time	the start time of the job
+	 * @param	stop_time	the stop time of the job
+	 *
+	 * @return	true on success
+	 *
+	 * TODO: use only the Job object (remove the second argument)
+	 */
 	bool	update_job_state(const char* domain_name, const Job* j, const rpc::e_job_state::type& js, time_t& start_time, time_t& stop_time);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * get_ready_jobs
 	 *
 	 * Gets the list of the jobs ready to be launched
 	 *
-	 * @arg _return			: the output
-	 * @arg	running_node	: the node to check
+	 * @param	_return		the output
+	 * @param	running_node	the node to check
 	 */
 	void	get_ready_jobs(v_jobs& _return, const char* running_node);
+
+	/**
+	 * get_ready_jobs
+	 *
+	 * Gets the list of the jobs ready to be launched
+	 *
+	 * @param	_return		the output
+	 * @param	running_node	the node to check
+	 */
 	void	get_ready_jobs(rpc::v_jobs& _return, const char* running_node);
 
-	/*
+	/**
 	 * get_jobs
 	 *
 	 * Gets the jobs' list
 	 *
-	 * @arg _return			: the output
-	 * @arg	running_node	: the node to check
+	 * @param	domain_name	the domain hosting the job
+	 * @param	_return		the output
+	 * @param	running_node	the node to get
 	 */
-//	v_jobs	get_jobs(const char* running_node);
 	void	get_jobs(const char* domain_name, rpc::v_jobs& _return, const char* running_node);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * get_job
 	 *
 	 * Gets the job
 	 *
-	 * @arg _return			: the output
-	 * @arg	running_node	: the node to check
-	 * @arg job_name		: the job to get
+	 * @param	_return		the output
+	 * @param	running_node	the node to check
+	 * @param	job_name	the job to get
 	 */
 	void	get_job(const char* domain_name, rpc::t_job& _return, const char* running_node, const char* job_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * get_jobs_next
 	 *
 	 * Gets the next job_ids to run
 	 *
-	 * @arg	_return			: the output
-	 * @arg	running_node	: the node to check
-	 * @arg j_name			: the previous job_name
+	 * @param	domain_name	the domain hosting the job
+	 * @param	_return		the output
+	 * @param	running_node	the node to check
+	 * @param	j_name		the previous job_name
 	 */
 	void	get_jobs_next(const char* domain_name, rpc::v_job_names& _return, const char* running_node, const std::string& j_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * get_macro_jobs
 	 *
 	 * Gets the macro_jobs' list
 	 *
-	 * @arg _return		: the output
-	 * @arg	running_node	: the node to check
+	 * @param	domain_name	the domain hosting the job
+	 * @param	_return		the output
+	 * @param	running_node	the node to get
 	 */
 	void	get_macro_jobs(const char* domain_name, rpc::v_macro_jobs& _return, const char* running_node);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * add_resource
 	 *
+	 * @param	domain_name	the domain hosting the resource
+	 * @param	r		the resource to add
+	 * @param	node_name	the node using this resource
 	 */
 	bool	add_resource(const char* domain_name, const rpc::t_resource& r, const char* node_name);
 
-	/*
+	/**
 	 * get_resources
 	 *
 	 * Gets the resources' list
 	 *
-	 * @arg _return		: the output
+	 * @param	domain_name	the domain hosting the resource
+	 * @param	_return		the output
+	 * @param	node_name	the node using this resource
 	 */
 	void	get_resources(const char* domain_name, rpc::v_resources& _return, const char* running_node);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * get_time_constraints
 	 *
 	 * Gets the time_constraints' list
 	 *
-	 * @arg _return		: the output
+	 * @param _return		: the output
 	 */
 	void	get_time_constraints(const char* domain_name, rpc::v_time_constraints& _return, const char* running_node, const std::string& j_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * get_recovery_types
 	 *
 	 * Gets the recovery_types' list
 	 *
-	 * @arg _return			: the output
-	 * @arg running_node	: the node hosting the object
+	 * @param _return			: the output
+	 * @param running_node	: the node hosting the object
 	 */
 	void	get_recovery_types(const char* domain_name, rpc::v_recovery_types& _return, const char* running_node);
 
-	/*
+	/**
 	 * get_recovery_type
 	 *
 	 * Gets the recovery_type associated to the given id
 	 *
-	 * @arg _return			: the output
-	 * @arg running_node	: the node hosting the object
-	 * @arg rec_id			: the type's id
+	 * @param _return			: the output
+	 * @param running_node	: the node hosting the object
+	 * @param rec_id			: the type's id
 	 */
 	void	get_recovery_type(const char* domain_name, rpc::t_recovery_type& _return, const char* running_node, const int rec_id);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * sql_exec
 	 */
-	/*
+	/**
 	 * SQL stuff for debug only !
 	 */
 	void	sql_exec(const std::string& running_node, const std::string& s);
@@ -360,19 +510,19 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-	/*
+	/**
 	 * Getters
 	 */
 	const char*		get_name() const;
 
-	/*
+	/**
 	 * get_current_planning_name
 	 *
 	 * Get the current running domain's name (domain_name + "_" + start_time)
 	 */
 	std::string	get_current_planning_name();
 
-	/*
+	/**
 	 * get_available_planning_names
 	 *
 	 * Get the whole available plannings (the past ones)
@@ -382,59 +532,65 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 private:
-	/*
+	/**
 	 * config
 	 *
 	 * The map containing the paramaters read from the .cfg file
 	 */
-	Config*			config;
+	Config*	config;
 #ifdef USE_MYSQL
-	/*
+	/**
 	 * database
 	 *
 	 * The MySQL handler
 	 */
-	Mysql			database;
+	Mysql	database;
 #endif
 
-	/*
+	/**
 	 * name
 	 *
 	 * The domain's name
 	 */
-	std::string		name;
+	std::string	name;
 
-	/*
-	 * planning_start_unix_time
+	/**
+	 * planning_start_time
 	 *
-	 * When the initial planning started
+	 * When the current planning started
 	 */
-	time_t			planning_start_time;
-	time_t			initial_planning_start_time;
+	time_t	planning_start_time;
 
-	/*
+	/**
+	 * initial_planning_start_time
+	 *
+	 * When the initial planning started for the first time
+	 */
+	time_t	initial_planning_start_time;
+
+	/**
 	 * planning_duration
 	 *
 	 * How long a day is
 	 */
-	time_t			planning_duration;
+	time_t	planning_duration;
 
-	/*
+	/**
 	 * updates_mutex
 	 *
 	 * This mutex is used to prevent concurrent access to the database
 	 */
 	boost::mutex	updates_mutex;
 
-	/*
+	/**
 	 * get_add_node_query
 	 *
 	 */
-	void		get_add_node_query(std::string& _return, const rpc::t_node& node);
-	void		get_add_job_query(std::string& _return, const rpc::t_job& job);
-	void		get_add_resource_query(std::string& _return, const rpc::t_resource& resource);
-	void		get_add_recovery_type_query(std::string& _return, const rpc::t_recovery_type& rc_type);
-	void		get_add_macro_job_query(std::string& _return, const rpc::t_macro_job& macro_job);
+	//void		get_add_node_query(std::string& _return, const rpc::t_node& node);
+	//void		get_add_job_query(std::string& _return, const rpc::t_job& job);
+	//void		get_add_resource_query(std::string& _return, const rpc::t_resource& resource);
+	//void		get_add_recovery_type_query(std::string& _return, const rpc::t_recovery_type& rc_type);
+	//void		get_add_macro_job_query(std::string& _return, const rpc::t_macro_job& macro_job);
 };
 
 // } // namespace ows

@@ -1071,7 +1071,7 @@ void	Domain::get_available_planning_names(std::vector<std::string>& _return) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
+/*
 void	Domain::get_add_node_query(std::string& _return, const rpc::t_node& node) {
 	_return = "REPLACE INTO node (node_name,node_weight) VALUES ('";
 	_return += node.name.c_str();
@@ -1093,5 +1093,5 @@ void	Domain::get_add_recovery_type_query(std::string& _return, const rpc::t_reco
 	_return += build_string_from_rectype_action(rc_type.action);
 	_return += "');";
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////

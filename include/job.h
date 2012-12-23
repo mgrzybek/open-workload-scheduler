@@ -43,64 +43,146 @@ class Domain;
 
 class Job {
 public:
-//	Job(Domain* d, const std::string& name, const std::string& node_name, const std::string& cmd_line, const int& weight, const v_job_ids& pj, const v_job_ids& nj);
-//	Job(Domain* d, int id, std::string& name, std::string& node_name, std::string& cmd_line, int weight);
+	/**
+	 * Job
+	 *
+	 * The constructor
+	 *
+	 * @param	d	the hosting domain
+	 * @param	j	the job to create from rpc::t_job type
+	 */
 	Job(Domain* d, const rpc::t_job& j);
+
+	/**
+	 * ~Job
+	 *
+	 * The destructor
+	 */
 	~Job();
 
-	/*
+	/**
 	 * run
 	 *
 	 * Runs the job and updates its state in the database
 	 *
-	 * @arg none
-	 *
-	 * @return true	: state updated sucessfuly
+	 * @return	true	state updated sucessfuly
 	 */
-	bool		run();
+	bool	run();
 
-	/*
+	/**
 	 * update_state
 	 *
 	 * Updates the state
-	 * TODO: is it crappy to us several methods?
+	 * TODO: is it crappy to use several methods?
 	 *
-	 * @arg	js		: the job's state
+	 * @param	js	the job's state
 	 *
-	 * @return true	: sucess
+	 * @return	true	on sucess
 	 */
-	bool		update_state(const rpc::e_job_state::type js);
-	bool		update_state(const rpc::e_job_state::type js, time_t start_time, time_t stop_time);
+	bool	update_state(const rpc::e_job_state::type js);
 
-	/*
-	 * getters
+	/**
+	 * update_state
+	 *
+	 * Updates the state
+	 * TODO: is it crappy to use several methods?
+	 *
+	 * @param	js	the job's state
+	 * @param	start_time	when the job started
+	 * @param	stop_time	when the job ended
+	 *
+	 * @return	true on sucess
+	 */
+	bool	update_state(const rpc::e_job_state::type js, time_t start_time, time_t stop_time);
+
+	/**
+	 * get_
+	 *
+	 * @return
 	 */
 	const rpc::t_job*	get_job() const;
-	int			get_id()  const;
-	const std::string	get_name() const;
-	const std::string	get_cmd_line() const;
-	const char*		get_node_name() const;
-	const std::string	get_node_name2() const;
-	int			get_weight() const;
-	const Domain*		get_domain() const;
 
+	/**
+	 * get_id
+	 *
+	 * @return	the job's id
+	 */
+	int	get_id()  const;
+
+	/**
+	 * get_name
+	 *
+	 * @return	the job's name
+	 */
+	const std::string	get_name() const;
+
+	/**
+	 * get_cmd_line
+	 *
+	 * @return	the job's command line to start on a node
+	 */
+	const std::string	get_cmd_line() const;
+
+	/**
+	 * get_node_name
+	 *
+	 * @return	the name of the node hosting the job
+	 */
+	const char*	get_node_name() const;
+
+	/**
+	 * get_node_name2
+	 *
+	 * @return	the name of the node hosting the job
+	 */
+	const std::string	get_node_name2() const;
+
+	/**
+	 * get_weight
+	 *
+	 * @return	the weight of the job
+	 */
+	int	get_weight() const;
+
+	/**
+	 * get_domain
+	 *
+	 * @return	the domain hosting the job
+	 */
+	const Domain*	get_domain() const;
+
+	/**
+	 * get_next
+	 *
+	 * @return	the jobs' names to start after the current job
+	 */
 	const rpc::v_job_names	get_next() const;
+
+	/**
+	 * get_prev
+	 *
+	 * @return	the jobs' names to end before starting the current job
+	 */
 	const rpc::v_job_names	get_prev() const;
 
-	/*
-	 * setters
+	/**
+	 * set_id
+	 *
+	 * TODO: implement me
+	 *
+	 * @param	id	the job's id
 	 */
-	void		set_id(const int);
+	void	set_id(const int);
 
 private:
-	/*
+	/**
 	 * domain
 	 *
 	 * Pointer to the Domain object that cannot be stored in a t_job
 	 */
 	Domain*		domain;
 
-	/*
+	/**
 	 * job
 	 *
 	 * We directly use the rpc::t_job to store data

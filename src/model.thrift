@@ -31,7 +31,7 @@ namespace cpp	rpc
 namespace perl	rpc
 namespace py	rpc
 
-/*
+/**
  * e_job_state
  */
 enum	e_job_state {
@@ -41,7 +41,7 @@ enum	e_job_state {
 	FAILED
 }
 
-/*
+/**
  * e_rectype_action
  */
 enum	e_rectype_action {
@@ -49,7 +49,7 @@ enum	e_rectype_action {
 	STOP_SCHEDULE
 }
 
-/*
+/**
  * e_time_constraint_type
  */
 enum	e_time_constraint_type {
@@ -61,7 +61,7 @@ enum	e_time_constraint_type {
 typedef i16 integer
 typedef list<string> v_job_names
 
-/*
+/**
  * t_resource
  *
  * Linked to a node
@@ -74,7 +74,7 @@ struct	t_resource {
 }
 typedef list<t_resource>	v_resources
 
-/*
+/**
  * t_time_constraint
  *
  * Linked to a job
@@ -86,7 +86,7 @@ struct	t_time_constraint {
 }
 typedef list<t_time_constraint>	v_time_constraints
 
-/*
+/**
  * t_recovery_type
  */
 struct	t_recovery_type {
@@ -97,88 +97,88 @@ struct	t_recovery_type {
 }
 typedef list<t_recovery_type>	v_recovery_types
 
-/*
+/**
  * t_job
  */
 struct	t_job {
-	/*
+	/**
 	 * start_time
 	 *
 	 * When the job started
 	 */
 	1: required i64		start_time,
 
-	/*
+	/**
 	 * stop_time
 	 *
 	 * When the job stopped
 	 */
 	2: required i64		stop_time,
 
-	/*
+	/**
 	 * return_code
 	 *
 	 * The code returned by the job's command line
 	 */
 	3: required integer	return_code,
 
-	/*
+	/**
 	 * state
 	 *
 	 * Has the job already been run?
 	 */
 	4: required e_job_state	state,
 
-	/*
+	/**
 	 * name
 	 *
 	 * The job's namme
 	 */
 	5: required string	name,
 
-	/*
+	/**
 	 * node_name
 	 *
 	 * The node hosting the job
 	 */
 	6: required string	node_name,
 
-	/*
+	/**
 	 * domain
 	 *
 	 * The domain owning the job
 	 */
 	7: required string	domain,
 
-	/*
+	/**
 	 * cmd_line
 	 *
 	 * The command line to execute on the node
 	 */
 	8: required string	cmd_line,
 
-	/*
+	/**
 	 * weight
 	 *
 	 * The amont of needed resources to run the job
 	 */
 	9: required integer	weight,
 
-	/*
+	/**
 	 * prv
 	 *
 	 * The jobs that must be run before the job
 	 */
 	10: required v_job_names	prv
 
-	/*
+	/**
 	 * next
 	 *
 	 * The jobs waiting for this job to success
 	 */
 	11: required v_job_names	nxt,
 
-	/*
+	/**
 	 * time_constraints
 	 *
 	 * The list of the job's time constraints (at, before, after)
@@ -186,7 +186,7 @@ struct	t_job {
 	 */
 	12: required v_time_constraints	time_constraints,
 
-	/*
+	/**
 	 * recovery_type
 	 *
 	 * TODO: update the add / update methods
@@ -195,7 +195,7 @@ struct	t_job {
 }
 typedef list<t_job>		v_jobs
 
-/*
+/**
  * t_node
  */
 struct	t_node {
@@ -210,7 +210,7 @@ struct	t_node {
 typedef list<t_node>		v_nodes
 
 
-/*
+/**
  * t_macro_job
  *
  * TODO: think of the way it works
@@ -222,7 +222,7 @@ struct	t_macro_job {
 }
 typedef list<t_macro_job>	v_macro_jobs
 
-/*
+/**
  * t_day
  *
  * Defines what is a day
@@ -242,7 +242,7 @@ struct	t_planning {
 	2: required v_nodes	nodes,
 }
 
-/*
+/**
  * t_hello
  *
  * Defines the values given by a hello request
@@ -261,7 +261,7 @@ struct t_route {
 	2: required integer	hops,
 }
 
-/*
+/**
  * ex_routing
  */
 exception ex_routing {
@@ -275,7 +275,7 @@ exception ex_job {
 	1: string	msg,
 }
 
-/*
+/**
  * ex_node
  */
 exception ex_node {
@@ -289,20 +289,20 @@ exception ex_planning {
 	1: string	msg,
 }
 
-/*
+/**
  * ex_processing
  */
 exception ex_processing {
 	1: string msg,
 }
 
-/*
+/**
  * ows_rpc
  *
  * The services we use to make nodes communicate
  */
 service ows_rpc {
-	/*
+	/**
 	 * Routing
 	 */
 	t_hello	hello (
@@ -311,7 +311,7 @@ service ows_rpc {
 
 	t_route	reach_master() throws (1:ex_routing e);
 
-	/*
+	/**
 	 * Domain
 	 */
 	string		get_current_planning_name(
@@ -332,7 +332,7 @@ service ows_rpc {
 			2:ex_processing p
 	);
 
-	/*
+	/**
 	 * Planning
 	 */
 	t_planning	get_planning(
@@ -353,7 +353,7 @@ service ows_rpc {
 			2:ex_planning	p
 	);
 */
-	/*
+	/**
 	 * Node
 	 */
 	bool	add_node(
@@ -388,7 +388,7 @@ service ows_rpc {
 			3:ex_processing p
 	);
 
-	/*
+	/**
 	 * Jobs
 	 */
 	v_jobs	get_jobs(
@@ -473,7 +473,7 @@ service ows_rpc {
 //			3: required e_job_state	js
 //	) throws (1:ex_job e);
 
-	/*
+	/**
 	 * SQL
 	 */
 	oneway void	sql_exec(
