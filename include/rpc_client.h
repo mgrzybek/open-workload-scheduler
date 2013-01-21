@@ -40,7 +40,7 @@
 
 #ifdef USE_THRIFT
 // RPC Stuff
-#include "gen-cpp/ows_rpc.h"
+#include "ows_rpc.h"
 
 // Common Stuff
 #include <transport/TSocket.h>

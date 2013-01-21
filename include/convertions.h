@@ -26,7 +26,7 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#include "gen-cpp/model_types.h"
+#include "model_types.h"
 
 /**
  * build_job_state_from_string

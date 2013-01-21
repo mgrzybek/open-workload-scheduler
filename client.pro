@@ -1,17 +1,17 @@
 QT	-= core gui
-CONFIG	+= link_pkgconfig
+CONFIG	+= link_pkgconfig debug_and_release
 
 TARGET = client
-
-QMAKE_EXTRA_TARGET += src/gen-cpp/ows_rpc.cpp
-#PRE_TARGETDEPS += thrift
 
 include(qmake_conf/linux.pro)
 include(qmake_conf/macx.pro)
 include(qmake_conf/bsd.pro)
 #include(qmake_conf/windows.pro)
 
-SOURCES += src/client.cpp
+INCLUDEPATH	+= include \
+	src/gen-cpp
+
+SOURCES += src/client.cpp \
 	src/convertions.cpp \
 	src/config.cpp \
 	src/database.cpp \
@@ -25,17 +25,16 @@ SOURCES += src/client.cpp
 	src/gen-cpp/model_types.cpp \
 	src/gen-cpp/ows_rpc.cpp
 
-HEADERS	+= src/common.h \
-	src/convertions.h \
-	src/config.h \
-	src/database.h \
-	src/domain.h \
-	src/job.h \
-	src/node.h \
-	src/router.h \
-	src/rpc_client.h \
-	src/rpc_server.h \
+HEADERS	+= include/common.h \
+	include/convertions.h \
+	include/config.h \
+	include/database.h \
+	include/domain.h \
+	include/job.h \
+	include/node.h \
+	include/router.h \
+	include/rpc_client.h \
+	include/rpc_server.h \
 	src/gen-cpp/model_constants.h \
 	src/gen-cpp/model_types.h \
 	src/gen-cpp/ows_rpc.h
-

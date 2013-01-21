@@ -30,7 +30,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "gen-cpp/model_types.h"
+#include "model_types.h"
 
 /*
  * Database selection

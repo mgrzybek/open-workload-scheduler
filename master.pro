@@ -8,6 +8,9 @@ include(qmake_conf/macx.pro)
 include(qmake_conf/bsd.pro)
 #include(qmake_conf/windows.pro)
 
+INCLUDEPATH	+= include \
+	src/gen-cpp
+
 SOURCES += src/convertions.cpp \
 	src/config.cpp \
 	src/database.cpp \
