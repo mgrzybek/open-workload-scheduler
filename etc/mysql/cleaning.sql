@@ -1,0 +1,17 @@
+[01;31m[KDROP[m[K TABLE IF EXISTS `node` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `recovery_type` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `macro_job` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `job` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `resource` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `time_constraint` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `jobs_link` ;
+[01;31m[KDROP[m[K VIEW IF EXISTS `get_ready_job` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `get_ready_job`;
+[01;31m[KDROP[m[K VIEW IF EXISTS `get_ready_time` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `get_ready_time`;
+[01;31m[KDROP[m[K VIEW IF EXISTS `get_ready_links` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `get_ready_links`;
+[01;31m[KDROP[m[K VIEW IF EXISTS `get_ready_linkless` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `get_ready_linkless`;
+[01;31m[KDROP[m[K VIEW IF EXISTS `get_available_resource` ;
+[01;31m[KDROP[m[K TABLE IF EXISTS `get_available_resource`;
