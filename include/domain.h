@@ -529,6 +529,17 @@ public:
 	 */
 	void	get_available_planning_names(std::vector<std::string>& _return);
 
+	/**
+	 * contains_data
+	 *
+	 * Tells us if the domain has data about the given node or not
+	 *
+	 * @param	node_name	the node to check
+	 *
+	 * @return	true	the domain contains data
+	 */
+	bool	contains_data(const char* node_name);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 private:

@@ -29,7 +29,7 @@
 #include <csignal>
 #include <iostream>
 #include <string>
-#include <boost/thread.hpp>
+#include <boost/thread/thread.hpp>
 #include <boost/lexical_cast.hpp>
 
 // Common stuff
@@ -105,6 +105,8 @@ int		main (int argc, char * const argv[]) {
 	//	if (daemon_mode == true)
 	//		daemonize();
 
+	try {
+
 	/*
 	 * Peers Discovery
 	 *
@@ -119,6 +121,7 @@ int		main (int argc, char * const argv[]) {
 	 *
 	 * - Create the domain
 	 * - Create the current planning from the template
+	 * TODO: manage exceptions
 	 */
 	Domain domain(&conf_params);
 
@@ -140,7 +143,9 @@ int		main (int argc, char * const argv[]) {
 	/*
 	 * Domain routine
 	 *
-	 * - Check for ready jobs every minute
+	 * - Check for ready jobs every minute:
+	 *	- PASSIVE: for the whole nodes
+	 *	- ACTIVE/P2P: for the local node only
 	 * - Check if we need to initialize the next planning (buffer == 1 minute)
 	 */
 	boost::thread_group	running_jobs;
@@ -149,28 +154,42 @@ int		main (int argc, char * const argv[]) {
 		v_jobs	jobs;
 
 		try {
-			domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
+			if ( conf_params.get_running_mode() == PASSIVE )
+				domain.get_ready_jobs(jobs, NULL);
+			else
+				domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
 
 			if ( domain.get_next_planning_start_time() - time(NULL) <= 60 )
 				domain.set_next_planning();
 
 		} catch ( const rpc::ex_processing& e ) {
-			std::cerr << e.msg << std::endl;
+			std::cerr << "Fatal exception occured (ex_processing): " << e.msg << std::endl;
+			return EXIT_FAILURE;
+		} catch ( const rpc::ex_job& e ) {
+			std::cerr << "Exception occured (ex_job): " << e.msg << std::endl;
 		}
 
 		std::cout << "ready jobs: " << jobs.size() << std::endl; // TODO: remove it
 		BOOST_FOREACH(Job j, jobs) {
-			running_jobs.create_thread(boost::bind(&Job::run, &j));
+			if ( j.get_node_name2().compare(conf_params.get_param("node_name")->c_str()) == 0 )
+				running_jobs.create_thread(boost::bind(&Job::run, &j));
+			else
+				if ( conf_params.get_running_mode() == PASSIVE )
+					std::cout << "TODO: send the job to the target node" << std::endl;
 		}
 
-		if ( domain.get_current_planning_remaining_time() <= 60 ) {
-			domain.switch_planning();
-		}
-
+		// This prevents the previous jobs to be run again
+		jobs.clear();
 		sleep(60);
 	}
 
 	running_jobs.join_all();
+	server_thread.join();
+
+	} catch ( const rpc::ex_processing& e ) {
+		std::cerr << "Fatal exception occured (ex_processing): " << e.msg << std::endl;
+		return EXIT_FAILURE;
+	}
 
 	return EXIT_SUCCESS;
 }

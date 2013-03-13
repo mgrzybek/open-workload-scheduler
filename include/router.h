@@ -135,8 +135,9 @@ public:
 	 *
 	 * @param	domain_name	the hosting domain
 	 * @param	node		the output
+	 * @param	target_node_name	the node to query
 	 */
-	bool	get_node(const std::string& domain_name, rpc::t_node& node);
+	bool	get_node(const std::string& domain_name, rpc::t_node& node, const char* target_node_name);
 
 	/**
 	 * get_next_hop

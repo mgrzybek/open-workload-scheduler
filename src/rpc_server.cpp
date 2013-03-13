@@ -570,6 +570,7 @@ bool	ows_rpcHandler::add_job(const std::string& domain_name, const rpc::t_node& 
 					return this->client->get_handler()->add_job(domain_name, calling_node, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
+					std::cerr << "Error: " << e.msg << std::endl;
 					this->client->close();
 					throw e;
 				}

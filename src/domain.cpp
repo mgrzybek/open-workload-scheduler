@@ -49,6 +49,12 @@ Domain::Domain(Config* c) {
 	this->config	= c;
 	this->name	= this->config->get_param("domain_name")->c_str();
 
+	if ( this->name.size() == 0 ) {
+		rpc::ex_processing e;
+		e.msg = "The domain's name is empty";
+		throw e;
+	}
+
 	/*
 	 * Make sure the duration and the start time are zero before calculating them
 	 */
@@ -101,9 +107,18 @@ Domain::Domain(Config* c) {
 	/*
 	 * Let's prepare the template database
 	 */
-	if ( this->database.prepare(this->config->get_param("db_skeleton")) == false ) {
+	if ( this->database.prepare() == false ) {
 		rpc::ex_processing e;
 		e.msg = "Error: cannot prepare the database";
+		throw e;
+	}
+
+	/*
+	 * Let's prepare and populate the template planning
+	 */
+	if ( this->database.init_domain_structure(this->name, this->config->get_param("db_skeleton")->c_str()) == false ) {
+		rpc::ex_processing e;
+		e.msg = "Error: cannot prepare the template planning";
 		throw e;
 	}
 
@@ -143,7 +158,7 @@ bool	Domain::set_next_planning() {
 		return false;
 	}
 
-	this->get_nodes("template", nodes);
+	this->get_nodes(this->name.c_str(), nodes);
 
 	// We could use a method called "add_nodes" as well
 	BOOST_FOREACH(rpc::t_node node, nodes) {
@@ -648,16 +663,14 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 	v_v_row		jobs_matrix;
 	rpc::t_job*	job	= NULL;
 
-	if ( running_node == NULL )
-		query += ";";
-	else {
+	if ( running_node != NULL ) {
 		query += " WHERE job_node_name = '";
 		query += running_node;
-		query += "';";
 	}
+	query += "';";
 
 #ifdef USE_MYSQL
-	if ( this->database.query_full_result(jobs_matrix, query.c_str(), this->get_current_planning_name().c_str()) == false )   {
+	if ( this->database.query_full_result(jobs_matrix, query.c_str(), this->get_current_planning_name().c_str()) == false ) {
 		rpc::ex_job	e;
 		e.msg = "The query failed";
 		throw e;
@@ -726,7 +739,11 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 
 		this->get_jobs_next(domain_name, job->nxt, running_node, job->name);
 		this->get_time_constraints(domain_name, job->time_constraints, running_node, job->name);
-		this->get_recovery_type(domain_name, job->recovery_type, running_node, boost::lexical_cast<int>(job_row[5].c_str()));
+
+		if ( job_row[5].size() > 0 && job_row[5].compare("NULL") != 0 ) {
+			std::cout << job_row[5] << std::endl;
+			this->get_recovery_type(domain_name, job->recovery_type, running_node, boost::lexical_cast<int>(job_row[5].c_str()));
+		}
 
 		_return.push_back(*job);
 	}
@@ -753,7 +770,7 @@ void	Domain::get_job(const char* domain_name, rpc::t_job& _return, const char* r
 		query += "';";
 	}
 
-	if ( this->database.query_one_row(job_row, query.c_str(), domain_name) == false )   {
+	if ( this->database.query_one_row(job_row, query.c_str(), domain_name) == false ) {
 		rpc::ex_job	e;
 		e.msg = "The query failed";
 		throw e;
@@ -1009,7 +1026,12 @@ void	Domain::get_nodes(const char* domain_name, rpc::v_nodes& _return) {
 		node = new rpc::t_node();
 
 		node->name		= node_row[0];
-		node->weight	= boost::lexical_cast<rpc::integer>(node_row[1]);
+
+		try {
+			node->weight	= boost::lexical_cast<rpc::integer>(node_row[1]);
+		} catch ( ... ) {
+			std::cerr << "Error while casting int: " << node_row[1] << std::endl;
+		}
 
 		this->get_node(domain_name, *node, node_row[0].c_str());
 
@@ -1053,6 +1075,7 @@ std::string Domain::get_current_planning_name() {
 	result += "_";
 	result += boost::lexical_cast<std::string>(this->planning_start_time);
 
+	return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1095,3 +1118,23 @@ void	Domain::get_add_recovery_type_query(std::string& _return, const rpc::t_reco
 }
 */
 ///////////////////////////////////////////////////////////////////////////////
+
+bool	Domain::contains_data(const char* node_name) {
+	if ( node_name == NULL ) {
+		rpc::ex_processing e;
+		e.msg = "the given node_name is NULL";
+		throw e;
+	}
+
+	v_row	result;
+	std::string	query = "SELECT COUNT(*) FROM job WHERE job_name_name LIKE '";
+	query += node_name;
+	query += "';";
+
+	this->database.query_one_row(result, query.c_str(), this->name.c_str());
+
+	if ( boost::lexical_cast<int>(result[0]) > 0 )
+		return true;
+
+	return false;
+}

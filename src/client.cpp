@@ -134,13 +134,46 @@ int		main (int argc, char * const argv[]) {
 	rpc::t_node	node;
 	Domain		domain(&conf_params);
 
-	while ( router.get_node(conf_params.get_param("domain_name")->c_str(), node) == false ) {
-		std::cout << "Cannot get the planning" << std::endl;
-		sleep(30);
-	}
-	if ( domain.add_node(conf_params.get_param("domain_name")->c_str(), node) == false ) {
-		std::cerr << "Cannot load the planning" << std::endl;
-		return EXIT_FAILURE;
+	switch (conf_params.get_running_mode()) {
+		case P2P: {
+			/*
+			 * Check if the domain contains data
+			 * Or ask the direct peers for data
+			 */
+			if ( domain.contains_data(conf_params.get_param("node_name")->c_str()) == false ) {
+				m_host_keys::const_iterator iter = router.get_direct_peers();
+				rpc::t_node	node;
+
+				node.name = conf_params.get_param("node_name")->c_str();
+
+				while ( ++iter ) {
+					if ( router.get_node(conf_params.get_param("domain_name"), node, iter->second()) == true )
+						break;
+				}
+				if ( domain.add_node(conf_params.get_param("domain_name")->c_str(), node) == false ) {
+					std::cerr << "Cannot load the planning" << std::endl;
+					return EXIT_FAILURE;
+				}
+			}
+			break;
+		}
+		case ACTIVE: {
+			while ( router.get_node(conf_params.get_param("domain_name")->c_str(), node, router.get_master_node()->c_str()) == false ) {
+				std::cout << "Cannot get the planning" << std::endl;
+				sleep(30);
+			}
+			if ( domain.add_node(conf_params.get_param("domain_name")->c_str(), node) == false ) {
+				std::cerr << "Cannot load the planning" << std::endl;
+				return EXIT_FAILURE;
+			}
+			break;
+		}
+		case PASSIVE: {
+			/*
+			 * Nothing is done. The master gives orders
+			 */
+			break;
+		}
 	}
 
 	/*
@@ -162,17 +195,31 @@ int		main (int argc, char * const argv[]) {
 	 * Domain routine
 	 *
 	 * - Check for ready jobs every minute
+	 * - Or wait master's orders
 	 */
 	v_jobs	jobs;
 	boost::thread_group	running_jobs;
-	while (1) {
-		domain.get_ready_jobs(conf_params.get_param("domain_name")->c_str(), jobs, conf_params.get_param("node_name")->c_str());
-		std::cout << "jobs size: " << jobs.size() << std::endl; // TODO: remove it
-		BOOST_FOREACH(Job j, jobs) {
-			running_jobs.create_thread(boost::bind(&Job::run, &j));
+
+	switch (conf_params.get_running_mode()) {
+		case (P2P): {break;};
+		case (ACTIVE): {
+			while (1) {
+				domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
+				std::cout << "jobs size: " << jobs.size() << std::endl; // TODO: remove it
+				BOOST_FOREACH(Job j, jobs) {
+					running_jobs.create_thread(boost::bind(&Job::run, &j));
+				}
+				sleep(60);
+			}
+			break;
 		}
-		sleep(60);
+		case (PASSIVE): {
+			break;
+		}
 	}
+
+	running_jobs.join_all();
+	server_thread.join();
 
 	return EXIT_SUCCESS;
 }

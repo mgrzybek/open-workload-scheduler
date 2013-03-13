@@ -302,17 +302,44 @@ exception ex_processing {
  * The services we use to make nodes communicate
  */
 service ows_rpc {
+	// Routing
+
 	/**
-	 * Routing
+	 * hello
+	 *
+	 * Send a "hello" message to a node to known if it is reachable
+	 *
+	 * @param	tart_node	the node to reach
+	 *
+	 * @throw	a routing exception
 	 */
 	t_hello	hello (
 			1: required t_node	target_node
 	) throws (1:ex_routing e);
 
+	/**
+	 * reach_master
+	 *
+	 * Can we reach the master?
+	 *
+	 * @return	the route to use
+	 *
+	 * @throw	a routing exception
+	 */
 	t_route	reach_master() throws (1:ex_routing e);
 
+	// Domain
+
 	/**
-	 * Domain
+	 * get_current_planning_name
+	 *
+	 * @param	domain_name
+	 * @param	calling_node
+	 * @param	target_node
+	 *
+	 * @return	its name
+	 *
+	 * @throw
 	 */
 	string		get_current_planning_name(
 			1: required string	domain_name,

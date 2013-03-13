@@ -40,7 +40,7 @@ Mysql::~Mysql() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Mysql::prepare(const std::string* db_skeleton) {
+bool	Mysql::prepare() {
 	static char* server_args[] = {
 		(char*)"this_program",	// this string is not used
 		(char*)"--datadir=/tmp",
@@ -63,8 +63,7 @@ bool	Mysql::prepare(const std::string* db_skeleton) {
 		return false;
 	}
 
-	//return this->init_planning(this->translate_into_db(domain_name), *db_skeleton);
-	return this->init_domain_structure("template", *db_skeleton);
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,6 +71,23 @@ bool	Mysql::prepare(const std::string* db_skeleton) {
 bool	Mysql::init_domain_structure(const std::string& domain_name, const std::string& db_skeleton) {
 	std::string	query;
 	v_queries	queries;
+	v_row		result;
+
+	/*
+	 * HACK: "create table if not exists" does not work, that is why we need
+	 * to know if the schema exists
+	 */
+	query = "SHOW DATABASES LIKE '";
+	query += domain_name;
+	query += "';";
+
+	if ( query_one_row(result, query.c_str(), NULL) == false ) {
+		std::cerr << "Cannot get the available databases" << std::endl;
+		return false;
+	}
+
+	if ( result.size() != 0 )
+		return true;
 
 	// Creates the schema
 	query = "CREATE SCHEMA IF NOT EXISTS ";
@@ -169,7 +185,6 @@ bool	Mysql::query_one_row(v_row& _return, const char* query, const char* databas
 
 	if ( query == NULL )
 		return false;
-
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
 		std::cerr << query << std::endl << mysql_error(local_mysql);

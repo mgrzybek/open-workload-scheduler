@@ -76,14 +76,10 @@ public:
 	 *
 	 * Prepares the domain to be used :
 	 * - creates the embedded database engine
-	 * - creates the schema
-	 * - loads the skeleton from file
 	 *
-	 * @param	db_skeleton	the SQL file to use
-	 *
-	 * @return	true		success
+	 * @return	true	success
 	 */
-	bool	prepare(const std::string* db_skeleton);
+	bool	prepare();
 
 	/**
 	 * init_domain_structure
