@@ -142,7 +142,7 @@ bool	Domain::get_planning(rpc::t_planning& _return, const char* domain_name, con
 
 	this->get_node(domain_name, node, node_name);
 
-	_return.day.begin_time = this->get_next_planning_start_time();
+	_return.day.begin_time = this->planning_start_time;
 	_return.day.duration = this->planning_duration;
 	_return.nodes.push_back(node);
 
@@ -154,7 +154,17 @@ bool	Domain::get_planning(rpc::t_planning& _return, const char* domain_name, con
 bool	Domain::set_next_planning() {
 	rpc::v_nodes	nodes;
 
-	if ( this->database.init_domain_structure(this->get_current_planning_name().c_str(), *this->config->get_param("db_skeleton")) == false ) {
+	std::string	next_planning_name;
+	next_planning_name = this->name;
+	next_planning_name += "_";
+	next_planning_name += boost::lexical_cast<std::string>(this->get_next_planning_start_time());
+
+	try {
+		if ( this->database.init_domain_structure(next_planning_name.c_str(), *this->config->get_param("db_skeleton")) == false ) {
+			return true;
+		}
+	} catch ( const rpc::ex_processing& e) {
+		std::cerr << e.msg << std::endl;
 		return false;
 	}
 
@@ -162,7 +172,7 @@ bool	Domain::set_next_planning() {
 
 	// We could use a method called "add_nodes" as well
 	BOOST_FOREACH(rpc::t_node node, nodes) {
-		if ( this->add_node(this->get_current_planning_name().c_str(), node) == false ) {
+		if ( this->add_node(next_planning_name.c_str(), node) == false ) {
 			return false;
 		}
 	}
@@ -173,10 +183,14 @@ bool	Domain::set_next_planning() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::switch_planning() {
+	std::cout << "Old planning start time: " << this->planning_start_time << std::endl;
+
 	if ( this->set_next_planning() == false )
 		return false;
 
 	this->planning_start_time = this->get_next_planning_start_time();
+
+	std::cout << "New planning start time: " << this->planning_start_time << std::endl;
 
 	return true;
 }
@@ -194,7 +208,15 @@ std::string	Domain::dump_planning(const char* planning_name) {
 		throw e;
 	}
 
+	// TODO: update it
+/*
 	result = this->dump_planning(planning_name);
+
+	if ( result.empty() == true ) {
+		rpc::ex_processing e;
+		e.msg = "Cannot dump the database";
+		throw e;
+	}
 
 	query = "DROP DATABASE ";
 	query += planning_name;
@@ -206,7 +228,7 @@ std::string	Domain::dump_planning(const char* planning_name) {
 		e.msg = "Query failed";
 		throw e;
 	}
-
+*/
 	return result;
 }
 
@@ -286,7 +308,7 @@ bool	Domain::add_node(const char* domain_name, const std::string& n, const rpc::
 
 	this->updates_mutex.lock();
 
-	query = "REPLACE INTO node (node_name,node_weight) VALUES ('";
+	query = "INSERT IGNORE INTO node (node_name,node_weight) VALUES ('";
 	query += n.c_str();
 	query += "','";
 	query += boost::lexical_cast<std::string>(w);
@@ -633,6 +655,8 @@ void	Domain::get_ready_jobs(v_jobs& _return, const char* running_node) {
 		rpc_j->node_name	= job_row[2];
 		rpc_j->weight	= boost::lexical_cast<int>(job_row[3]);
 		rpc_j->state		= build_job_state_from_string(job_row[4].c_str());
+
+		rpc_j->domain	= this->get_current_planning_name();
 /*
 		query = "SELECT job_rectype_id FROM job WHERE job_name ='";
 		query += rpc_j->name;
@@ -663,6 +687,10 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 	v_v_row		jobs_matrix;
 	rpc::t_job*	job	= NULL;
 
+	// We do not query the database if the planning is not started yet
+	if ( this->planning_start_time < time(NULL) )
+		return;
+
 	if ( running_node != NULL ) {
 		query += " WHERE job_node_name = '";
 		query += running_node;
@@ -688,7 +716,7 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 
 		job = new rpc::t_job();
 
-		job->domain		= this->name.c_str();
+		job->domain		= this->get_current_planning_name();
 		job->name		= job_row[0];
 		job->node_name	= job_row[2];
 		job->cmd_line	= job_row[1];
@@ -707,7 +735,7 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char* running_node) {
-	std::string	query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id FROM job");
+	std::string	query("SELECT job_name,job_cmd_line,job_node_name,job_weight,job_state,job_rectype_id, unix_timestamp(job_start_time), unix_timestamp(job_stop_time) FROM job");
 	v_v_row		jobs_matrix;
 	rpc::t_job*	job	= NULL;
 
@@ -736,6 +764,11 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 		job->cmd_line	= job_row[1];
 		job->weight		= boost::lexical_cast<int>(job_row[3]);
 		job->state		= build_job_state_from_string(job_row[4].c_str());
+
+		if ( job_row[6].size() > 0 && job_row[6].compare("NULL") != 0 )
+			job->start_time		= boost::lexical_cast<int64_t>(job_row[6].c_str());
+		if ( job_row[7].size() > 0 && job_row[7].compare("NULL") != 0 )
+			job->stop_time		= boost::lexical_cast<int64_t>(job_row[7].c_str());
 
 		this->get_jobs_next(domain_name, job->nxt, running_node, job->name);
 		this->get_time_constraints(domain_name, job->time_constraints, running_node, job->name);

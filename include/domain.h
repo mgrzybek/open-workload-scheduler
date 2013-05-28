@@ -89,6 +89,7 @@ public:
 	 * set_planning
 	 *
 	 * Sets the planning according to the template
+	 * TODO: make private
 	 *
 	 * @return	success or failure
 	 */

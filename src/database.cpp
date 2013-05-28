@@ -82,8 +82,9 @@ bool	Mysql::init_domain_structure(const std::string& domain_name, const std::str
 	query += "';";
 
 	if ( query_one_row(result, query.c_str(), NULL) == false ) {
-		std::cerr << "Cannot get the available databases" << std::endl;
-		return false;
+		rpc::ex_processing e;
+		e.msg = "Cannot get the available databases";
+		throw e;
 	}
 
 	if ( result.size() != 0 )
@@ -98,7 +99,9 @@ bool	Mysql::init_domain_structure(const std::string& domain_name, const std::str
 	query.clear();
 
 	if ( this->standalone_execute(queries, NULL) == false ) {
-		return false;
+		rpc::ex_processing e;
+		e.msg = "Cannot execute the queries";
+		throw e;
 	}
 
 	// Loads the skeleton from file

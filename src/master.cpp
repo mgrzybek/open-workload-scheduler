@@ -107,87 +107,93 @@ int		main (int argc, char * const argv[]) {
 
 	try {
 
-	/*
-	 * Peers Discovery
-	 *
-	 * - Get the (host, public key) list
-	 * - Call Router.reach_master() : if true -> continue, else waiting loop (30 seconds and retry)
-	 *
-	 */
-	//router.update_peers_list();
+		/*
+		 * Peers Discovery
+		 *
+		 * - Get the (host, public key) list
+		 * - Call Router.reach_master() : if true -> continue, else waiting loop (30 seconds and retry)
+		 *
+		 */
+		//router.update_peers_list();
 
-	/*
-	 * Planning loading
-	 *
-	 * - Create the domain
-	 * - Create the current planning from the template
-	 * TODO: manage exceptions
-	 */
-	Domain domain(&conf_params);
+		/*
+		 * Planning loading
+		 *
+		 * - Create the domain
+		 * - Create the current planning from the template
+		 * TODO: manage exceptions
+		 */
+		Domain domain(&conf_params);
 
-	/*
-	 * Ports listening
-	 *
-	 * - create a Rpc_Server object
-	 * - create a dedicated thread
-	 */
-	Rpc_Server		server(&domain, &conf_params, &router);
-	boost::thread	server_thread(boost::bind(&Rpc_Server::run, &server));
+		/*
+		 * Ports listening
+		 *
+		 * - create a Rpc_Server object
+		 * - create a dedicated thread
+		 */
+		Rpc_Server		server(&domain, &conf_params, &router);
+		boost::thread	server_thread(boost::bind(&Rpc_Server::run, &server));
 
-	/*
-	 * Domain preparation
-	 *
-	 * - Try to reach the node needed by the planning : build the routing table
-	 */
+		/*
+		 * Domain preparation
+		 *
+		 * - Try to reach the node needed by the planning : build the routing table
+		 */
 
-	/*
-	 * Domain routine
-	 *
-	 * - Check for ready jobs every minute:
-	 *	- PASSIVE: for the whole nodes
-	 *	- ACTIVE/P2P: for the local node only
-	 * - Check if we need to initialize the next planning (buffer == 1 minute)
-	 */
-	boost::thread_group	running_jobs;
+		/*
+		 * Domain routine
+		 *
+		 * - Check for ready jobs every minute:
+		 *	- PASSIVE: for the whole nodes
+		 *	- ACTIVE/P2P: for the local node only
+		 * - Check if we need to initialize the next planning (buffer == 1 minute)
+		 */
+		boost::thread_group	running_jobs;
 
-	while (1) {
-		v_jobs	jobs;
+		while (1) {
+			v_jobs	jobs;
 
-		try {
-			if ( conf_params.get_running_mode() == PASSIVE )
-				domain.get_ready_jobs(jobs, NULL);
-			else
-				domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
-
-			if ( domain.get_next_planning_start_time() - time(NULL) <= 60 )
-				domain.set_next_planning();
-
-		} catch ( const rpc::ex_processing& e ) {
-			std::cerr << "Fatal exception occured (ex_processing): " << e.msg << std::endl;
-			return EXIT_FAILURE;
-		} catch ( const rpc::ex_job& e ) {
-			std::cerr << "Exception occured (ex_job): " << e.msg << std::endl;
-		}
-
-		std::cout << "ready jobs: " << jobs.size() << std::endl; // TODO: remove it
-		BOOST_FOREACH(Job j, jobs) {
-			if ( j.get_node_name2().compare(conf_params.get_param("node_name")->c_str()) == 0 )
-				running_jobs.create_thread(boost::bind(&Job::run, &j));
-			else
+			try {
 				if ( conf_params.get_running_mode() == PASSIVE )
-					std::cout << "TODO: send the job to the target node" << std::endl;
+					domain.get_ready_jobs(jobs, NULL);
+				else
+					domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
+
+				if ( domain.get_next_planning_start_time() - time(NULL) <= 60 ) {
+					domain.switch_planning();
+				}
+
+			} catch ( const rpc::ex_job& e ) {
+				std::cerr << "Exception occured (ex_job): " << e.msg << std::endl;
+			}
+
+			//std::cout << "ready jobs: " << jobs.size() << std::endl; // TODO: remove it
+			if ( jobs.size() > 0 )
+				for ( unsigned long iter = 0 ; iter < jobs.size() ; ++iter ) {
+					if ( jobs[iter].get_state() == rpc::e_job_state::WAITING ) {
+						if ( jobs[iter].get_node_name2().compare(conf_params.get_param("node_name")->c_str()) == 0 ) {
+							running_jobs.create_thread(boost::bind(&Job::run, jobs[iter]));
+						} else {
+							if ( conf_params.get_running_mode() == PASSIVE )
+								std::cout << "TODO: send the job to the target node" << std::endl;
+						}
+						break;
+					}
+				}
+
+			// This prevents the previous jobs to be run again
+			jobs.clear();
+			sleep(60);
 		}
 
-		// This prevents the previous jobs to be run again
-		jobs.clear();
-		sleep(60);
-	}
-
-	running_jobs.join_all();
-	server_thread.join();
+		running_jobs.join_all();
+		server_thread.join();
 
 	} catch ( const rpc::ex_processing& e ) {
 		std::cerr << "Fatal exception occured (ex_processing): " << e.msg << std::endl;
+		return EXIT_FAILURE;
+	} catch ( const std::exception& e ) {
+		std::cerr << "Fatal exception occured (std::exception): " << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
 

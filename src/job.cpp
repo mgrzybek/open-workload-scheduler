@@ -74,14 +74,28 @@ Job::Job(Domain* d, int id, std::string& name, std::string& node_name, std::stri
 ///////////////////////////////////////////////////////////////////////////////
 
 Job::Job(Domain* d, const rpc::t_job& j) {
-	if ( d == NULL )
-		throw "Empty domain";
-	if ( j.name.empty() == true )
-		throw "Empty name";
-	if ( j.node_name.empty() == true )
-		throw "Empty node_name";
-	if ( j.cmd_line.empty() == true )
-		throw "Empty command line";
+	rpc::ex_job e;
+
+	if ( d == NULL ) {
+		e.msg = "Empty domain";
+		throw e;
+	}
+	if ( j.name.empty() == true ) {
+		e.msg = "Empty name";
+		throw e;
+	}
+	if ( j.node_name.empty() == true ) {
+		e.msg = "Empty node_name";
+		throw e;
+	}
+	if ( j.cmd_line.empty() == true ) {
+		e.msg = "Empty command line";
+		throw e;
+	}
+	if ( j.domain.empty() == true ) {
+		e.msg = "Empty domain name";
+		throw e;
+	}
 
 	this->domain = d;
 	this->job = j;
@@ -100,6 +114,9 @@ Job::~Job() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Job::run() {
+	if ( this->job.state == rpc::e_job_state::RUNNING )
+		return false;
+
 	if ( this->update_state(rpc::e_job_state::RUNNING) == false ) {
 		std::cerr << "Error: cannot update job's state to RUNNING" << std::endl;
 		return false;
@@ -141,14 +158,14 @@ bool	Job::run() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Job::update_state(const rpc::e_job_state::type js) {
-	return this->domain->update_job_state(this->domain->get_name(), this, js);
+	return this->domain->update_job_state(this->job.domain.c_str(), this, js);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 // TODO: fix it
 bool	Job::update_state(const rpc::e_job_state::type js, time_t start_time, time_t stop_time) {
-	return this->domain->update_job_state(this->domain->get_name(), this, js, start_time, stop_time);
+	return this->domain->update_job_state(this->job.domain.c_str(), this, js, start_time, stop_time);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -184,6 +201,12 @@ const std::string	Job::get_node_name2() const {
 
 int	Job::get_weight() const {
 	return this->job.weight;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+rpc::e_job_state::type	Job::get_state() const {
+	return this->job.state;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

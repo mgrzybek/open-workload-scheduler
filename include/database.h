@@ -89,7 +89,8 @@ public:
 	 * @param	domain_name	the domain's name
 	 * @param	db_skeleton	the SQL file to use to create the planning
 	 *
-	 * @return	success (true) or failure (false)
+	 * @return	the database has been created (true) or the database already exists (false)
+	 * @throw	rpc::ex_processing	database error
 	 */
 	bool	init_domain_structure(const std::string& domain_name, const std::string& db_skeleton);
 

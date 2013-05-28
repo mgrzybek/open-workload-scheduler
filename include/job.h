@@ -145,6 +145,13 @@ public:
 	int	get_weight() const;
 
 	/**
+	 * get_state
+	 *
+	 * @return	the state of the job
+	 */
+	rpc::e_job_state::type	get_state() const;
+
+	/**
 	 * get_domain
 	 *
 	 * @return	the domain hosting the job
