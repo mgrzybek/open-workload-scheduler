@@ -129,3 +129,16 @@ std::string	build_string_from_time_constraint_type(const rpc::e_time_constraint_
 
 	return result;
 }
+
+std::string	build_human_readable_time(const time_t& time) {
+	std::string	result;
+	char		buffer[80];
+	struct tm*	timeinfo;
+
+	timeinfo = localtime(&time);
+	strftime(buffer,80,"%c",timeinfo);
+
+	result = buffer;
+
+	return result;
+}

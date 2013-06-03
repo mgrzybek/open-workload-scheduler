@@ -26,6 +26,7 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+#include <time.h>
 #include "model_types.h"
 
 /**
@@ -92,3 +93,14 @@ rpc::e_time_constraint_type::type build_time_constraint_type_from_string(const c
  * @return	the 'stringed' type
  */
 std::string	build_string_from_time_constraint_type(const rpc::e_time_constraint_type::type& tc_t);
+
+/**
+ * build_human_readable_time
+ *
+ * Converts an UNIX time to a human readable string
+ *
+ * @arg	time	the time to convert
+ *
+ * @return	the converted time
+ */
+std::string	build_human_readable_time(const time_t& time);
