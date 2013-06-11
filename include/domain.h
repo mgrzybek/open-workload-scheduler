@@ -91,9 +91,10 @@ public:
 	 * Sets the planning according to the template
 	 * TODO: make private
 	 *
+	 * @arg	the next planning start time
 	 * @return	success or failure
 	 */
-	bool	set_next_planning();
+	bool	set_next_planning(time_t& _return);
 
 	/**
 	 * switch_planning
@@ -174,7 +175,6 @@ public:
 	 */
 	bool	add_node(const char* domain_name, const char* n);
 
-
 	/**
 	 * add_node
 	 *
@@ -188,6 +188,19 @@ public:
 	 * @return	true	success
 	 */
 	bool	add_node(const char* domain_name, const std::string& n, const rpc::integer& w);
+
+	/**
+	 * remove_node
+	 *
+	 * Removes a node to the domain
+	 * If it already exists, does not modify it
+	 *
+	 * @param	domain_name	where the node is removed
+	 * @param	n		its name
+	 *
+	 * @return	true	success
+	 */
+	bool	remove_node(const char* domain_name, const std::string& n);
 
 	/**
 	 * get_node
@@ -508,6 +521,26 @@ public:
 	 */
 	void	sql_exec(const std::string& running_node, const std::string& s);
 	void	sql_exec(const std::string& s);
+
+////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * monitor_failed_jobs
+	 *
+	 * @param	domain_name	the domain hosting the resource
+	 *
+	 * @return	the number of failed jobs
+	 */
+	rpc::integer	monitor_failed_jobs(const char* domain_name);
+
+	/**
+	 * monitor_waiting_jobs
+	 *
+	 * @param	domain_name	the domain hosting the resource
+	 *
+	 * @return	the number of waiting jobs
+	 */
+	rpc::integer	monitor_waiting_jobs(const char* domain_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 

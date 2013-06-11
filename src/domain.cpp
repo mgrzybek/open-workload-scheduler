@@ -101,9 +101,6 @@ Domain::Domain(Config* c) {
 		std::cerr << e.what();
 	}
 
-	this->planning_start_time = this->get_next_planning_start_time();
-	std::cout << "Next start time is: " << this->planning_start_time << std::endl;
-
 	/*
 	 * Let's prepare the template database
 	 */
@@ -125,11 +122,13 @@ Domain::Domain(Config* c) {
 	/*
 	 * Let's prepare and populate the next planning to start
 	 */
-	if ( this->set_next_planning() == false ) {
+	if ( this->set_next_planning(this->planning_start_time) == false ) {
 		rpc::ex_processing e;
 		e.msg = "Error: cannot prepare the next planning";
 		throw e;
 	}
+
+	std::cout << "First start time is: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time) << std::endl;
 }
 
 Domain::~Domain() {
@@ -151,15 +150,28 @@ bool	Domain::get_planning(rpc::t_planning& _return, const char* domain_name, con
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Domain::set_next_planning() {
+bool	Domain::set_next_planning(time_t& _return) {
 	rpc::v_nodes	nodes;
-
 	std::string	next_planning_name;
+
+	_return = this->get_next_planning_start_time();
+
 	next_planning_name = this->name;
 	next_planning_name += "_";
-	next_planning_name += boost::lexical_cast<std::string>(this->get_next_planning_start_time());
+	next_planning_name += boost::lexical_cast<std::string>(_return);
 
 	try {
+/*		if ( this->database.query_one_row(result, "SELECT IF('database_name' IN(SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA), 1, 0) AS found;", NULL) == false ) {
+			return false;
+		}
+
+		std::cout << "result -> " << result.at(0) << std::endl;
+
+		if ( result.at(0).compare("1") == 0 ) {
+			std::cout << "The schema already exists, skiping domain init..." << std::endl;
+			return true;
+		}
+*/
 		if ( this->database.init_domain_structure(next_planning_name.c_str(), *this->config->get_param("db_skeleton")) == false ) {
 			return true;
 		}
@@ -183,14 +195,15 @@ bool	Domain::set_next_planning() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::switch_planning() {
-	std::cout << "Old planning start time: " << this->planning_start_time << std::endl;
+	time_t	result;
+	std::cout << "Old planning start time: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time) << std::endl;
 
-	if ( this->set_next_planning() == false )
+	if ( this->set_next_planning(result) == false )
 		return false;
 
-	this->planning_start_time = this->get_next_planning_start_time();
+	this->planning_start_time = result;
 
-	std::cout << "New planning start time: " << this->planning_start_time << std::endl;
+	std::cout << "New planning start time: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time) << std::endl;
 
 	return true;
 }
@@ -273,6 +286,7 @@ bool	Domain::add_node(const char* domain_name, const rpc::t_node& n) {
 	return true;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Domain::add_node(const char* domain_name, const char* n) {
@@ -324,6 +338,24 @@ bool	Domain::add_node(const char* domain_name, const std::string& n, const rpc::
 #endif
 	this->updates_mutex.unlock();
 	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool	Domain::remove_node(const char* domain_name, const std::string& n) {
+	rpc::t_node	node_to_remove;
+
+	this->get_node(domain_name, node_to_remove, n.c_str());
+
+	// Remove the jobs
+	BOOST_FOREACH(rpc::t_job j, node_to_remove.jobs) {
+		if ( this->remove_job(domain_name, j) == false )
+			return false;
+	}
+
+	// TODO: Break the next / prev links
+
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1091,6 +1123,28 @@ void	Domain::sql_exec(const std::string& s) {
 #ifdef USE_MYSQL
 	this->database.query_full_result(result, s.c_str(), NULL);
 #endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+rpc::integer	Domain::monitor_failed_jobs(const char* domain_name) {
+	std::string	query("SELECT COUNT(*) FROM job WHERE job_state = 'failed';");
+	v_row		result;
+
+	this->database.query_one_row(result, query.c_str(), domain_name);
+
+	return boost::lexical_cast<rpc::integer>(result.at(0));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+rpc::integer	Domain::monitor_waiting_jobs(const char* domain_name) {
+	std::string	query("SELECT COUNT(*) FROM job WHERE job_state = 'waiting';");
+	v_row		result;
+
+	this->database.query_one_row(result, query.c_str(), domain_name);
+
+	return boost::lexical_cast<rpc::integer>(result.at(0));
 }
 
 ///////////////////////////////////////////////////////////////////////////////

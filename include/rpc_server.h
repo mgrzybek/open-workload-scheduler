@@ -216,6 +216,7 @@ public:
 	bool add_node(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_add); // TODO: fix the weight value
 	void get_node(rpc::t_node& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get);
 	void get_nodes(rpc::v_nodes& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	bool remove_node(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_remove);
 
 	// Jobs methods
 	void get_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
@@ -228,6 +229,10 @@ public:
 
 	// SQL methods
 	void sql_exec(const std::string& query);
+
+	// Monitoring
+	rpc::integer monitor_failed_jobs(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	rpc::integer monitor_waiting_jobs(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
 
 private:
 	Domain*	domain;

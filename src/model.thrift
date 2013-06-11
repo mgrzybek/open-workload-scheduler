@@ -371,8 +371,8 @@ service ows_rpc {
 			1:ex_routing r,
 			2:ex_processing p
 	);
-
-/*	bool		set_planning(
+/*
+	bool		set_planning(
 			1: required t_node	calling_node,
 			2: required t_planning	planning,
 	) throws (
@@ -388,6 +388,17 @@ service ows_rpc {
 			2: required t_node	calling_node,
 			3: required t_node	target_node,
 			4: required t_node	node_to_add,
+	) throws (
+			1:ex_routing	r,
+			2:ex_node	n,
+			3:ex_processing p
+	);
+
+	bool	remove_node(
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
+			4: required t_node	node_to_remove,
 	) throws (
 			1:ex_routing	r,
 			2:ex_node	n,
@@ -505,6 +516,27 @@ service ows_rpc {
 	 */
 	oneway void	sql_exec(
 			1: required string	query,
+	);
+
+	/**
+	 * Monitoring
+	 */
+	integer	monitor_waiting_jobs(
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
+	) throws (
+			1:ex_routing	r,
+			3:ex_processing p
+	);
+
+	integer	monitor_failed_jobs(
+			1: required string	domain_name,
+			2: required t_node	calling_node,
+			3: required t_node	target_node,
+	) throws (
+			1:ex_routing	r,
+			3:ex_processing p
 	);
 }
 
