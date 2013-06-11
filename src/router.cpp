@@ -118,9 +118,13 @@ bool	Router::update_peers_list() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-m_host_keys::const_iterator	Router::get_direct_peers() {
-	m_host_keys::const_iterator iter = this->hosts_keys.begin();
-	return iter;
+p_m_host_keys_iter	Router::get_direct_peers() {
+	p_m_host_keys_iter iters;
+
+	iters.first = this->hosts_keys.begin();
+	iters.second = this->hosts_keys.end();
+
+	return iters;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -167,7 +167,7 @@ int		main (int argc, char * const argv[]) {
 				std::cerr << "Exception occured (ex_job): " << e.msg << std::endl;
 			}
 
-			//std::cout << "ready jobs: " << jobs.size() << std::endl; // TODO: remove it
+			std::cout << "ready jobs: " << jobs.size() << std::endl; // TODO: remove it
 			if ( jobs.size() > 0 )
 				for ( unsigned long iter = 0 ; iter < jobs.size() ; ++iter ) {
 					if ( jobs[iter].get_state() == rpc::e_job_state::WAITING ) {

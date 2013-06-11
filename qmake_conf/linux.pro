@@ -1,13 +1,13 @@
 linux {
 	LIBS += -lthrift \
 		-L/usr/local/lib \
-		/usr/local/lib/mysql/libmysqld.a \
+		/usr/lib/libmysqld.a \
 		-L/usr/lib \
 		-L/usr/local/lib \
-		/usr/local/lib/libboost_regex.a \
-		/usr/local/lib/libboost_thread-mt.a \
-		/usr/local/lib/libboost_filesystem.a \
-		/usr/local/lib/libboost_system-mt.a \
+		/usr/lib/libboost_regex.a \
+		/usr/lib/libboost_thread.a \
+		/usr/lib/libboost_filesystem.a \
+		/usr/lib/libboost_system.a \
 		-lssl \
 		-lpthread \
 		-lcrypto \
@@ -15,9 +15,9 @@ linux {
 		-ldl \
 		-lz
 
-	INCLUDEPATH +=  /usr/local/include \
-		/usr/local/include/mysql \
-		/usr/local/include/thrift \
+	INCLUDEPATH +=  /usr/include \
+		/usr/include/mysql \
+		/usr/include/thrift \
 		src
 }
 

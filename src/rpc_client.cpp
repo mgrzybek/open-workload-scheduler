@@ -70,7 +70,9 @@ rpc::ows_rpcClient*	Rpc_Client::get_handler() const {
 
 //TODO: find a clean transport->close()
 bool	Rpc_Client::close() {
-	delete this->handler;
+	if ( this->handler != NULL ) {
+		delete this->handler;
+	}
 	this->handler = NULL;
 	/*
 	try {

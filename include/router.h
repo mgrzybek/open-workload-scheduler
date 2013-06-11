@@ -54,6 +54,7 @@ class Rpc_Client;
  */
 typedef std::pair<std::string, std::string>		p_host_key;
 typedef	std::map<std::string, std::string>		m_host_keys;
+typedef std::pair<m_host_keys::const_iterator, m_host_keys::const_iterator>	p_m_host_keys_iter;
 
 /**
  * mutable_pair
@@ -162,9 +163,9 @@ public:
 	 *
 	 * Gets the peers that are reachable directly
 	 *
-	 * @return	a const_iterator to the host_keys map
+	 * @return	a pair of const_iterators to the host_keys map (begin and end)
 	 */
-	m_host_keys::const_iterator	get_direct_peers();
+	p_m_host_keys_iter	get_direct_peers();
 
 	/**
 	 * update_routing_table

@@ -141,13 +141,13 @@ int		main (int argc, char * const argv[]) {
 			 * Or ask the direct peers for data
 			 */
 			if ( domain.contains_data(conf_params.get_param("node_name")->c_str()) == false ) {
-				m_host_keys::const_iterator iter = router.get_direct_peers();
+				p_m_host_keys_iter iters = router.get_direct_peers();
 				rpc::t_node	node;
 
 				node.name = conf_params.get_param("node_name")->c_str();
 
-				while ( ++iter ) {
-					if ( router.get_node(conf_params.get_param("domain_name"), node, iter->second()) == true )
+				for ( auto iter = iters.first ; iter != iters.second ; iter++ ) {
+					if ( router.get_node(*conf_params.get_param("domain_name"), node, iter->second.c_str()) == true )
 						break;
 				}
 				if ( domain.add_node(conf_params.get_param("domain_name")->c_str(), node) == false ) {

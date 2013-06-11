@@ -1,4 +1,4 @@
-QT	-= core gui
+QT	-= core gui qt
 CONFIG	+= link_pkgconfig debug_and_release
 
 TARGET	= master

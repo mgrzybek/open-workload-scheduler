@@ -41,17 +41,17 @@ Mysql::~Mysql() {
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Mysql::prepare() {
-	static char* server_args[] = {
-		(char*)"this_program",	// this string is not used
-		(char*)"--datadir=/tmp",
-		(char*)"--innodb_data_home_dir=/tmp/innodb"
-	};
-	static char* server_groups[] = {
-		(char*)"ows",
-		(char*)"server",
-		(char*)"this_program_SERVER",
-		(char*)NULL
-	};
+//	static char* server_args[] = {
+//		(char*)"this_program",	// this string is not used
+//		(char*)"--datadir=/tmp",
+//		(char*)"--innodb_data_home_dir=/tmp/innodb"
+//	};
+//	static char* server_groups[] = {
+//		(char*)"ows",
+//		(char*)"server",
+//		(char*)"this_program_SERVER",
+//		(char*)NULL
+//	};
 
 	// DB init
 	//if ( mysql_library_init(sizeof(server_args) / sizeof(char *), server_args, server_groups) )

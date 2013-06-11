@@ -154,13 +154,6 @@ public:
 
 private:
 	/**
-	 * mysql
-	 *
-	 * This is the MySQL server
-	 */
-	MYSQL*			mysql;
-
-	/**
 	 * results
 	 *
 	 * Used to store the query's result
