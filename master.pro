@@ -3,6 +3,9 @@ CONFIG	+= link_pkgconfig debug_and_release
 
 TARGET	= master
 
+QMAKE_CXX_FLAGS	+= -O2 -Wall -Wextra -Werror
+QMAKE_C_FLAGS	+= -O2 -Wall -Wextra -Werror
+
 include(qmake_conf/linux.pro)
 include(qmake_conf/macx.pro)
 include(qmake_conf/bsd.pro)
