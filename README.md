@@ -46,11 +46,30 @@ piece of software.
 
 ###  The shell
 
-Please see [ows-cli] [1].
+Please see [ows-cli](https://www.github.com/MisterG/ows-cli).
 
 ### The proxy
 
 Not written yet.
+
+## Usage
+
+```
+$ ./master
+Usage: master -f <config_file> [ -d || -v ]
+	<config_file>	: the main configuration file
+	-d		: daemon mode
+	-c		: check the configuration and exit
+	-v		: verbose mode
+$
+$ ./client
+Usage: client -f <config_file> [ -d || -v ]
+	<config_file>	: the main configuration file
+	-d		: daemon mode
+	-c		: check the configuration and exit
+	-v		: verbose mode
+$ 
+```
 
 ## Building
 
@@ -108,21 +127,23 @@ $ cd open-workload-scheduler/src
 $ thrift --gen cpp model.thrift 
 ```
 
-* Patch the generated sources
+* Patch the generated sources (you might need to increase the "-p" value and specify the files to patch)
 
 ```
 $ cd ..
 $ patch -p1 < patch/platform.path
 ```
 
-* Compile
+* Create the Makefile you want to build (client or master)
 
 ```
-$ qmake
+$ qmake client.pro
+$ qmake master.pro
 ```
 
-* Run make
+* Run make (debug or release)
 
 ```
-$ make
+$ make -f Makefile.Debug
+$ make -f Makefile.Release
 ```
