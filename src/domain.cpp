@@ -353,7 +353,7 @@ bool	Domain::remove_node(const char* domain_name, const std::string& n) {
 			return false;
 	}
 
-	// TODO: Break the next / prev links
+	// TODO: Remove the resources
 
 	return true;
 }
