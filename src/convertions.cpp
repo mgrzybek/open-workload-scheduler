@@ -29,6 +29,8 @@
 #include "convertions.h"
 
 rpc::e_job_state::type	build_job_state_from_string(const char* state) {
+	rpc::ex_processing e;
+
 	if ( strcmp(state, "waiting") == 0 )
 		return rpc::e_job_state::WAITING;
 	if ( strcmp(state, "running") == 0 )
@@ -38,8 +40,9 @@ rpc::e_job_state::type	build_job_state_from_string(const char* state) {
 	if ( strcmp(state, "failed") == 0 )
 		return rpc::e_job_state::FAILED;
 
-	// TODO: throw a clean exception
-	throw "Error: string state is not related to a job's state";
+	e.msg = "ex_processing: string state is not related to a job's state";
+	throw e;
+
 	return rpc::e_job_state::FAILED;
 }
 
@@ -69,13 +72,16 @@ std::string	build_string_from_job_state(const rpc::e_job_state::type& js) {
 }
 
 rpc::e_rectype_action::type	build_rectype_action_from_string(const char* rt_action) {
+	rpc::ex_processing e;
+
 	if ( strcmp(rt_action, "restart") == 0 )
 		return rpc::e_rectype_action::RESTART;
 	if ( strcmp(rt_action, "stop_schedule") == 0 )
 		return rpc::e_rectype_action::STOP_SCHEDULE;
 
-	// TODO: throw a clean exception
-	throw "Error: string action is not related to a rectype action";
+	e.msg = "ex_pocessing: string action is not related to a rectype action";
+	throw e;
+
 	return rpc::e_rectype_action::STOP_SCHEDULE;
 }
 
@@ -91,12 +97,19 @@ std::string	build_string_from_rectype_action(const rpc::e_rectype_action::type& 
 			result = "stop_schedule";
 			break;
 		}
+		default: {
+			rpc::ex_processing e;
+			e.msg = "ex_processing: bad e_rectype_action given as argument";
+			throw e;
+		}
 	}
-	// TODO: case default -> exception
+
 	return result;
 }
 
 rpc::e_time_constraint_type::type build_time_constraint_type_from_string(const char* type) {
+	rpc::ex_processing e;
+
 	if ( strcmp(type, "at") == 0 )
 		return rpc::e_time_constraint_type::AT;
 	if ( strcmp(type, "before") == 0 )
@@ -104,8 +117,8 @@ rpc::e_time_constraint_type::type build_time_constraint_type_from_string(const c
 	if ( strcmp(type, "after") == 0 )
 		return rpc::e_time_constraint_type::AFTER;
 
-	// TODO: throw a clean exception
-	throw "error";
+	e.msg = "ex_processing: the given type is not valid";
+	throw e;
 	return rpc::e_time_constraint_type::BEFORE;
 }
 
@@ -139,6 +152,19 @@ std::string	build_human_readable_time(const time_t& time) {
 	strftime(buffer,80,"%c",timeinfo);
 
 	result = buffer;
+
+	return result;
+}
+
+time_t	build_unix_time_from_hhmm_time(const std::string& time) {
+	time_t	result = 0;
+
+	// hours
+	result += boost::lexical_cast<time_t>(time.at(0)) * 36000;
+	result += boost::lexical_cast<time_t>(time.at(1)) * 3600;
+	// minutes
+	result += boost::lexical_cast<time_t>(time.at(2)) * 600;
+	result += boost::lexical_cast<time_t>(time.at(3)) * 60;
 
 	return result;
 }
