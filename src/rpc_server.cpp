@@ -164,7 +164,9 @@ void	ows_rpcHandler::get_current_planning_name(std::string& _return, const std::
 	std::string*	gateway;
 
 	switch (this->config->get_running_mode()) {
-		case P2P: {break;}
+		case P2P: {
+			break;
+		}
 		case ACTIVE: {
 			/*
 			 * am I the master?
@@ -185,7 +187,6 @@ void	ows_rpcHandler::get_current_planning_name(std::string& _return, const std::
 			}
 
 			_return = this->domain->get_current_planning_name();
-
 			break;
 		}
 		case PASSIVE: {
