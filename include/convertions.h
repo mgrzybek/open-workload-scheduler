@@ -104,3 +104,14 @@ std::string	build_string_from_time_constraint_type(const rpc::e_time_constraint_
  * @return	the converted time
  */
 std::string	build_human_readable_time(const time_t& time);
+
+/**
+ * build_unix_time_from_hhmm_time
+ *
+ * Converts a human readable string (hhmm) to UNIX time
+ *
+ * @arg	time	the time to convert
+ *
+ * @return	the converted time
+ */
+time_t	build_unix_time_from_hhmm_time(const std::string& time);
