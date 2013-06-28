@@ -33,15 +33,25 @@
 #include "model_types.h"
 
 /*
+ * behaviour selection
+ *
+ * These macros could be used to compile single-mode-binaries by splitting the
+ * switch statements (rpc_server.cpp) but it might make the code be unreadable.
+ */
+//#define COMPILE_ACTIVE
+//#define COMPILE_PASSIVE
+//#define COMPILE_P2P
+
+/*
  * Database selection
  *
  * You can only use one database engine.
  */
 
-//	To use MySQL support
+// To use MySQL support
 #define USE_MYSQL
 
-//	To use SQLite support
+// To use SQLite support
 //#define USE_SQLITE
 
 /*
