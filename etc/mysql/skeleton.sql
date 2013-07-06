@@ -9,7 +9,7 @@ SET sql_notes = 0;
 -- Table `node`
 -- -----------------------------------------------------
 
-CREATE TABLE `node` (
+CREATE TABLE IF NOT EXISTS `node` (
 	`node_name` VARCHAR(45) NOT NULL ,
 	`node_weight` INT(11) NOT NULL DEFAULT '0' ,
 	PRIMARY KEY (`node_name`)

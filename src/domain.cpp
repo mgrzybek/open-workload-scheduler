@@ -344,6 +344,8 @@ bool	Domain::add_node(const char* domain_name, const std::string& n, const rpc::
 
 bool	Domain::remove_node(const char* domain_name, const std::string& n) {
 	rpc::t_node	node_to_remove;
+	std::string	query = "DELETE FROM node WHERE node_name='";
+	v_queries	queries;
 
 	this->get_node(domain_name, node_to_remove, n.c_str());
 
@@ -355,7 +357,20 @@ bool	Domain::remove_node(const char* domain_name, const std::string& n) {
 
 	// TODO: Remove the resources
 
-	return true;
+	// Remove the node
+	query += n;
+	query += "';";
+
+	queries.push_back(query);
+
+#ifdef USE_MYSQL
+	if ( this->database.standalone_execute(queries, domain_name) == true ) {
+		this->updates_mutex.unlock();
+		return true;
+	}
+#endif
+	this->updates_mutex.unlock();
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -538,9 +553,9 @@ bool	Domain::remove_job(const char*domain_name, const std::string& running_node,
 
 	queries.insert(queries.end(), query);
 
-	query = "DELETE FROM jobs_link WHERE job_next = '";
+	query = "DELETE FROM jobs_link WHERE job_name_nxt = '";
 	query += j_name;
-	query += "' OR job_prev = '";
+	query += "' OR job_name_prv = '";
 	query += j_name;
 	query += "';";
 
@@ -1171,7 +1186,7 @@ void	Domain::get_available_planning_names(std::vector<std::string>& _return) {
 	std::string	query;
 	v_v_row		result;
 
-	query = "SHOW DATABASES WHERE database LIKE '%_%'";
+	query = "SHOW DATABASES LIKE '%_%'";
 
 	this->database.query_full_result(result, query.c_str(), NULL);
 

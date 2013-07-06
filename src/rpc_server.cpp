@@ -353,7 +353,7 @@ bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node&
 
 bool ows_rpcHandler::remove_node(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_remove) {
 	std::string*	gateway;
-	bool			result;
+	bool		result;
 
 	this->check_routing_args(domain_name, calling_node, target_node);
 

@@ -300,6 +300,8 @@ exception ex_processing {
  * ows_rpc
  *
  * The services we use to make nodes communicate
+ *
+ * TODO: splitting the service -> nodes (the nodes between them) + monitoring + user (user auth)
  */
 service ows_rpc {
 	// Routing

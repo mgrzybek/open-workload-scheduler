@@ -27,6 +27,8 @@
  */
 
 #include <time.h>
+#include <boost/lexical_cast.hpp>
+
 #include "model_types.h"
 
 /**
