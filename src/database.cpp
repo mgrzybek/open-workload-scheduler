@@ -116,29 +116,35 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
 
 	if ( query.empty() == true or boost::regex_match(query, empty_string) == true ) {
-		std::cerr << "Error : query is empty !" << std::endl;
+		std::cerr << "atomic_execute:: error: query is empty !" << std::endl;
 		return false;
 	}
+
+	#ifndef NDEBUG
+		std::cout << "atomic_execute:: " << query << std::endl;
+	#endif
 
 	if ( mysql_query(m, query.c_str()) != 0 ) {
 		std::cerr << query.c_str() << std::endl << mysql_error(m);
 		return false;
-	} else
-		std::cout << query.c_str() << std::endl;
+	}
 
+#ifndef NDEBUG
 	res = mysql_store_result(m);
+
 	if (res)
 		while ( ( row = mysql_fetch_row(res) ) )
 			for ( uint i=0 ; i < mysql_num_fields(res) ; i++ )
 				std::cerr << row[i] << std::endl;
 	else
 		if ( mysql_field_count(m) != 0 ) {
-			std::cerr << "Erreur : " << mysql_error(m) << std::endl;
+			std::cerr << "atomix_execute:: error: " << mysql_error(m) << std::endl;
 			mysql_free_result(res);
 			return false;
 		}
 
 	mysql_free_result(res);
+#endif
 
 	return true;
 }
@@ -156,6 +162,11 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 
 	if ( this->atomic_execute(query, local_mysql) == false ) {
 		this->end(local_mysql);
+
+		#ifndef NDEBUG
+			std::cout << "standalone_execute:: start transaction failed" << std::endl;
+		#endif
+
 		return false;
 	}
 
@@ -164,6 +175,11 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 			query = "ROLLBACK;";
 			this->atomic_execute(query, local_mysql);
 			this->end(local_mysql);
+
+			#ifndef NDEBUG
+				std::cout << "standalone_execute:: rollback" << std::endl;
+			#endif
+
 			return false;
 		}
 	}
@@ -172,6 +188,11 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 
 	if ( this->atomic_execute(query, local_mysql) == false ) {
 		this->end(local_mysql);
+
+		#ifndef NDEBUG
+			std::cout << "standalone_execute:: commit failed" << std::endl;
+		#endif
+
 		return false;
 	}
 
@@ -193,6 +214,10 @@ bool	Mysql::query_one_row(v_row& _return, const char* query, const char* databas
 		std::cerr << query << std::endl << mysql_error(local_mysql);
 		return false;
 	}
+
+	#ifndef NDEBUG
+		std::cout << "query_one_row:: " << query << std::endl;
+	#endif
 
 	res = mysql_store_result(local_mysql);
 	if ( res ) {
@@ -237,18 +262,34 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 		return false;
 	}
 
+	#ifndef NDEBUG
+		std::cout << "query_full_result:: " << query << std::endl;
+	#endif
+
 	res = mysql_store_result(local_mysql);
+
+	#ifndef NDEBUG
+		std::cout << "query_full_result:: size of the result: " << mysql_affected_rows(local_mysql) << std::endl;
+	#endif
 
 	if (res) {
 		while ( ( row = mysql_fetch_row(res) ) ) {
 			line.clear();
 
 			for ( uint i=0 ; i < mysql_num_fields(res) ; i++ ) {
+				#ifndef NDEBUG
+					std::cout << "\tquery_full_row::" << row[i] << std::endl;
+				#endif
+
 				if ( row[i] != NULL )
 					line.push_back(std::string(row[i]));
 				else
 					line.push_back(std::string("NULL"));
 			}
+
+			#ifndef NDEBUG
+				std::cout << std::endl;
+			#endif
 
 			_return.push_back(line);
 		}
@@ -256,7 +297,7 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 		if ( mysql_field_count(local_mysql) != 0 ) {
 			mysql_free_result(res);
 			this->end(local_mysql);
-			std::cerr << "Erreur : " << mysql_error(local_mysql) << std::endl;
+			std::cerr << "query_full_result: " << mysql_error(local_mysql) << std::endl;
 			return false;
 		}
 

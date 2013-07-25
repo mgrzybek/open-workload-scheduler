@@ -161,7 +161,9 @@ bool	Domain::set_next_planning(time_t& _return) {
 	next_planning_name += boost::lexical_cast<std::string>(_return);
 
 	try {
-/*		if ( this->database.query_one_row(result, "SELECT IF('database_name' IN(SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA), 1, 0) AS found;", NULL) == false ) {
+		v_row result;
+
+		if ( this->database.query_one_row(result, "SELECT IF('database_name' IN(SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA), 1, 0) AS found;", NULL) == false ) {
 			return false;
 		}
 
@@ -171,7 +173,7 @@ bool	Domain::set_next_planning(time_t& _return) {
 			std::cout << "The schema already exists, skiping domain init..." << std::endl;
 			return true;
 		}
-*/
+
 		if ( this->database.init_domain_structure(next_planning_name.c_str(), *this->config->get_param("db_skeleton")) == false ) {
 			return true;
 		}
@@ -351,7 +353,7 @@ bool	Domain::remove_node(const char* domain_name, const std::string& n) {
 
 	// Remove the jobs
 	BOOST_FOREACH(rpc::t_job j, node_to_remove.jobs) {
-		if ( this->remove_job(domain_name, j) == false )
+		if ( this->remove_job(j) == false )
 			return false;
 	}
 
@@ -362,6 +364,8 @@ bool	Domain::remove_node(const char* domain_name, const std::string& n) {
 	query += "';";
 
 	queries.push_back(query);
+
+	this->updates_mutex.lock();
 
 #ifdef USE_MYSQL
 	if ( this->database.standalone_execute(queries, domain_name) == true ) {
@@ -377,12 +381,30 @@ bool	Domain::remove_node(const char* domain_name, const std::string& n) {
 
 bool	Domain::add_job(const char* domain_name, const rpc::t_job& j) {
 	std::string		query;
-	const char*		running_node = j.node_name.c_str();
+	//const char*		running_node = j.node_name.c_str();
 	v_queries		queries;
-
-//	this->add_node(this->name.c_str(), running_node); // TODO: think of removing it
+	v_row			row;
 
 	this->updates_mutex.lock();
+
+	query = "SELECT COUNT(*) FROM node WHERE node_name = '";
+	query += j.node_name;
+	query += "';";
+
+	if ( this->database.query_one_row(row, query.c_str(), j.domain.c_str()) == false ) {
+		rpc::ex_processing e;
+		e.msg = "Cannot query the node table";
+
+		throw e;
+	}
+
+	if ( boost::lexical_cast<int>(row.at(0)) == 0 ) {
+		rpc::ex_node e;
+		e.msg = "The node ";
+		e.msg += j.node_name;
+		e.msg += " does not exist";
+		throw e;
+	}
 
 	query = "INSERT INTO job (job_name,job_cmd_line,job_node_name,job_weight) VALUES ('";
 	query += j.name;
@@ -445,7 +467,7 @@ bool	Domain::add_job(const char* domain_name, const rpc::t_job& j) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Domain::update_job(const char* domain_name, const rpc::t_job& j) {
+bool	Domain::update_job(const rpc::t_job& j) {
 	std::string		query;
 	v_queries		queries;
 
@@ -529,19 +551,13 @@ bool	Domain::update_job(const char* domain_name, const rpc::t_job& j) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Domain::remove_job(const char* domain_name, const rpc::t_job& j) {
-	return this->remove_job(domain_name, j.node_name, j.name);
+bool	Domain::remove_job(const rpc::t_job& j) {
+	return this->remove_job(j.domain.c_str(), j.name);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool	Domain::remove_job(const char* domain_name, const Job* j) {
-	return this->remove_job(domain_name, j->get_node_name(), j->get_name());
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-bool	Domain::remove_job(const char*domain_name, const std::string& running_node, const std::string& j_name) {
+bool	Domain::remove_job(const char* domain_name, const std::string& j_name) {
 	std::string	query;
 	v_queries	queries;
 
@@ -770,7 +786,7 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 		job->weight		= boost::lexical_cast<int>(job_row[3]);
 		job->state		= build_job_state_from_string(job_row[4].c_str());
 
-		this->get_recovery_type(this->get_current_planning_name().c_str(), job->recovery_type, running_node, boost::lexical_cast<int>(job_row[5].c_str()));
+		this->get_recovery_type(this->get_current_planning_name().c_str(), job->recovery_type, boost::lexical_cast<int>(job_row[5].c_str()));
 
 		_return.push_back(*job);
 	}
@@ -817,12 +833,12 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 		if ( job_row[7].size() > 0 && job_row[7].compare("NULL") != 0 )
 			job->stop_time		= boost::lexical_cast<int64_t>(job_row[7].c_str());
 
-		this->get_jobs_next(domain_name, job->nxt, running_node, job->name);
-		this->get_time_constraints(domain_name, job->time_constraints, running_node, job->name);
+		this->get_jobs_next(domain_name, job->nxt, job->name);
+		this->get_time_constraints(domain_name, job->time_constraints, job->name);
 
 		if ( job_row[5].size() > 0 && job_row[5].compare("NULL") != 0 ) {
 			std::cout << job_row[5] << std::endl;
-			this->get_recovery_type(domain_name, job->recovery_type, running_node, boost::lexical_cast<int>(job_row[5].c_str()));
+			this->get_recovery_type(domain_name, job->recovery_type, boost::lexical_cast<int>(job_row[5].c_str()));
 		}
 
 		_return.push_back(*job);
@@ -863,13 +879,13 @@ void	Domain::get_job(const char* domain_name, rpc::t_job& _return, const char* r
 	_return.weight		= boost::lexical_cast<int>(job_row[3]);
 	_return.state		= build_job_state_from_string(job_row[4].c_str());
 
-	this->get_jobs_next(domain_name, _return.nxt, running_node, _return.name);
-	this->get_time_constraints(domain_name, _return.time_constraints, running_node, _return.name);
+	this->get_jobs_next(domain_name, _return.nxt, _return.name);
+	this->get_time_constraints(domain_name, _return.time_constraints, _return.name);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void	Domain::get_jobs_next(const char* domain_name, rpc::v_job_names& _return, const char* running_node, const std::string& j_name) {
+void	Domain::get_jobs_next(const char* domain_name, rpc::v_job_names& _return, const std::string& j_name) {
 	std::string	query("SELECT job_name_nxt FROM jobs_link WHERE job_name_prv = '");
 	v_v_row		job_links_matrix;
 
@@ -948,7 +964,7 @@ bool	Domain::add_resource(const char* domain_name, const rpc::t_resource& r, con
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void	Domain::get_resources(const char* domain_name, rpc::v_resources& _return, const char* running_node) {
+void	Domain::get_resources(const char* domain_name, rpc::v_resources& _return) {
 	std::string		query("SELECT resource_name,resource_node_name,resource_current_value,resource_initial_value FROM resource;");
 	v_v_row			resources_matrix;
 	rpc::t_resource*	resource = NULL;
@@ -978,7 +994,7 @@ void	Domain::get_resources(const char* domain_name, rpc::v_resources& _return, c
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void	Domain::get_time_constraints(const char* domain_name, rpc::v_time_constraints& _return, const char* running_node, const std::string& job_name) {
+void	Domain::get_time_constraints(const char* domain_name, rpc::v_time_constraints& _return, const std::string& job_name) {
 	std::string			query("SELECT time_c_job_name,time_c_type,TIME_TO_SEC(time_c_value) FROM time_constraint WHERE time_c_job_name = '");
 	v_v_row				time_constraints_matrix;
 	rpc::t_time_constraint*		time_constraint = NULL;
@@ -1013,7 +1029,7 @@ void	Domain::get_time_constraints(const char* domain_name, rpc::v_time_constrain
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void	Domain::get_recovery_types(const char* domain_name, rpc::v_recovery_types& _return, const char* running_node) {
+void	Domain::get_recovery_types(const char* domain_name, rpc::v_recovery_types& _return) {
 	std::string		query("SELECT rectype_id,rectype_short_label,rectype_label,rectype_action FROM recovery_type;");
 	v_v_row			recoveries_matrix;
 	rpc::t_recovery_type*	recovery = NULL;
@@ -1042,7 +1058,7 @@ void	Domain::get_recovery_types(const char* domain_name, rpc::v_recovery_types& 
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void	Domain::get_recovery_type(const char* domain_name, rpc::t_recovery_type& _return, const char* running_node, const int rec_id) {
+void	Domain::get_recovery_type(const char* domain_name, rpc::t_recovery_type& _return, const int rec_id) {
 	std::string	query("SELECT rectype_id,rectype_short_label,rectype_label,rectype_action FROM recovery_type WHERE rectype_id = '");
 	v_row		recovery_row;
 
@@ -1082,7 +1098,7 @@ void	Domain::get_node(const char* domain_name, rpc::t_node& _return, const char*
 		_return.name	= node_row[0].c_str();
 		_return.weight	= boost::lexical_cast<rpc::integer>(node_row[1]);
 		_return.domain_name	= this->name.c_str();
-		this->get_resources(domain_name, _return.resources, _return.name.c_str());
+		this->get_resources(domain_name, _return.resources);
 		this->get_jobs(domain_name, _return.jobs, _return.name.c_str());
 	}
 }

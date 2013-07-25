@@ -38,24 +38,25 @@ Router::~Router() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/*
+bool	Router::get_node(rpc::t_node& node, const rpc::t_routing_data& routing) {
+    rpc::t_routing_data routing;
 
-bool	Router::get_node(const std::string& domain_name, rpc::t_node& node, const char* target_node_name) {
-	rpc::t_node	local;
-	rpc::t_node	target;
-
-	local.name	= this->config->get_param("node_name")->c_str();
-	target.name	= target_node_name;
+    routing.calling_node.name	= this->config->get_param("node_name")->c_str();
+    routing.calling_node.domain_name = this->config->get_param("domain_name")->c_str();
+    routing.target_node.name	= target_node_name;
+    routing.target_node.domain_name = domain_name;
 
 	try {
 		this->rpc_client->open(this->get_gateway(*this->get_master_node())->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-		this->rpc_client->get_handler()->get_node(node, domain_name, local, target, local);
+        this->rpc_client->get_handler()->get_node(routing, node);
 	} catch (std::exception& e) {
 		std::cerr << "Cannot get the planning: " << e.what() << std::endl;
 		return false;
 	}
 	return true;
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Router::update_peers_list() {

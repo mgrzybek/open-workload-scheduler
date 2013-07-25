@@ -241,38 +241,23 @@ public:
 	 *
 	 * Updates the given job (the id remains the same)
 	 *
-	 * @param	domain_name	the name of the domain hosting the nodes
 	 * @param	j		the job to update
 	 *
 	 * @return true on success
 	 */
-	bool	update_job(const char* domain_name, const rpc::t_job&);
+	bool	update_job(const rpc::t_job&);
 
 	/**
 	 * remove_job
 	 *
 	 * Removes a job from the domain
 	 *
-	 * @param	domain_name	the domain hosting the job
 	 * @param	j		the job to remove
 	 *
 	 * @return	true on success
 	 *
 	 */
-	bool	remove_job(const char* domain_name, const rpc::t_job& j);
-
-	/**
-	 * remove_job
-	 *
-	 * Removes a job from the domain
-	 *
-	 * @param	domain_name	the domain hosting the job
-	 * @param	j		the job to remove
-	 *
-	 * @return	true on success
-	 *
-	 */
-	bool	remove_job(const char* domain_name, const Job* j);
+	bool	remove_job(const rpc::t_job& j);
 
 	/**
 	 * remove_job
@@ -286,21 +271,7 @@ public:
 	 * @return	true on success
 	 *
 	 */
-	bool	remove_job(const char* domain_name, const std::string* running_node, const std::string& j_name);
-
-	/**
-	 * remove_job
-	 *
-	 * Removes a job from the domain
-	 *
-	 * @param	domain_name	the domain hosting the job
-	 * @param	running_node	the name of the node running the job
-	 * @param	j_name		the jobs's name
-	 *
-	 * @return	true on success
-	 *
-	 */
-	bool	remove_job(const char* domain_name, const std::string& running_node, const std::string& j_name);
+	bool	remove_job(const char* domain_name, const std::string& j_name);
 
 	/**
 	 * update_job_state
@@ -440,7 +411,7 @@ public:
 	 * @param	running_node	the node to check
 	 * @param	j_name		the previous job_name
 	 */
-	void	get_jobs_next(const char* domain_name, rpc::v_job_names& _return, const char* running_node, const std::string& j_name);
+	void	get_jobs_next(const char* domain_name, rpc::v_job_names& _return, const std::string& j_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -475,7 +446,7 @@ public:
 	 * @param	_return		the output
 	 * @param	node_name	the node using this resource
 	 */
-	void	get_resources(const char* domain_name, rpc::v_resources& _return, const char* running_node);
+	void	get_resources(const char* domain_name, rpc::v_resources& _return);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -486,7 +457,7 @@ public:
 	 *
 	 * @param _return		: the output
 	 */
-	void	get_time_constraints(const char* domain_name, rpc::v_time_constraints& _return, const char* running_node, const std::string& j_name);
+	void	get_time_constraints(const char* domain_name, rpc::v_time_constraints& _return, const std::string& j_name);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -495,21 +466,20 @@ public:
 	 *
 	 * Gets the recovery_types' list
 	 *
-	 * @param _return			: the output
-	 * @param running_node	: the node hosting the object
+	 * @param domain_name	the domain's name
+	 * @param _return	the output
 	 */
-	void	get_recovery_types(const char* domain_name, rpc::v_recovery_types& _return, const char* running_node);
+	void	get_recovery_types(const char* domain_name, rpc::v_recovery_types& _return);
 
 	/**
 	 * get_recovery_type
 	 *
 	 * Gets the recovery_type associated to the given id
 	 *
-	 * @param _return			: the output
-	 * @param running_node	: the node hosting the object
-	 * @param rec_id			: the type's id
+	 * @param _return	the output
+	 * @param rec_id	the type's id
 	 */
-	void	get_recovery_type(const char* domain_name, rpc::t_recovery_type& _return, const char* running_node, const int rec_id);
+	void	get_recovery_type(const char* domain_name, rpc::t_recovery_type& _return, const int rec_id);
 
 ////////////////////////////////////////////////////////////////////////////////
 

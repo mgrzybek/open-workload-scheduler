@@ -42,6 +42,14 @@ Rpc_Object::~Rpc_Object() {
 	}
 }
 
+#define CHECK_ROUTING \
+	//    if ( routing.ttl == 0 ) { \
+//        rpc::ex_routing e; \
+//        e.msg = "TTL is reached"; \
+//        throw e; \
+//    } \
+//routing.ttl--; TODO: find a clean way to deccrease it
+
 ///////////////////////////////////////////////////////////////////////////////
 
 Rpc_Server::Rpc_Server(Config *c, Router* r) : Rpc_Object(c, r) {
@@ -57,8 +65,10 @@ Rpc_Server::~Rpc_Server() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// TODO: http://stackoverflow.com/questions/10964755/ssl-certificate-not-authenticating-via-thrift-but-ok-via-browser
+
 void	Rpc_Server::run() {
-//	std::string*	address	= this->config->get_param("bind_address");
+	//	std::string*	address	= this->config->get_param("bind_address");
 	u_int			port	= boost::lexical_cast<u_int>(*this->config->get_param("bind_port"));
 
 #ifdef USE_THRIFT
@@ -160,8 +170,10 @@ void	ows_rpcHandler::reach_master(rpc::t_route& _return) {
 	}
 }
 
-void	ows_rpcHandler::get_current_planning_name(std::string& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+void	ows_rpcHandler::get_current_planning_name(std::string& _return, const rpc::t_routing_data& routing) {
 	std::string*	gateway;
+
+	CHECK_ROUTING
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {
@@ -173,11 +185,12 @@ void	ows_rpcHandler::get_current_planning_name(std::string& _return, const std::
 			 * - yes: give the plannings
 			 * - no: forward
 			 */
+
 			if ( this->config->get_param("is_master")->compare("yes") != 0 ) {
 				gateway = this->router->get_gateway(this->config->get_master_node()->c_str());
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					this->client->get_handler()->get_current_planning_name(_return, domain_name, calling_node, target_node);
+					this->client->get_handler()->get_current_planning_name(_return, routing);
 					this->client->close();
 				} catch (rpc::ex_planning e) {
 					this->client->close();
@@ -199,8 +212,10 @@ void	ows_rpcHandler::get_current_planning_name(std::string& _return, const std::
 	}
 }
 
-void	ows_rpcHandler::get_available_planning_names(std::vector<std::string>& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+void	ows_rpcHandler::get_available_planning_names(std::vector<std::string>& _return, const rpc::t_routing_data& routing) {
 	std::string*	gateway;
+
+	CHECK_ROUTING
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -214,7 +229,7 @@ void	ows_rpcHandler::get_available_planning_names(std::vector<std::string>& _ret
 				gateway = this->router->get_gateway(this->config->get_master_node()->c_str());
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					this->client->get_handler()->get_available_planning_names(_return, domain_name, calling_node, target_node);
+					this->client->get_handler()->get_available_planning_names(_return, routing);
 					this->client->close();
 				} catch (rpc::ex_planning e) {
 					this->client->close();
@@ -237,8 +252,10 @@ void	ows_rpcHandler::get_available_planning_names(std::vector<std::string>& _ret
 	}
 }
 
-void	ows_rpcHandler::get_planning(rpc::t_planning& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get) {
+void	ows_rpcHandler::get_planning(rpc::t_planning& _return, const rpc::t_routing_data& routing, const rpc::t_node& node_to_get) {
 	std::string*	gateway;
+
+	CHECK_ROUTING
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -252,7 +269,7 @@ void	ows_rpcHandler::get_planning(rpc::t_planning& _return, const std::string& d
 				gateway = this->router->get_gateway(this->config->get_master_node()->c_str());
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					this->client->get_handler()->get_planning(_return, domain_name, calling_node, target_node, node_to_get);
+					this->client->get_handler()->get_planning(_return, routing, node_to_get);
 					this->client->close();
 				} catch (rpc::ex_planning e) {
 					this->client->close();
@@ -261,7 +278,7 @@ void	ows_rpcHandler::get_planning(rpc::t_planning& _return, const std::string& d
 				break;
 			}
 
-			this->domain->get_planning(_return, domain_name.c_str(), node_to_get.name.c_str());
+			this->domain->get_planning(_return, routing.target_node.domain_name.c_str(), node_to_get.name.c_str());
 
 			break;
 		}
@@ -301,15 +318,17 @@ void	ows_rpcHandler::get_planning(rpc::t_planning& _return, const std::string& d
 //	return false;
 //}
 
-bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_add) {
+bool	ows_rpcHandler::add_node(const rpc::t_routing_data& routing, const rpc::t_node& node_to_add) {
 	std::string*	gateway;
-	bool			result;
+	bool		result;
 
-	this->check_routing_args(domain_name, calling_node, target_node);
+	CHECK_ROUTING
+
+	this->check_routing_args(routing);
 
 	if ( node_to_add.name.empty() == true or node_to_add.weight < 0 ) {
 		rpc::ex_node e;
-		e.msg = "The node to add does not contain the minimal attributes";
+		e.msg = "The node to add does not contain the minimal attributes (name and weight)";
 		throw e;
 	}
 
@@ -321,11 +340,11 @@ bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node&
 			 * - yes: add node_to_add
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
-				gateway = this->router->get_gateway(target_node.name);
+			if ( this->config->get_param("node_name")->compare(routing.target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(routing.target_node.name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					result = this->client->get_handler()->add_node(domain_name, calling_node, target_node, node_to_add);
+					result = this->client->get_handler()->add_node(routing, node_to_add);
 					this->client->close();
 				} catch (rpc::ex_node e) {
 					this->client->close();
@@ -334,7 +353,7 @@ bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node&
 				return result;
 			}
 
-			return this->domain->add_node(domain_name.c_str(), node_to_add);
+			return this->domain->add_node(routing.target_node.domain_name.c_str(), node_to_add);
 			break;
 		}
 		case PASSIVE: {
@@ -343,19 +362,21 @@ bool	ows_rpcHandler::add_node(const std::string& domain_name, const rpc::t_node&
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, target_node.name);
-			return this->domain->add_node(target_node.name.c_str(), node_to_add.name, node_to_add.weight);
+			this->check_master_node(routing.calling_node.name, routing.target_node.name);
+			return this->domain->add_node(routing.target_node.name.c_str(), node_to_add.name, node_to_add.weight);
 			break;
 		}
 	}
 	return false;
 }
 
-bool ows_rpcHandler::remove_node(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_remove) {
+bool ows_rpcHandler::remove_node(const rpc::t_routing_data& routing, const rpc::t_node& node_to_remove) {
 	std::string*	gateway;
 	bool		result;
 
-	this->check_routing_args(domain_name, calling_node, target_node);
+	CHECK_ROUTING
+
+	this->check_routing_args(routing);
 
 	if ( node_to_remove.name.empty() == true ) {
 		rpc::ex_node e;
@@ -371,11 +392,11 @@ bool ows_rpcHandler::remove_node(const std::string& domain_name, const rpc::t_no
 			 * - yes: remove node_to_remove
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
-				gateway = this->router->get_gateway(target_node.name);
+			if ( this->config->get_param("node_name")->compare(routing.target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(routing.target_node.name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					result = this->client->get_handler()->remove_node(domain_name, calling_node, target_node, node_to_remove);
+					result = this->client->get_handler()->remove_node(routing, node_to_remove);
 					this->client->close();
 				} catch (rpc::ex_node e) {
 					this->client->close();
@@ -384,7 +405,7 @@ bool ows_rpcHandler::remove_node(const std::string& domain_name, const rpc::t_no
 				return result;
 			}
 
-			return this->domain->remove_node(domain_name.c_str(), node_to_remove.name);
+			return this->domain->remove_node(routing.target_node.domain_name.c_str(), node_to_remove.name);
 			break;
 		}
 		case PASSIVE: {
@@ -393,18 +414,20 @@ bool ows_rpcHandler::remove_node(const std::string& domain_name, const rpc::t_no
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, target_node.name);
-			return this->domain->remove_node(target_node.name.c_str(), node_to_remove.name);
+			this->check_master_node(routing.calling_node.name, routing.target_node.name);
+			return this->domain->remove_node(routing.target_node.name.c_str(), node_to_remove.name);
 			break;
 		}
 	}
 	return false;
 }
 
-void	ows_rpcHandler::get_node(rpc::t_node& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get) {
+void	ows_rpcHandler::get_node(rpc::t_node& _return, const rpc::t_routing_data& routing, const rpc::t_node& node_to_get) {
 	std::string*	gateway;
 
-	this->check_routing_args(domain_name, calling_node, target_node);
+	CHECK_ROUTING
+
+	this->check_routing_args(routing);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -414,11 +437,11 @@ void	ows_rpcHandler::get_node(rpc::t_node& _return, const std::string& domain_na
 			 * - yes: get the node
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
-				gateway = this->router->get_gateway(target_node.name);
+			if ( this->config->get_param("node_name")->compare(routing.target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(routing.target_node.name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					this->client->get_handler()->get_node(_return, domain_name, calling_node, target_node, node_to_get);
+					this->client->get_handler()->get_node(_return, routing, node_to_get);
 					this->client->close();
 				} catch (rpc::ex_node e) {
 					this->client->close();
@@ -427,17 +450,19 @@ void	ows_rpcHandler::get_node(rpc::t_node& _return, const std::string& domain_na
 				break;
 			}
 
-			this->domain->get_node(domain_name.c_str(), _return, node_to_get.name.c_str());
+			this->domain->get_node(routing.target_node.domain_name.c_str(), _return, node_to_get.name.c_str());
 			break;
 		}
 		case PASSIVE: {break;}
 	}
 }
 
-void ows_rpcHandler::get_nodes(rpc::v_nodes& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+void ows_rpcHandler::get_nodes(rpc::v_nodes& _return, const rpc::t_routing_data& routing) {
 	std::string*	gateway;
 
-	this->check_routing_args(domain_name, calling_node, target_node);
+	CHECK_ROUTING
+
+	this->check_routing_args(routing);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -447,11 +472,11 @@ void ows_rpcHandler::get_nodes(rpc::v_nodes& _return, const std::string& domain_
 			 * - yes: get the node
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
-				gateway = this->router->get_gateway(target_node.name);
+			if ( this->config->get_param("node_name")->compare(routing.target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(routing.target_node.name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					this->client->get_handler()->get_nodes(_return, domain_name, calling_node, target_node);
+					this->client->get_handler()->get_nodes(_return, routing);
 					this->client->close();
 				} catch (rpc::ex_node e) {
 					this->client->close();
@@ -460,17 +485,19 @@ void ows_rpcHandler::get_nodes(rpc::v_nodes& _return, const std::string& domain_
 				break;
 			}
 
-			this->domain->get_nodes(domain_name.c_str(), _return);
+			this->domain->get_nodes(routing.target_node.domain_name.c_str(), _return);
 			break;
 		}
 		case PASSIVE: {break;}
 	}
 }
 
-void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const rpc::t_routing_data& routing) {
 	std::string*	gateway;
 
-	this->check_routing_args(domain_name, calling_node, target_node);
+	CHECK_ROUTING
+
+	this->check_routing_args(routing);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -480,11 +507,11 @@ void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const std::string& domain_na
 			 * - yes: add node_to_add
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
-				gateway = this->router->get_gateway(target_node.name);
+			if ( this->config->get_param("node_name")->compare(routing.target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(routing.target_node.name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					this->client->get_handler()->get_jobs(_return, domain_name, calling_node, target_node);
+					this->client->get_handler()->get_jobs(_return, routing);
 					this->client->close();
 				} catch (rpc::ex_job e) {
 					this->client->close();
@@ -493,7 +520,7 @@ void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const std::string& domain_na
 				break;
 			}
 
-			this->domain->get_jobs(domain_name.c_str(), _return, target_node.name.c_str());
+			this->domain->get_jobs(routing.target_node.domain_name.c_str(), _return, routing.target_node.name.c_str());
 			break;
 		}
 		case PASSIVE: {
@@ -502,18 +529,19 @@ void	ows_rpcHandler::get_jobs(rpc::v_jobs& _return, const std::string& domain_na
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, target_node.name);
-			this->domain->get_jobs(domain_name.c_str(), _return, target_node.name.c_str());
+			this->check_master_node(routing.calling_node.name, routing.target_node.name);
+			this->domain->get_jobs(routing.target_node.domain_name.c_str(), _return, routing.target_node.name.c_str());
 			break;
 		}
 	}
 }
 // TODO: check if we need to keep the domain_name argument
-void	ows_rpcHandler::get_ready_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+void	ows_rpcHandler::get_ready_jobs(rpc::v_jobs& _return, const rpc::t_routing_data& routing) {
 	std::string*	gateway;
-	rpc::ex_routing	e;
 
-	this->check_routing_args(domain_name, calling_node, target_node);
+	CHECK_ROUTING
+
+	this->check_routing_args(routing);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -523,11 +551,11 @@ void	ows_rpcHandler::get_ready_jobs(rpc::v_jobs& _return, const std::string& dom
 			 * - yes: add node_to_add
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
-				gateway = this->router->get_gateway(target_node.name);
+			if ( this->config->get_param("node_name")->compare(routing.target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(routing.target_node.name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					this->client->get_handler()->get_ready_jobs(_return, domain_name, calling_node, target_node);
+					this->client->get_handler()->get_ready_jobs(_return, routing);
 					this->client->close();
 				} catch (rpc::ex_job e) {
 					this->client->close();
@@ -536,7 +564,7 @@ void	ows_rpcHandler::get_ready_jobs(rpc::v_jobs& _return, const std::string& dom
 				break;
 			}
 
-			this->domain->get_ready_jobs(_return, target_node.name.c_str());
+			this->domain->get_ready_jobs(_return, routing.target_node.name.c_str());
 			break;
 		}
 		case PASSIVE: {
@@ -545,18 +573,20 @@ void	ows_rpcHandler::get_ready_jobs(rpc::v_jobs& _return, const std::string& dom
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, target_node.name);
-			this->domain->get_ready_jobs(_return, target_node.name.c_str());
+			this->check_master_node(routing.calling_node.name, routing.target_node.name);
+			this->domain->get_ready_jobs(_return, routing.target_node.name.c_str());
 			break;
 		}
 	}
 }
 
-void	ows_rpcHandler::get_job(rpc::t_job& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_job& job_to_get) {
+void	ows_rpcHandler::get_job(rpc::t_job& _return, const rpc::t_routing_data& routing, const rpc::t_job& job_to_get) {
 	std::string*	gateway;
-	rpc::ex_routing	e;
 
-	this->check_routing_args(domain_name, calling_node, target_node);
+	CHECK_ROUTING
+
+	this->check_routing_args(routing);
+	this->check_job_arg(job_to_get);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -566,11 +596,11 @@ void	ows_rpcHandler::get_job(rpc::t_job& _return, const std::string& domain_name
 			 * - yes: add node_to_add
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
-				gateway = this->router->get_gateway(target_node.name);
+			if ( this->config->get_param("node_name")->compare(routing.target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(routing.target_node.name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					this->client->get_handler()->get_job(_return, domain_name, calling_node, target_node, job_to_get);
+					this->client->get_handler()->get_job(_return, routing, job_to_get);
 					this->client->close();
 				} catch (rpc::ex_job e) {
 					this->client->close();
@@ -579,7 +609,7 @@ void	ows_rpcHandler::get_job(rpc::t_job& _return, const std::string& domain_name
 				break;
 			}
 
-			this->domain->get_job(domain_name.c_str(), _return, target_node.name.c_str(), job_to_get.name.c_str());
+			this->domain->get_job(routing.target_node.domain_name.c_str(), _return, routing.target_node.name.c_str(), job_to_get.name.c_str());
 			break;
 		}
 		case PASSIVE: {
@@ -588,18 +618,20 @@ void	ows_rpcHandler::get_job(rpc::t_job& _return, const std::string& domain_name
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, target_node.name);
-			this->domain->get_job(domain_name.c_str(), _return, target_node.name.c_str(), job_to_get.name.c_str());
+			this->check_master_node(routing.calling_node.name, routing.target_node.name);
+			this->domain->get_job(routing.target_node.domain_name.c_str(), _return, routing.target_node.name.c_str(), job_to_get.name.c_str());
 			break;
 		}
 	}
 }
 
-bool	ows_rpcHandler::add_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j) {
+bool	ows_rpcHandler::add_job(const rpc::t_routing_data& routing, const rpc::t_job& j) {
 	std::string*	gateway = NULL;
 	rpc::ex_routing	e;
 
-	this->check_routing_args(domain_name, calling_node);
+	CHECK_ROUTING
+
+	this->check_routing_args(routing.target_node.domain_name, routing.calling_node);
 	this->check_job_arg(j);
 
 	switch (this->config->get_running_mode()) {
@@ -619,7 +651,7 @@ bool	ows_rpcHandler::add_job(const std::string& domain_name, const rpc::t_node& 
 
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					return this->client->get_handler()->add_job(domain_name, calling_node, j);
+					return this->client->get_handler()->add_job(routing, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
 					std::cerr << "Error: " << e.msg << std::endl;
@@ -629,7 +661,7 @@ bool	ows_rpcHandler::add_job(const std::string& domain_name, const rpc::t_node& 
 				break;
 			}
 
-			return this->domain->add_job(domain_name.c_str(), j);
+			return this->domain->add_job(routing.target_node.domain_name.c_str(), j);
 
 			break;
 		}
@@ -639,19 +671,19 @@ bool	ows_rpcHandler::add_job(const std::string& domain_name, const rpc::t_node& 
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, j.node_name);
-			return this->domain->add_job(domain_name.c_str(), j);
+			this->check_master_node(routing.calling_node.name, j.node_name);
+			return this->domain->add_job(routing.target_node.domain_name.c_str(), j);
 			break;
 		}
 	}
 	return false;
 }
 
-bool	ows_rpcHandler::update_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j) {
+bool	ows_rpcHandler::update_job(const rpc::t_routing_data& routing, const rpc::t_job& j) {
 	std::string*	gateway = NULL;
 	rpc::ex_routing	e;
 
-	this->check_routing_args(domain_name, calling_node);
+	this->check_routing_args(routing.target_node.domain_name, routing.calling_node);
 	this->check_job_arg(j);
 
 	switch (this->config->get_running_mode()) {
@@ -671,7 +703,7 @@ bool	ows_rpcHandler::update_job(const std::string& domain_name, const rpc::t_nod
 
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					return this->client->get_handler()->update_job(domain_name, calling_node, j);
+					return this->client->get_handler()->update_job(routing, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
 					this->client->close();
@@ -680,7 +712,7 @@ bool	ows_rpcHandler::update_job(const std::string& domain_name, const rpc::t_nod
 				break;
 			}
 
-			return this->domain->update_job(domain_name.c_str(), j);
+			return this->domain->update_job(j);
 
 			break;
 		}
@@ -690,19 +722,19 @@ bool	ows_rpcHandler::update_job(const std::string& domain_name, const rpc::t_nod
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, j.node_name);
-			return this->domain->add_job(domain_name.c_str(), j);
+			this->check_master_node(routing.calling_node.name, j.node_name);
+			return this->domain->add_job(routing.target_node.domain_name.c_str(), j);
 			break;
 		}
 	}
 	return false;
 }
 
-bool	ows_rpcHandler::remove_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j) {
+bool	ows_rpcHandler::remove_job(const rpc::t_routing_data& routing, const rpc::t_job& j) {
 	std::string*	gateway;
-	rpc::ex_routing	e;
 
-	this->check_routing_args(domain_name, calling_node);
+	this->check_routing_args(routing.target_node.domain_name, routing.calling_node);
+	this->check_job_arg(j);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -716,7 +748,7 @@ bool	ows_rpcHandler::remove_job(const std::string& domain_name, const rpc::t_nod
 				gateway = this->router->get_gateway(j.node_name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					return this->client->get_handler()->remove_job(domain_name, calling_node, j);
+					return this->client->get_handler()->remove_job(routing, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
 					this->client->close();
@@ -725,7 +757,7 @@ bool	ows_rpcHandler::remove_job(const std::string& domain_name, const rpc::t_nod
 				break;
 			}
 
-				return this->domain->remove_job(domain_name.c_str(), j);
+			return this->domain->remove_job(j);
 			break;
 		}
 		case PASSIVE: {
@@ -734,19 +766,19 @@ bool	ows_rpcHandler::remove_job(const std::string& domain_name, const rpc::t_nod
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, j.node_name);
-			return this->domain->remove_job(domain_name.c_str(), calling_node.name, j.name);
+			this->check_master_node(routing.calling_node.name, j.node_name);
+			return this->domain->remove_job(j);
 			break;
 		}
 	}
 	return false;
 }
 
-bool	ows_rpcHandler::update_job_state(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j) {
+bool	ows_rpcHandler::update_job_state(const rpc::t_routing_data& routing, const rpc::t_job& j) {
 	std::string*	gateway;
 	rpc::ex_routing	e;
 
-	this->check_routing_args(domain_name, calling_node);
+	this->check_routing_args(routing.target_node.domain_name, routing.calling_node);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -760,7 +792,7 @@ bool	ows_rpcHandler::update_job_state(const std::string& domain_name, const rpc:
 				gateway = this->router->get_gateway(j.node_name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					return this->client->get_handler()->update_job_state(domain_name, calling_node, j);
+					return this->client->get_handler()->update_job_state(routing, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
 					this->client->close();
@@ -769,7 +801,7 @@ bool	ows_rpcHandler::update_job_state(const std::string& domain_name, const rpc:
 				break;
 			}
 
-			return this->domain->update_job_state(domain_name.c_str(), j);
+			return this->domain->update_job_state(routing.target_node.domain_name.c_str(), j);
 			break;
 		}
 		case PASSIVE: {
@@ -778,8 +810,8 @@ bool	ows_rpcHandler::update_job_state(const std::string& domain_name, const rpc:
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, j.node_name);
-			return this->domain->update_job_state(domain_name.c_str(), j);
+			this->check_master_node(routing.calling_node.name, j.node_name);
+			return this->domain->update_job_state(routing.target_node.domain_name.c_str(), j);
 			break;
 		}
 	}
@@ -787,7 +819,7 @@ bool	ows_rpcHandler::update_job_state(const std::string& domain_name, const rpc:
 }
 
 void	ows_rpcHandler::sql_exec(const std::string& query) {
-//	std::string*	gateway;
+	//	std::string*	gateway;
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -813,10 +845,12 @@ void	ows_rpcHandler::sql_exec(const std::string& query) {
 
 }
 
-rpc::integer ows_rpcHandler::monitor_failed_jobs(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node ) {
+rpc::integer ows_rpcHandler::monitor_failed_jobs(const rpc::t_routing_data& routing) {
 	std::string*	gateway;
 
-	this->check_routing_args(domain_name, calling_node);
+	CHECK_ROUTING
+
+					this->check_routing_args(routing.target_node.domain_name, routing.calling_node);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -826,11 +860,11 @@ rpc::integer ows_rpcHandler::monitor_failed_jobs(const std::string& domain_name,
 			 * - yes: answer the request
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
-				gateway = this->router->get_gateway(target_node.name);
+			if ( this->config->get_param("node_name")->compare(routing.target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(routing.target_node.name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					return this->client->get_handler()->monitor_failed_jobs(domain_name, calling_node, target_node);
+					return this->client->get_handler()->monitor_failed_jobs(routing);
 					this->client->close();
 				} catch (rpc::ex_job e) {
 					this->client->close();
@@ -839,7 +873,7 @@ rpc::integer ows_rpcHandler::monitor_failed_jobs(const std::string& domain_name,
 				break;
 			}
 
-			return this->domain->monitor_failed_jobs(domain_name.c_str());
+			return this->domain->monitor_failed_jobs(routing.target_node.domain_name.c_str());
 			break;
 		}
 		case PASSIVE: {
@@ -848,18 +882,20 @@ rpc::integer ows_rpcHandler::monitor_failed_jobs(const std::string& domain_name,
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, target_node.name);
-			return this->domain->monitor_failed_jobs(domain_name.c_str());
+			this->check_master_node(routing.calling_node.name, routing.target_node.name);
+			return this->domain->monitor_failed_jobs(routing.target_node.domain_name.c_str());
 			break;
 		}
 	}
 	return 0;
 }
 
-rpc::integer ows_rpcHandler::monitor_waiting_jobs(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node ) {
+rpc::integer ows_rpcHandler::monitor_waiting_jobs(const rpc::t_routing_data& routing) {
 	std::string*	gateway;
 
-	this->check_routing_args(domain_name, calling_node);
+	CHECK_ROUTING
+
+	this->check_routing_args(routing.target_node.domain_name, routing.calling_node);
 
 	switch (this->config->get_running_mode()) {
 		case P2P: {break;}
@@ -869,11 +905,11 @@ rpc::integer ows_rpcHandler::monitor_waiting_jobs(const std::string& domain_name
 			 * - yes: answer the request
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(target_node.name) != 0 ) {
-				gateway = this->router->get_gateway(target_node.name);
+			if ( this->config->get_param("node_name")->compare(routing.target_node.name) != 0 ) {
+				gateway = this->router->get_gateway(routing.target_node.name);
 				try {
 					this->client->open(gateway->c_str(), boost::lexical_cast<int>(this->config->get_param("port")->c_str()));
-					return this->client->get_handler()->monitor_waiting_jobs(domain_name, calling_node, target_node);
+					return this->client->get_handler()->monitor_waiting_jobs(routing);
 					this->client->close();
 				} catch (rpc::ex_job e) {
 					this->client->close();
@@ -882,7 +918,7 @@ rpc::integer ows_rpcHandler::monitor_waiting_jobs(const std::string& domain_name
 				break;
 			}
 
-			return this->domain->monitor_waiting_jobs(domain_name.c_str());
+			return this->domain->monitor_waiting_jobs(routing.target_node.domain_name.c_str());
 			break;
 		}
 		case PASSIVE: {
@@ -891,8 +927,8 @@ rpc::integer ows_rpcHandler::monitor_waiting_jobs(const std::string& domain_name
 			 * - yes: do it
 			 * - no: none
 			 */
-			this->check_master_node(calling_node.name, target_node.name);
-			return this->domain->monitor_waiting_jobs(domain_name.c_str());
+			this->check_master_node(routing.calling_node.name, routing.target_node.name);
+			return this->domain->monitor_waiting_jobs(routing.target_node.domain_name.c_str());
 			break;
 		}
 	}
@@ -909,17 +945,17 @@ void	ows_rpcHandler::check_master_node(const std::string& calling_node_name, con
 	}
 }
 
-void	ows_rpcHandler::check_routing_args(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node) {
+void	ows_rpcHandler::check_routing_args(const rpc::t_routing_data& routing) {
 	rpc::ex_routing e;
 
-	this->check_routing_args(domain_name, calling_node);
+	this->check_routing_args(routing.target_node.domain_name, routing.calling_node);
 
-	if ( target_node.name.empty() == true ) {
+	if ( routing.target_node.name.empty() == true ) {
 		e.msg = "target_node's name is empty";
 		throw e;
 	}
 
-	if ( target_node.domain_name.empty() == true ) {
+	if ( routing.target_node.domain_name.empty() == true ) {
 		e.msg = "target_node's domain_name is empty";
 		throw e;
 	}

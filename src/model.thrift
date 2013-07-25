@@ -31,6 +31,14 @@ namespace cpp	rpc
 namespace perl	rpc
 namespace py	rpc
 
+cpp_include	'<sys/socket.h>'
+cpp_include	'<stdint.h>'
+cpp_include	'<string.h>'
+cpp_include	'<time.h>'
+cpp_include	'<sys/types.h>'
+cpp_include	'<netinet/in.h>'
+cpp_include	'<resolv.h>'
+
 /**
  * e_job_state
  */
@@ -262,6 +270,22 @@ struct t_route {
 }
 
 /**
+ * t_routing_data
+ */
+struct	t_routing_data {
+	1: required t_node	calling_node,
+	2: required t_node	target_node,
+	3: required integer	ttl,
+}
+
+/**
+ * ex_auth
+ */
+exception ex_auth {
+	1: string	msg,
+}
+
+/**
  * ex_routing
  */
 exception ex_routing {
@@ -344,18 +368,14 @@ service ows_rpc {
 	 * @throw
 	 */
 	string		get_current_planning_name(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
+			1: required t_routing_data	routing,
 	) throws (
 			1:ex_routing r,
 			2:ex_processing p
 	);
 
 	list<string>	get_available_planning_names(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
+			1: required t_routing_data	routing,
 	) throws (
 			1:ex_routing r,
 			2:ex_processing p
@@ -365,17 +385,15 @@ service ows_rpc {
 	 * Planning
 	 */
 	t_planning	get_planning(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
-			4: required t_node	node_to_get,
+			1: required t_routing_data	routing,
+			2: required t_node	node_to_get,
 	) throws (
 			1:ex_routing r,
 			2:ex_processing p
 	);
 /*
 	bool		set_planning(
-			1: required t_node	calling_node,
+			1: required t_routing_data	routing,
 			2: required t_planning	planning,
 	) throws (
 			1:ex_routing	r,
@@ -386,10 +404,8 @@ service ows_rpc {
 	 * Node
 	 */
 	bool	add_node(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
-			4: required t_node	node_to_add,
+			1: required t_routing_data	routing,
+			2: required t_node	node_to_add,
 	) throws (
 			1:ex_routing	r,
 			2:ex_node	n,
@@ -397,10 +413,8 @@ service ows_rpc {
 	);
 
 	bool	remove_node(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
-			4: required t_node	node_to_remove,
+			1: required t_routing_data	routing,
+			2: required t_node	node_to_remove,
 	) throws (
 			1:ex_routing	r,
 			2:ex_node	n,
@@ -408,10 +422,8 @@ service ows_rpc {
 	);
 
 	t_node	get_node(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
-			4: required t_node	node_to_get,
+			1: required t_routing_data	routing,
+			2: required t_node	node_to_get,
 	) throws (
 			1:ex_routing	r,
 			2:ex_node	n,
@@ -419,9 +431,7 @@ service ows_rpc {
 	);
 
 	v_nodes	get_nodes(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
+			1: required t_routing_data	routing,
 	) throws (
 			1:ex_routing	r,
 			2:ex_node	n,
@@ -432,9 +442,7 @@ service ows_rpc {
 	 * Jobs
 	 */
 	v_jobs	get_jobs(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
+			1: required t_routing_data	routing,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j,
@@ -442,9 +450,7 @@ service ows_rpc {
 	);
 
 	v_jobs	get_ready_jobs(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
+			1: required t_routing_data	routing,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j,
@@ -452,10 +458,8 @@ service ows_rpc {
 	);
 
 	t_job	get_job(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
-			4: required t_job	job_to_get,
+			1: required t_routing_data	routing,
+			2: required t_job	job_to_get,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j,
@@ -463,19 +467,18 @@ service ows_rpc {
 	);
 
 	bool	add_job(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_job	j,
+			1: required t_routing_data	routing,
+			2: required t_job	j,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j,
-			3:ex_processing p
+			3:ex_node	n,
+			4:ex_processing p
 	);
 
 	bool	update_job(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_job	j,
+			1: required t_routing_data	routing,
+			2: required t_job	j,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j,
@@ -483,35 +486,22 @@ service ows_rpc {
 	);
 
 	bool	remove_job(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_job	j,
+			1: required t_routing_data	routing,
+			2: required t_job	j,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j,
 			3:ex_processing p
 	);
-
-//	bool	remove_job(
-//			1: required t_node	calling_node,
-//			2: required integer	j_id,
-//	) throws (1:ex_job e);
 
 	bool	update_job_state(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
+			1: required t_routing_data	routing,
 			3: required t_job	j,
 	) throws (
 			1:ex_routing	r,
 			2:ex_job	j,
 			3:ex_processing p
 	);
-
-//	bool	update_job_state(
-//			1: required string	running_node,
-//			2: required integer	j_id,
-//			3: required e_job_state	js
-//	) throws (1:ex_job e);
 
 	/**
 	 * SQL
@@ -524,21 +514,28 @@ service ows_rpc {
 	 * Monitoring
 	 */
 	integer	monitor_waiting_jobs(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
+			1: required t_routing_data	routing,
 	) throws (
 			1:ex_routing	r,
 			3:ex_processing p
 	);
 
 	integer	monitor_failed_jobs(
-			1: required string	domain_name,
-			2: required t_node	calling_node,
-			3: required t_node	target_node,
+			1: required t_routing_data	routing,
 	) throws (
 			1:ex_routing	r,
 			3:ex_processing p
 	);
+}
+
+service ows_auth_ {
+	string	authenticate(
+			1: required string	username,
+			2: required string	password,
+	) throws (
+			1:ex_routing	r,
+			3:ex_processing p
+	);
+
 }
 

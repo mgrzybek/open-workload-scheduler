@@ -159,7 +159,6 @@ public:
 	 * TODO: is it useful?
 	 * @return	the FILE object
 	 */
-
 	FILE*	get_planning();
 
 	/**
@@ -207,34 +206,35 @@ public:
 	void reach_master(rpc::t_route& _return);
 
 	// Planning methods
-	void get_current_planning_name(std::string& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
-	void get_available_planning_names(std::vector<std::string>& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
-	void get_planning(rpc::t_planning& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get);
+	void get_current_planning_name(std::string& _return, const rpc::t_routing_data& routing);
+	void get_available_planning_names(std::vector<std::string>& _return, const rpc::t_routing_data& routing);
+	void get_planning(rpc::t_planning& _return, const rpc::t_routing_data& routing, const rpc::t_node& node_to_get);
 	bool set_planning(const rpc::t_node& calling_node, const rpc::t_planning& planning);
 
 	// Nodes methods
-	bool add_node(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& hosting_node, const rpc::t_node& node_to_add); // TODO: fix the weight value
-	void get_node(rpc::t_node& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_get);
-	void get_nodes(rpc::v_nodes& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
-	bool remove_node(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_node& node_to_remove);
+	bool add_node(const rpc::t_routing_data& routing, const rpc::t_node& node_to_add); // TODO: fix the weight value
+	void get_node(rpc::t_node& _return, const rpc::t_routing_data& routing, const rpc::t_node& node_to_get);
+	void get_nodes(rpc::v_nodes& _return, const rpc::t_routing_data& routing);
+	bool remove_node(const rpc::t_routing_data& routing, const rpc::t_node& node_to_remove);
 
 	// Jobs methods
-	void get_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
-	void get_ready_jobs(rpc::v_jobs& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
-	void get_job(rpc::t_job& _return, const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node, const rpc::t_job& job_to_get);
-	bool add_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
-	bool update_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
-	bool remove_job(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
-	bool update_job_state(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_job& j);
+	void get_jobs(rpc::v_jobs& _return, const rpc::t_routing_data& routing);
+	void get_ready_jobs(rpc::v_jobs& _return, const rpc::t_routing_data& routing);
+	void get_job(rpc::t_job& _return, const rpc::t_routing_data& routing, const rpc::t_job& job_to_get);
+	bool add_job(const rpc::t_routing_data& routing, const rpc::t_job& j);
+	bool update_job(const rpc::t_routing_data& routing, const rpc::t_job& j);
+	bool remove_job(const rpc::t_routing_data& routing, const rpc::t_job& j);
+	bool update_job_state(const rpc::t_routing_data& routing, const rpc::t_job& j);
 
 	// SQL methods
 	void sql_exec(const std::string& query);
 
 	// Monitoring
-	rpc::integer monitor_failed_jobs(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
-	rpc::integer monitor_waiting_jobs(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	rpc::integer monitor_failed_jobs(const rpc::t_routing_data& routing);
+	rpc::integer monitor_waiting_jobs(const rpc::t_routing_data& routing);
 
 private:
+
 	Domain*	domain;
 
 	/**
@@ -251,7 +251,7 @@ private:
 	 */
 	void	check_master_node(const std::string& calling_node_name, const std::string& job_node_name);
 
-	/**
+		/**
 	 * check_routing_args
 	 *
 	 * Used to check if the args are empty or usable
@@ -262,7 +262,7 @@ private:
 	 *
 	 * @throw	ex_routing	the raised exception
 	 */
-	void	check_routing_args(const std::string& domain_name, const rpc::t_node& calling_node, const rpc::t_node& target_node);
+	void	check_routing_args(const rpc::t_routing_data& routing);
 
 	/**
 	 * check_routing_args
@@ -286,6 +286,19 @@ private:
 	 * @throw	ex_job	the check failed
 	 */
 	void	check_job_arg(const rpc::t_job job);
+
+	/**
+	 * check_auth
+	 *
+	 * Used to check if the client is authorized to perform the call
+	 *
+	 * @param	domain_name	the string that should not be empty
+	 * @param	calling_node	its name and its domain_name should be filled in
+	 * @param   procedure type  get, add, remove, update, monitoring
+	 *
+	 * @throw	ex_auth	the raised exception
+	 */
+	void	check_auth();
 };
 
 #endif // USE_THRIFT
