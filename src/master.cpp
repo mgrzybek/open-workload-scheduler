@@ -54,13 +54,14 @@ void	daemonnize(const char*);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int		main (int argc, char * const argv[]) {
-	char*		config_file		= NULL;
-	bool		debug_mode		= false;
-	bool		daemon_mode		= false;
-	//	bool		check_mode		= false;
-	Config		conf_params;
-	Router		router(&conf_params);
+int	main (int argc, char * const argv[]) {
+	char*	config_file	= NULL;
+	bool	config_check	= false;
+	bool	debug_mode	= false;
+	bool	daemon_mode	= false;
+	//	bool		check_mode	= false;
+	Config	conf_params;
+	Router	router(&conf_params);
 
 	/*
 	 * Initialisation
@@ -77,6 +78,10 @@ int		main (int argc, char * const argv[]) {
 	}
 
 	for ( int i = 1 ; i < argc ; i++ ) {
+		if ( strcmp(argv[i], "-c" ) == 0 ) {
+			config_check = true;
+			continue;
+		}
 		if ( strcmp(argv[i], "-f" ) == 0 && i < argc ) {
 			config_file = argv[i+1];
 			continue;
@@ -97,6 +102,7 @@ int		main (int argc, char * const argv[]) {
 		return EXIT_FAILURE;
 	}
 
+	// TODO: dael with "-c" argument to check the config file
 	if ( conf_params.parse_file(config_file) == false ) {
 		std::cout << "Cannot parse " << config_file << std::endl;
 		return EXIT_FAILURE;
@@ -123,7 +129,7 @@ int		main (int argc, char * const argv[]) {
 		 * - Create the current planning from the template
 		 * TODO: manage exceptions
 		 */
-		Domain domain(&conf_params);
+		Domain	domain(&conf_params);
 
 		/*
 		 * Ports listening
@@ -209,7 +215,7 @@ int		main (int argc, char * const argv[]) {
  *
  */
 void	usage() {
-	std::cout << "Usage: master -f <config_file> [ -d || -v ]" << std::endl;
+	std::cout << "Usage: master -f <config_file> [ -d || -v || -c ]" << std::endl;
 	std::cout << "	<config_file>	: the main configuration file" << std::endl;
 	std::cout << "	-d		: daemon mode" << std::endl;
 	std::cout << "	-c		: check the configuration and exit" << std::endl;

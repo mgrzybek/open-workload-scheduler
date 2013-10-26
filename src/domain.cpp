@@ -1206,6 +1206,7 @@ void	Domain::get_available_planning_names(std::vector<std::string>& _return) {
 
 	this->database.query_full_result(result, query.c_str(), NULL);
 
+	// TODO: check the filter to hide MySQL's private tables
 	BOOST_FOREACH(v_row line, result) {
 		_return.push_back(line.at(0));
 	}
