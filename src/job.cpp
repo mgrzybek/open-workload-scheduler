@@ -123,9 +123,16 @@ bool	Job::run() {
 	}
 
 	try {
+		FILE*	p_job = NULL;
+
 		this->job.start_time	= static_cast<long int>(time(NULL));
-		this->job.return_code	= system(this->job.cmd_line.c_str());
-		this->job.stop_time		= static_cast<long int>(time(NULL));
+
+		if ( (p_job = popen(this->job.cmd_line.c_str(), "r")) != NULL )
+			this->job.return_code = pclose(p_job);
+		else
+			this->job.return_code = 1;
+
+		this->job.stop_time	= static_cast<long int>(time(NULL));
 	} catch (const std::exception e) {
 		std::cerr << "Exception: cannot execute " << this->job.name << " : " << e.what() << std::endl;
 		return false;
