@@ -120,7 +120,7 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 		return false;
 	}
 
-	#ifndef NDEBUG
+	#ifndef QT_NO_DEBUG
 		std::cout << "atomic_execute:: " << query << std::endl;
 	#endif
 
@@ -129,7 +129,7 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 		return false;
 	}
 
-#ifndef NDEBUG
+#ifndef QT_NO_DEBUG
 	res = mysql_store_result(m);
 
 	if (res)
@@ -163,7 +163,7 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 	if ( this->atomic_execute(query, local_mysql) == false ) {
 		this->end(local_mysql);
 
-		#ifndef NDEBUG
+		#ifndef QT_NO_DEBUG
 			std::cout << "standalone_execute:: start transaction failed" << std::endl;
 		#endif
 
@@ -176,7 +176,7 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 			this->atomic_execute(query, local_mysql);
 			this->end(local_mysql);
 
-			#ifndef NDEBUG
+			#ifndef QT_NO_DEBUG
 				std::cout << "standalone_execute:: rollback" << std::endl;
 			#endif
 
@@ -189,7 +189,7 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 	if ( this->atomic_execute(query, local_mysql) == false ) {
 		this->end(local_mysql);
 
-		#ifndef NDEBUG
+		#ifndef QT_NO_DEBUG
 			std::cout << "standalone_execute:: commit failed" << std::endl;
 		#endif
 
@@ -215,7 +215,7 @@ bool	Mysql::query_one_row(v_row& _return, const char* query, const char* databas
 		return false;
 	}
 
-	#ifndef NDEBUG
+	#ifndef QT_NO_DEBUG
 		std::cout << "query_one_row:: " << query << std::endl;
 	#endif
 
@@ -262,13 +262,13 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 		return false;
 	}
 
-	#ifndef NDEBUG
+	#ifndef QT_NO_DEBUG
 		std::cout << "query_full_result:: " << query << std::endl;
 	#endif
 
 	res = mysql_store_result(local_mysql);
 
-	#ifndef NDEBUG
+	#ifndef QT_NO_DEBUG
 		std::cout << "query_full_result:: size of the result: " << mysql_affected_rows(local_mysql) << std::endl;
 	#endif
 
@@ -277,7 +277,7 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 			line.clear();
 
 			for ( uint i=0 ; i < mysql_num_fields(res) ; i++ ) {
-				#ifndef NDEBUG
+				#ifndef QT_NO_DEBUG
 					std::cout << "\tquery_full_row::" << row[i] << std::endl;
 				#endif
 
@@ -287,7 +287,7 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 					line.push_back(std::string("NULL"));
 			}
 
-			#ifndef NDEBUG
+			#ifndef QT_NO_DEBUG
 				std::cout << std::endl;
 			#endif
 
