@@ -1,8 +1,5 @@
 macx {
-#	PKGCONFIG += thrift libzmq
-
 	LIBS += -lthrift \
-		-lzmq \
 		-L/opt/local/lib \
 		/opt/local/lib/mysql55/mysql/libmysqld.a \
 		-L/usr/lib \
