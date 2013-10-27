@@ -1201,14 +1201,15 @@ std::string Domain::get_current_planning_name() {
 void	Domain::get_available_planning_names(std::vector<std::string>& _return) {
 	std::string	query;
 	v_v_row		result;
+	boost::regex	planning_db("^\\w+(_\\d+){0,1}$", boost::regex::perl);
 
-	query = "SHOW DATABASES LIKE '%_%'";
+	query = "SHOW DATABASES";
 
 	this->database.query_full_result(result, query.c_str(), NULL);
 
-	// TODO: check the filter to hide MySQL's private tables
 	BOOST_FOREACH(v_row line, result) {
-		_return.push_back(line.at(0));
+		if ( boost::regex_match(line.at(0), planning_db) == true && line.at(0).compare("information_schema") != 0 )
+			_return.push_back(line.at(0));
 	}
 }
 
