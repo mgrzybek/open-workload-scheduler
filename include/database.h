@@ -141,7 +141,7 @@ public:
 	 *
 	 * @return	the id
 	 */
-	int		get_inserted_id(const char* database_name);
+	int	get_inserted_id(const char* database_name);
 
 	/**
 	 * shutdown
@@ -244,7 +244,7 @@ private:
 	 *
 	 * @return	the translated string
 	 */
-	std::string translate_into_prog(const std::string*);
+	std::string	translate_into_prog(const std::string*);
 };
 
 #endif

@@ -180,6 +180,7 @@ int	main (int argc, char * const argv[]) {
 						if ( jobs[iter].get_node_name2().compare(conf_params.get_param("node_name")->c_str()) == 0 ) {
 							running_jobs.create_thread(boost::bind(&Job::run, jobs[iter]));
 						} else {
+							std::cout << "not a local job" << std::endl;
 							if ( conf_params.get_running_mode() == PASSIVE )
 								std::cout << "TODO: send the job to the target node" << std::endl;
 						}

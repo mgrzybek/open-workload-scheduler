@@ -28,9 +28,9 @@
 #include "rpc_server.h"
 
 Rpc_Object::Rpc_Object(Config* c, Router* r) {
-	this->config		= c;
-	this->router		= r;
-	this->client		= new Rpc_Client();
+	this->config	= c;
+	this->router	= r;
+	this->client	= new Rpc_Client();
 }
 
 Rpc_Object::~Rpc_Object() {
@@ -43,7 +43,7 @@ Rpc_Object::~Rpc_Object() {
 }
 
 #define CHECK_ROUTING \
-	//    if ( routing.ttl == 0 ) { \
+//    if ( routing.ttl == 0 ) { \
 //        rpc::ex_routing e; \
 //        e.msg = "TTL is reached"; \
 //        throw e; \
@@ -638,11 +638,14 @@ bool	ows_rpcHandler::add_job(const rpc::t_routing_data& routing, const rpc::t_jo
 		case P2P: {break;}
 		case ACTIVE: {
 			/*
+			 * am I the master_node?
+			 * - yes: add node_to_add
+			 *
 			 * am I the target_node?
 			 * - yes: add node_to_add
 			 * - no: forward
 			 */
-			if ( this->config->get_param("node_name")->compare(j.node_name) != 0 ) {
+			if ( this->config->get_param("node_name")->compare(j.node_name) != 0 && this->config->get_master_node()->compare(this->config->get_param("node_name")->c_str()) != 0 ) {
 				gateway = this->router->get_gateway(j.node_name);
 				if ( gateway == NULL ) {
 					e.msg = "The node is not in the routing table";
