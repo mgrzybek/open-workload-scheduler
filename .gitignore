@@ -11,3 +11,4 @@ Release
 ows_*
 model_*
 data
+.qmake.stash
