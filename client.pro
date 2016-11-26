@@ -13,7 +13,7 @@ INCLUDEPATH	+= include \
 
 SOURCES += src/client.cpp \
 	src/convertions.cpp \
-	src/config.cpp \
+	src/ows_config.cpp \
 	src/database.cpp \
 	src/domain.cpp \
 	src/job.cpp \
@@ -27,7 +27,7 @@ SOURCES += src/client.cpp \
 
 HEADERS	+= include/common.h \
 	include/convertions.h \
-	include/config.h \
+	include/ows_config.h \
 	include/database.h \
 	include/domain.h \
 	include/job.h \
