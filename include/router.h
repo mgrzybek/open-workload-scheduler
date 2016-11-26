@@ -41,7 +41,7 @@
 
 #include "common.h"
 #include "rpc_client.h"
-#include "config.h"
+#include "ows_config.h"
 
 // namespace ows {
 

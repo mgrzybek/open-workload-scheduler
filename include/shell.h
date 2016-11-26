@@ -49,7 +49,7 @@
 #include "gen-cpp/ows_rpc.h"
 #include "gen-cpp/model_types.h"
 #include "router.h"
-#include "config.h"
+#include "ows_config.h"
 #include "rpc_client.h"
 
 ///////////////////////////////////////////////////////////////////////////////

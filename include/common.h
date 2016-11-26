@@ -83,4 +83,6 @@
 #include <netinet/in.h>
 #endif // __FreeBSD__
 
+#include "ows_config.h"
+
 #endif // COMMON_H

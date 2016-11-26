@@ -26,7 +26,7 @@
  */
 
 // A Thrift header has the same name
-#include "include/config.h"
+#include "include/ows_config.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 

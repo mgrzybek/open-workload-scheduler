@@ -39,8 +39,8 @@
 #include <boost/regex.hpp>
 
 #include "common.h"
+#include "ows_config.h"
 #include "convertions.h"
-#include "config.h"
 #include "database.h"
 #include "job.h"
 
@@ -49,6 +49,7 @@
 // namespace ows {
 
 class Job;
+//class Config;
 
 typedef	std::vector<Job>	v_jobs;
 

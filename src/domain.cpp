@@ -32,14 +32,6 @@
 
 // TODO: use day_{start_date,start_time,duration} to fill in planning_{start_time,duration}
 Domain::Domain(Config* c) {
-	boost::regex	duration_matching("^(([[:digit:]]+)h)?(([[:digit:]]+)min)?$", boost::regex::perl);
-	boost::regex	time_matching("^([[:digit:]]{2}):([[:digit:]]{2})$", boost::regex::perl);
-
-	boost::smatch			what;
-	//boost::match_flag_type		flags = boost::match_default;
-	std::string::const_iterator	start = c->get_param("day_duration")->begin();
-	std::string::const_iterator	end = c->get_param("day_duration")->end();
-
 	if ( c == NULL ) {
 		rpc::ex_processing e;
 		e.msg = "The config is null";
@@ -47,6 +39,16 @@ Domain::Domain(Config* c) {
 	}
 
 	this->config	= c;
+
+	boost::regex	duration_matching("^(([[:digit:]]+)h)?(([[:digit:]]+)min)?$", boost::regex::perl);
+	boost::regex	time_matching("^([[:digit:]]{2}):([[:digit:]]{2})$", boost::regex::perl);
+
+	boost::smatch			what;
+	//boost::match_flag_type		flags = boost::match_default;
+	std::string::const_iterator	start = this->config->get_param("day_duration")->begin();
+	std::string::const_iterator	end = this->config->get_param("day_duration")->end();
+
+
 	this->name	= this->config->get_param("domain_name")->c_str();
 
 	if ( this->name.size() == 0 ) {
@@ -90,8 +92,8 @@ Domain::Domain(Config* c) {
 
 		std::cout << "Planning duration is: " << this->planning_duration << std::endl;
 
-		start = c->get_param("day_start_time")->begin();
-		end = c->get_param("day_start_time")->end();
+		start = this->config->get_param("day_start_time")->begin();
+		end = this->config->get_param("day_start_time")->end();
 
 		if ( boost::regex_search(start, end, what, time_matching) ) {
 			this->initial_planning_start_time = boost::lexical_cast<int>(what[1]) * 3600 + boost::lexical_cast<int>(what[2]) * 60;
