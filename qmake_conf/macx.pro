@@ -16,7 +16,7 @@ macx {
 
 	INCLUDEPATH += /usr/include \
 		/opt/local/include \
-		/opt/local/include/mysql55/mysql \
+		/opt/local/include/mariadb/mysql \
 		/opt/local/include/thrift \
 		src
 }
