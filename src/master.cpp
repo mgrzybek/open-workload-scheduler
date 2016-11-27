@@ -36,7 +36,7 @@
 #include "common.h"
 
 // Config and routing stuff
-#include "ows_config.h"
+#include "cfg.h"
 #include "router.h"
 #include "rpc_server.h"
 

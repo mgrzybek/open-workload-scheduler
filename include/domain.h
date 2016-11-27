@@ -39,7 +39,7 @@
 #include <boost/regex.hpp>
 
 #include "common.h"
-#include "ows_config.h"
+#include "cfg.h"
 #include "convertions.h"
 #include "database.h"
 #include "job.h"
