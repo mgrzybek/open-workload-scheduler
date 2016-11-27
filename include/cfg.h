@@ -25,8 +25,9 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-#ifndef CONFIG_H
+//#ifndef CONFIG_H
 #define CONFIG_H
+#pragma once
 
 #include <fstream>
 #include <map>
@@ -36,7 +37,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/regex.hpp>
 
-#include "common.h"
+//#include "common.h"
 
 /**
  * m_config
@@ -179,4 +180,4 @@ private:
 
 //} // namespace ows
 
-#endif // CONFIG_H
+//#endif // CONFIG_H

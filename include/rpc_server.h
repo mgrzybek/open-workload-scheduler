@@ -36,7 +36,7 @@
 
 // common.h must be included before using the USE_* macros
 #include "common.h"
-#include "cfg.h"
+//#include "cfg.h"
 #include "router.h"
 #include "domain.h"
 #include "rpc_client.h"

@@ -83,6 +83,6 @@
 #include <netinet/in.h>
 #endif // __FreeBSD__
 
-#include "cfg.h"
+//#include "cfg.h"
 
 #endif // COMMON_H

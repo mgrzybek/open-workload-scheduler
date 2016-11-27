@@ -36,7 +36,7 @@
 #include "common.h"
 
 // Config and routing stuff
-#include "cfg.h"
+//#include "cfg.h"
 #include "router.h"
 #include "rpc_server.h"
 
@@ -51,6 +51,8 @@
 void	usage();
 void	signal_handler(const int);
 void	daemonnize(const char*);
+
+class Config;
 
 ///////////////////////////////////////////////////////////////////////////////
 
