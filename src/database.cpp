@@ -111,8 +111,10 @@ bool	Mysql::init_domain_structure(const std::string& domain_name, const std::str
 ///////////////////////////////////////////////////////////////////////////////
 
 bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
+#ifndef QT_NO_DEBUG
 	MYSQL_RES*	res;
 	MYSQL_ROW	row;
+#endif
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
 
 	if ( query.empty() == true or boost::regex_match(query, empty_string) == true ) {
@@ -250,6 +252,7 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 	MYSQL_ROW	row;
 	MYSQL*		local_mysql = this->init(database_name);
 	v_row		line;
+	uint		num_fields;
 
 	if ( local_mysql == NULL )
 		return false;
@@ -273,12 +276,18 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 	#endif
 
 	if (res) {
+		num_fields = mysql_num_fields(res);
+		std::cerr << "num fields: " << num_fields << std::endl;
+
 		while ( ( row = mysql_fetch_row(res) ) ) {
 			line.clear();
 
-			for ( uint i=0 ; i < mysql_num_fields(res) ; i++ ) {
+			for ( uint i=0 ; i < num_fields ; i++ ) {
 				#ifndef QT_NO_DEBUG
-					std::cout << "\tquery_full_row::" << row[i] << std::endl;
+					if ( row[i] == NULL )
+						std::cout << "\tquery_full_row::NULL" << std::endl;
+					else
+						std::cout << "\tquery_full_row::" << row[i] << std::endl;
 				#endif
 
 				if ( row[i] != NULL )
