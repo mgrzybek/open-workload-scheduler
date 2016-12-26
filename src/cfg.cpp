@@ -55,7 +55,8 @@ bool	Config::parse_file(const char* file_path) {
 
 	size_t		position = 0;
 
-	if ( f.is_open() )
+	//if ( f.is_open() )
+	if ( f )
 		while ( ! f.eof() ) {
 			getline(f, line);
 			line = boost::regex_replace(line, spaces, "");

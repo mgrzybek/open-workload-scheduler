@@ -160,14 +160,17 @@ int	main (int argc, char * const argv[]) {
 
 		while (1) {
 			v_jobs	jobs;
+			time_t	now = time(NULL);
 
 			try {
-				if ( conf_params.get_running_mode() == PASSIVE )
-					domain.get_ready_jobs(jobs, NULL);
-				else
-					domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
+				if ( domain.get_planning_start_time() <= now ) {
+					if ( conf_params.get_running_mode() == PASSIVE )
+						domain.get_ready_jobs(jobs, NULL);
+					else
+						domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
+				}
 
-				if ( domain.get_next_planning_start_time() - time(NULL) <= 60 ) {
+				if ( domain.get_next_planning_start_time() - now <= 60 ) {
 					domain.switch_planning();
 				}
 
@@ -175,21 +178,22 @@ int	main (int argc, char * const argv[]) {
 				std::cerr << "Exception occured (ex_job): " << e.msg << std::endl;
 			}
 
-			std::cout << "ready jobs: " << jobs.size() << std::endl; // TODO: remove it
-			if ( jobs.size() > 0 )
-				for ( unsigned long iter = 0 ; iter < jobs.size() ; ++iter ) {
-					if ( jobs[iter].get_state() == rpc::e_job_state::WAITING ) {
-						if ( jobs[iter].get_node_name2().compare(conf_params.get_param("node_name")->c_str()) == 0 ) {
-							running_jobs.create_thread(boost::bind(&Job::run, jobs[iter]));
-						} else {
-							std::cout << "not a local job" << std::endl;
-							if ( conf_params.get_running_mode() == PASSIVE )
-								std::cout << "TODO: send the job to the target node" << std::endl;
+			if ( domain.get_planning_start_time() <= now ) {
+				std::cout << "planning " << domain.get_current_planning_name() << " - ready jobs: " << jobs.size() << std::endl; // TODO: remove it
+				if ( jobs.size() > 0 )
+					for ( unsigned long iter = 0 ; iter < jobs.size() ; ++iter ) {
+						if ( jobs[iter].get_state() == rpc::e_job_state::WAITING ) {
+							if ( jobs[iter].get_node_name2().compare(conf_params.get_param("node_name")->c_str()) == 0 ) {
+								running_jobs.create_thread(boost::bind(&Job::run, jobs[iter]));
+							} else {
+								std::cout << "not a local job" << std::endl;
+								if ( conf_params.get_running_mode() == PASSIVE )
+									std::cout << "TODO: send the job to the target node" << std::endl;
+							}
+							break;
 						}
-						break;
 					}
-				}
-
+			}
 			// This prevents the previous jobs to be run again
 			jobs.clear();
 			sleep(60);

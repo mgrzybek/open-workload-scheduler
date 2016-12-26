@@ -40,10 +40,13 @@ Domain::Domain(Config* c) {
 
 	this->config	= c;
 
-	boost::regex	duration_matching("^(([[:digit:]]+)h)?(([[:digit:]]+)min)?$", boost::regex::perl);
+	boost::regex	duration_hour_matching("^([[:digit:]]+)h?", boost::regex::perl);
+	boost::regex	duration_minute_matching("([[:digit:]]+)min$", boost::regex::perl);
 	boost::regex	time_matching("^([[:digit:]]{2}):([[:digit:]]{2})$", boost::regex::perl);
 
 	boost::smatch			what;
+	boost::smatch			what_hour;
+	boost::smatch			what_minute;
 	//boost::match_flag_type		flags = boost::match_default;
 	std::string::const_iterator	start = this->config->get_param("day_duration")->begin();
 	std::string::const_iterator	end = this->config->get_param("day_duration")->end();
@@ -66,41 +69,42 @@ Domain::Domain(Config* c) {
 	/*
 	 * Let's calculate the duration and the start time
 	 */
-	try {
-		if ( boost::regex_search(start, end, what, duration_matching) ) {
-			/*
-			 * what[0] empty -> problem
-			 * what[2] hours -> convert to seconds (*3600)
-			 * what[4] minutes -> convert to seconds (*60)
-			 */
-			if ( what[0].length() == 0 ) {
-				rpc::ex_processing e;
-				e.msg = "Error: duration is empty";
-				throw e;
-			}
-
-			if ( what[2].length() != 0 )
-				this->planning_duration += boost::lexical_cast<int>(what[1]) * 3600;
-
-			if ( what[4].length() != 0 )
-				this->planning_duration += boost::lexical_cast<int>(what[4]) * 60;
-		} else {
-			rpc::ex_processing	e;
-			e.msg = "Error: cannot get the planning's duration";
+	if ( boost::regex_search(start, end, what_hour, duration_hour_matching) ) {
+		try {
+			this->planning_duration += boost::lexical_cast<int>(what_hour[1]) * 3600;
+		} catch (const std::exception& l) {
+			rpc::ex_processing e;
+			e.msg = "Error: cannot set planning duration. Cannot cast ";
+			e.msg += what_hour[1];
 			throw e;
 		}
+	}
 
-		std::cout << "Planning duration is: " << this->planning_duration << std::endl;
-
-		start = this->config->get_param("day_start_time")->begin();
-		end = this->config->get_param("day_start_time")->end();
-
-		if ( boost::regex_search(start, end, what, time_matching) ) {
-			this->initial_planning_start_time = boost::lexical_cast<int>(what[1]) * 3600 + boost::lexical_cast<int>(what[2]) * 60;
-			std::cout << "Initial planning start time is: " << boost::lexical_cast<int>(what[1]) << ":" << boost::lexical_cast<int>(what[2]) << " -> " << this->initial_planning_start_time << std::endl;
+	if ( boost::regex_search(start, end, what_minute, duration_minute_matching) ) {
+		try {
+			this->planning_duration += boost::lexical_cast<int>(what_minute[1]) * 60;
+		} catch (const std::exception& l) {
+			rpc::ex_processing e;
+			e.msg = "Error: cannot set planning duration. Cannot cast ";
+			e.msg += what_minute[1];
+			throw e;
 		}
-	} catch (const std::exception& e) {
-		std::cerr << e.what();
+	}
+
+	if ( this->planning_duration == 0 ) {
+		rpc::ex_processing e;
+		e.msg = "Error: planning duration is 0";
+		throw e;
+	}
+
+	std::cout << "Planning duration is: " << this->planning_duration << " seconds" << std::endl;
+
+	start = this->config->get_param("day_start_time")->begin();
+	end = this->config->get_param("day_start_time")->end();
+
+	if ( boost::regex_search(start, end, what, time_matching) ) {
+		this->initial_planning_start_time = boost::lexical_cast<int>(what[1]) * 3600 + boost::lexical_cast<int>(what[2]) * 60;
+		std::cout << "Initial planning start time is: " << boost::lexical_cast<int>(what[1]) << ":" << boost::lexical_cast<int>(what[2]) << " -> " << this->initial_planning_start_time << std::endl;
 	}
 
 	/*
@@ -258,6 +262,13 @@ time_t	Domain::get_next_planning_start_time() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+time_t	Domain::get_planning_start_time() {
+	return this->planning_start_time;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 time_t	Domain::get_current_planning_remaining_time() {
 	time_t	now = time(NULL);
 

@@ -140,6 +140,15 @@ public:
 	time_t	get_next_planning_start_time();
 
 	/**
+	 * get_planning_start_time
+	 *
+	 * Gets when the current planning should start
+	 *
+	 * @return	the start time
+	 */
+	time_t	get_planning_start_time();
+
+	/**
 	 * get_current_planning_remaining_time
 	 *
 	 * Gives the remaning time before the end of the current planning
