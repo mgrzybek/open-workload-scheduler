@@ -211,13 +211,16 @@ int	main (int argc, char * const argv[]) {
 
 	} catch ( const rpc::ex_processing& e ) {
 		EMERG << "Fatal exception occured (ex_processing): " << e.msg;
+		log4cpp::Category::shutdown();
 		return EXIT_FAILURE;
 	} catch ( const std::exception& e ) {
 		EMERG << "Fatal exception occured (std::exception): " << e.what();
+		log4cpp::Category::shutdown();
 		return EXIT_FAILURE;
 	}
 
 	INFO << "Clean shutdown";
+	log4cpp::Category::shutdown();
 	return EXIT_SUCCESS;
 }
 
@@ -245,10 +248,15 @@ void	usage() {
  * @arg sig : the recieved signal
  */
 void	signal_handler(const int sig) {
+	log4cpp::Category& root_logger = log4cpp::Category::getRoot();
+
 	switch(sig) {
 		case SIGHUP:
+			INFO << "received SIGHUP, nothing done.";
 			break;
 		case SIGTERM:
+			INFO << "received SIGTERM, shutting down.";
+			log4cpp::Category::shutdown();
 			exit(0);
 			break;
 	}
