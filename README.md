@@ -46,7 +46,7 @@ piece of software.
 
 ###  The shell
 
-Please see [ows-cli](https://www.github.com/MisterG/ows-cli).
+Please see [ows-cli](https://www.github.com/mgrzybek/ows-cli).
 
 ### The proxy
 
@@ -117,7 +117,7 @@ $
 * Install qmake
 
 ```
-$ git clone git://github.com/MisterG/open-workload-scheduler.git
+$ git clone git://github.com/mgrzybek/open-workload-scheduler.git
 ```
 
 * Generate the Thrift's source code
