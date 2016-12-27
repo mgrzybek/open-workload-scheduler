@@ -8,6 +8,7 @@ linux {
 		/usr/lib/libboost_thread.a \
 		/usr/lib/libboost_filesystem.a \
 		/usr/lib/libboost_system.a \
+		/usr/lib/liblog4cpp.a \
 		-lssl \
 		-lpthread \
 		-lcrypto \
