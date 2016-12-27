@@ -41,7 +41,12 @@ public:
 
 private:
 
-
+	/**
+	 * root_logger
+	 *
+	 * This is a reference to the root logger
+	 */
+	log4cpp::Category&	root_logger = log4cpp::Category::getRoot();
 };
 
 // } // namespace ows

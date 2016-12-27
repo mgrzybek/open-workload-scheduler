@@ -56,10 +56,10 @@ bool	Mysql::prepare() {
 	// DB init
 	//if ( mysql_library_init(sizeof(server_args) / sizeof(char *), server_args, server_groups) )
 	if ( mysql_library_init(0, NULL, NULL) )
-		std::cerr << "could not initialize MySQL library" << std::endl;
+		EMERG << "could not initialize MySQL library";
 
 	if ( ! mysql_thread_safe() ) {
-		std::cerr << "MySQL is NOT theadsafe !" << std::endl;
+		ALERT << "MySQL is NOT theadsafe !";
 		return false;
 	}
 
@@ -118,16 +118,16 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
 
 	if ( query.empty() == true or boost::regex_match(query, empty_string) == true ) {
-		std::cerr << "atomic_execute:: error: query is empty !" << std::endl;
+		ERROR << "atomic_execute:: query is empty !";
 		return false;
 	}
 
-	#ifndef QT_NO_DEBUG
-		std::cout << "atomic_execute:: " << query << std::endl;
-	#endif
+#ifndef QT_NO_DEBUG
+	DEBUG << "atomic_execute:: " << query;
+#endif
 
 	if ( mysql_query(m, query.c_str()) != 0 ) {
-		std::cerr << query.c_str() << std::endl << mysql_error(m);
+		ERROR << query.c_str()  << mysql_error(m);
 		return false;
 	}
 
@@ -136,11 +136,11 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 
 	if (res)
 		while ( ( row = mysql_fetch_row(res) ) )
-			for ( uint i=0 ; i < mysql_num_fields(res) ; i++ )
-				std::cerr << row[i] << std::endl;
+			for ( uint i=0; i < mysql_num_fields(res) ; i++ )
+				ERROR << row[i];
 	else
 		if ( mysql_field_count(m) != 0 ) {
-			std::cerr << "atomic_execute:: error: " << mysql_error(m) << std::endl;
+			ERROR << "atomic_execute:: error: " << mysql_error(m);
 			mysql_free_result(res);
 			return false;
 		}
@@ -158,7 +158,7 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 	std::string	query		= "START TRANSACTION;";
 
 	if ( local_mysql == NULL ) {
-		std::cerr << "Error: local_mysql is null" << std::endl;
+		ERROR << "Error: local_mysql is null";
 		return false;
 	}
 
@@ -166,7 +166,7 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 		this->end(local_mysql);
 
 		#ifndef QT_NO_DEBUG
-			std::cout << "standalone_execute:: start transaction failed" << std::endl;
+			std::cout << "standalone_execute:: start transaction failed";
 		#endif
 
 		return false;
@@ -179,7 +179,7 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 			this->end(local_mysql);
 
 			#ifndef QT_NO_DEBUG
-				std::cout << "standalone_execute:: rollback" << std::endl;
+				std::cout << "standalone_execute:: rollback";
 			#endif
 
 			return false;
@@ -192,7 +192,7 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 		this->end(local_mysql);
 
 		#ifndef QT_NO_DEBUG
-			std::cout << "standalone_execute:: commit failed" << std::endl;
+			std::cout << "standalone_execute:: commit failed";
 		#endif
 
 		return false;
@@ -213,26 +213,26 @@ bool	Mysql::query_one_row(v_row& _return, const char* query, const char* databas
 		return false;
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
-		std::cerr << query << std::endl << mysql_error(local_mysql);
+		ERROR << query  << mysql_error(local_mysql);
 		return false;
 	}
 
 	#ifndef QT_NO_DEBUG
-		std::cout << "query_one_row:: " << query << std::endl;
+		std::cout << "query_one_row:: " << query;
 	#endif
 
 	res = mysql_store_result(local_mysql);
 	if ( res ) {
 		while ( ( row = mysql_fetch_row(res) ) )
 			if ( row ) {
-				for ( uint i=0 ; i < mysql_num_fields(res) ; i++ ) {
+				for ( uint i=0; i < mysql_num_fields(res) ; i++ ) {
 					if ( row[i] != NULL )
 						_return.push_back(std::string(row[i]));
 				}
 			}
 	} else {
 		if ( mysql_field_count(local_mysql) != 0 ) {
-			std::cerr << "Erreur : " << mysql_error(local_mysql) << std::endl;
+			ERROR << "Erreur : " << mysql_error(local_mysql);
 			mysql_free_result(res);
 			this->end(local_mysql);
 			return false;
@@ -261,33 +261,35 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 		return false;
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
-		std::cerr << "Error: " << query << std::endl << mysql_error(local_mysql);
+		ERROR << "Error: " << query << mysql_error(local_mysql);
 		return false;
 	}
 
 	#ifndef QT_NO_DEBUG
-	std::cout << "query_full_result:: " << query << std::endl;
+	DEBUG << "query_full_result:: " << query;
 	#endif
 
 	res = mysql_store_result(local_mysql);
 
 	#ifndef QT_NO_DEBUG
-	std::cout << "query_full_result:: size of the result: " << mysql_affected_rows(local_mysql) << std::endl;
+	DEBUG << "query_full_result:: size of the result: " << mysql_affected_rows(local_mysql);
 	#endif
 
 	if (res) {
 		num_fields = mysql_num_fields(res);
-		std::cerr << "num fields: " << num_fields << std::endl;
+		#ifndef QT_NO_DEBUG
+		DEBUG << "num fields: " << num_fields;
+		#endif
 
 		while ( ( row = mysql_fetch_row(res) ) ) {
 			line.clear();
 
-			for ( uint i=0 ; i < num_fields ; i++ ) {
+			for ( uint i=0; i < num_fields ; i++ ) {
 				#ifndef QT_NO_DEBUG
 				if ( row[i] == NULL )
-					std::cout << "\tquery_full_row:: NULL" << std::endl;
+					DEBUG << "\tquery_full_row:: NULL";
 				else
-					std::cout << "\tquery_full_row:: " << row[i] << std::endl;
+					DEBUG << "\tquery_full_row:: " << row[i];
 				#endif
 
 				if ( row[i] != NULL )
@@ -296,17 +298,13 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 					line.push_back(std::string("NULL"));
 			}
 
-			#ifndef QT_NO_DEBUG
-			std::cout << std::endl;
-			#endif
-
 			_return.push_back(line);
 		}
 	} else
 		if ( mysql_field_count(local_mysql) != 0 ) {
 			mysql_free_result(res);
 			this->end(local_mysql);
-			std::cerr << "query_full_result: " << mysql_error(local_mysql) << std::endl;
+			ERROR << "query_full_result: " << mysql_error(local_mysql);
 			return false;
 		}
 
@@ -468,7 +466,7 @@ bool	Sqlite::prepare(const char* node_name, const std::string* db_data, const st
 
 	result = system(mkdir_call.c_str());
 	if ( result != 0 ) {
-		std::cerr << "Error : system error : mkdir -p returned " << result << std::endl;
+		ERROR << "Error : system error : mkdir -p returned " << result;
 		return false;
 	}
 
@@ -481,11 +479,11 @@ bool	Sqlite::atomic_execute(const std::string& query, sqlite3* p_db) {
 	char*	err_msg	= 0;
 	int		ret_code;
 
-	std::cout << query.c_str() << std::endl;
+	DEBUG << query.c_str();
 	ret_code = sqlite3_exec(p_db, query.c_str(), callback, 0, &err_msg);
 
 	if ( ret_code != SQLITE_OK ) {
-		std::cerr << "Error : SQLITE error code " << ret_code << " : " << err_msg << std::endl;
+		ERROR << "Error : SQLITE error code " << ret_code << " : " << err_msg;
 		sqlite3_free(err_msg);
 
 		return false;
@@ -545,7 +543,7 @@ v_row	Sqlite::query_one_row(const char* query) {
 	if ( sqlite3_step(stmt) == SQLITE_ROW ) {
 		result.clear();
 
-		for ( int i = 0 ; i < sqlite3_data_count(stmt) ; i++ )
+		for ( int i = 0; i < sqlite3_data_count(stmt) ; i++ )
 			result.push_back(std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, i))));
 	}
 
@@ -573,7 +571,7 @@ v_v_row*	Sqlite::query_full_result(const char* query) {
 	while ( sqlite3_step(stmt) == SQLITE_ROW ) {
 		line.clear();
 
-		for ( int i = 0 ; i < sqlite3_data_count(stmt) ; i++ )
+		for ( int i = 0; i < sqlite3_data_count(stmt) ; i++ )
 			line.push_back(std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, i))));
 
 		result->push_back(line);
@@ -637,12 +635,12 @@ sqlite3*	Sqlite::init() {
 	sqlite3*	p_db;
 
 	if ( sqlite3_open_v2(this->db.c_str(), &p_db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK ) {
-		std::cerr << "Error : SQLITE error : " << sqlite3_errmsg(p_db) << std::endl;
+		ERROR << "Error : SQLITE error : " << sqlite3_errmsg(p_db);
 		return NULL;
 	}
 
 	if ( p_db == NULL ) {
-		std::cerr << "Error : SQLITE cannot create pointer : not enough memory" << std::endl;
+		ERROR << "Error : SQLITE cannot create pointer : not enough memory";
 		sqlite3_close(p_db);
 		return NULL;
 	}

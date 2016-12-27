@@ -110,11 +110,18 @@ int	main (int argc, char * const argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	//	if (daemon_mode == true)
-	//		daemonize();
+	/*
+	 * Logging stuff
+	 *
+	 * We use macros to send messages. See common.h (INFO, NOTICE...)
+	 */
+	log4cpp::PropertyConfigurator::configure(conf_params.get_param("log4cpp_properties")->c_str());
+	log4cpp::Category& root_logger = log4cpp::Category::getRoot();
+
+	//if (daemon_mode == true)
+		//daemonize();
 
 	try {
-
 		/*
 		 * Peers Discovery
 		 *
@@ -175,20 +182,20 @@ int	main (int argc, char * const argv[]) {
 				}
 
 			} catch ( const rpc::ex_job& e ) {
-				std::cerr << "Exception occured (ex_job): " << e.msg << std::endl;
+				ERROR << "Exception occured (ex_job): " << e.msg;
 			}
 
 			if ( domain.get_planning_start_time() <= now ) {
-				std::cout << "planning " << domain.get_current_planning_name() << " - ready jobs: " << jobs.size() << std::endl; // TODO: remove it
+				INFO << "planning " << domain.get_current_planning_name() << " - ready jobs: " << jobs.size();
 				if ( jobs.size() > 0 )
 					for ( unsigned long iter = 0 ; iter < jobs.size() ; ++iter ) {
 						if ( jobs[iter].get_state() == rpc::e_job_state::WAITING ) {
 							if ( jobs[iter].get_node_name2().compare(conf_params.get_param("node_name")->c_str()) == 0 ) {
 								running_jobs.create_thread(boost::bind(&Job::run, jobs[iter]));
 							} else {
-								std::cout << "not a local job" << std::endl;
+								NOTICE << jobs[iter].get_name() << " is not a local job";
 								if ( conf_params.get_running_mode() == PASSIVE )
-									std::cout << "TODO: send the job to the target node" << std::endl;
+									NOTICE << "TODO: send the job to the target node";
 							}
 							break;
 						}
@@ -203,13 +210,14 @@ int	main (int argc, char * const argv[]) {
 		server_thread.join();
 
 	} catch ( const rpc::ex_processing& e ) {
-		std::cerr << "Fatal exception occured (ex_processing): " << e.msg << std::endl;
+		EMERG << "Fatal exception occured (ex_processing): " << e.msg;
 		return EXIT_FAILURE;
 	} catch ( const std::exception& e ) {
-		std::cerr << "Fatal exception occured (std::exception): " << e.what() << std::endl;
+		EMERG << "Fatal exception occured (std::exception): " << e.what();
 		return EXIT_FAILURE;
 	}
 
+	INFO << "Clean shutdown";
 	return EXIT_SUCCESS;
 }
 

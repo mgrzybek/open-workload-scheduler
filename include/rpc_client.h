@@ -125,6 +125,13 @@ public:
 	 * @return	the complete URL
 	 */
 	std::string*	build_url(const std::string* target);
+
+	/**
+	 * root_logger
+	 *
+	 * This is a reference to the root logger
+	 */
+	log4cpp::Category&	root_logger = log4cpp::Category::getRoot();
 };
 
 // } // namespace ows

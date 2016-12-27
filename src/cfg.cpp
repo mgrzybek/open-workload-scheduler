@@ -168,3 +168,4 @@ bool	Config::set_private_attributes() {
 void	Config::set_running_mode(const e_running_mode rm) {
 	this->running_mode = rm;
 }
+

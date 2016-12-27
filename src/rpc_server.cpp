@@ -83,7 +83,7 @@ void	Rpc_Server::run() {
 		apache::thrift::server::TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
 		server.serve();
 	} catch (std::exception const& e) {
-		std::cerr << "Something failed: " << e.what() << std::endl;
+		ERROR << "Something failed: " << e.what();
 		throw e;
 	}
 #endif //USE_THRIFT
@@ -657,7 +657,7 @@ bool	ows_rpcHandler::add_job(const rpc::t_routing_data& routing, const rpc::t_jo
 					return this->client->get_handler()->add_job(routing, j);
 					this->client->close();
 				} catch (rpc::ex_job e) {
-					std::cerr << "Error: " << e.msg << std::endl;
+					ERROR << e.msg;
 					this->client->close();
 					throw e;
 				}

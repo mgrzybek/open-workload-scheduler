@@ -118,7 +118,7 @@ bool	Job::run() {
 		return false;
 
 	if ( this->update_state(rpc::e_job_state::RUNNING) == false ) {
-		std::cerr << "Error: cannot update job's state to RUNNING" << std::endl;
+		ERROR << "Error: cannot update job's state to RUNNING" ;
 		return false;
 	}
 
@@ -134,28 +134,28 @@ bool	Job::run() {
 
 		this->job.stop_time	= static_cast<long int>(time(NULL));
 	} catch (const std::exception e) {
-		std::cerr << "Exception: cannot execute " << this->job.name << " : " << e.what() << std::endl;
+		ERROR << "Exception: cannot execute " << this->job.name << " : " << e.what() ;
 		return false;
 	}
 
 	// TODO: remove it
-	std::cout << "Job " << this->job.name.c_str() << " returned code " << this->job.return_code << std::endl;
+	INFO << "Job " << this->job.name.c_str() << " returned code " << this->job.return_code;
 
 	try {
 		if ( this->job.return_code == 0 ) {
 			if ( this->update_state(rpc::e_job_state::SUCCEDED, static_cast<time_t>(this->job.start_time), static_cast<time_t>(this->job.stop_time)) == false ) {
-				std::cerr << "Error: cannot update job's state to SUCCEDED" << std::endl;
+				ERROR << "Error: cannot update job's state to SUCCEDED" ;
 				return false;
 			}
 			return true;
 		}
 
 		if ( this->update_state(rpc::e_job_state::FAILED, static_cast<time_t>(this->job.start_time), static_cast<time_t>(this->job.stop_time)) == false ) {
-			std::cerr << "Error: cannot update job's state to FAILED" << std::endl;
+			ERROR << "Error: cannot update job's state to FAILED" ;
 			return false;
 		}
 	} catch (const std::exception e) {
-		std::cerr << "Exception: cannot update job's state " << this->job.name << " : " << e.what() << std::endl;
+		ERROR << "Exception: cannot update job's state " << this->job.name << " : " << e.what() ;
 		return false;
 	}
 

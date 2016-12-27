@@ -57,7 +57,7 @@ bool	Rpc_Client::open(const char* hostname, const int& port) {
 	try {
 		transport->open();
 	} catch (const apache::thrift::transport::TTransportException e) {
-		std::cerr << "Error: " << e.what() << std::endl;
+		ERROR << e.what();
 		return false;
 	}
 
@@ -78,7 +78,7 @@ bool	Rpc_Client::close() {
 	try {
 		this->transport->close();
 	} catch (const apache::thrift::transport::TTransportException e) {
-		std::cerr << "Error: " << e.what() << std::endl;
+		ERROR << "Error: " << e.what();
 		return false;
 	}
 */

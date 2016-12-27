@@ -608,6 +608,13 @@ private:
 	boost::mutex	updates_mutex;
 
 	/**
+	 * root_logger
+	 *
+	 * This is a reference to the root logger
+	 */
+	log4cpp::Category&	root_logger = log4cpp::Category::getRoot();
+
+	/**
 	 * get_add_node_query
 	 *
 	 */

@@ -30,6 +30,9 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <log4cpp/Category.hh>
+#include <log4cpp/PropertyConfigurator.hh>
+
 #include "model_types.h"
 
 /*
@@ -84,5 +87,13 @@
 #endif // __FreeBSD__
 
 //#include "cfg.h"
+
+#define DEBUG	root_logger.debugStream()
+#define NOTICE	root_logger.noticeStream()
+#define INFO	root_logger.infoStream()
+#define ALERT	root_logger.alertStream()
+#define EMERG	root_logger.emergStream()
+#define ERROR	root_logger.errorStream()
+#define WARN	root_logger.warnStream()
 
 #endif // COMMON_H

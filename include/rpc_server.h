@@ -96,6 +96,13 @@ protected:
 	 * The RPC client object to use to call RPCs
 	 */
 	Rpc_Client*	client; // TODO: create rpc_clients on demand to by multi-thread compatible
+
+	/**
+	 * root_logger
+	 *
+	 * This is a reference to the root logger
+	 */
+	log4cpp::Category&	root_logger = log4cpp::Category::getRoot();
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -299,6 +306,7 @@ private:
 	 * @throw	ex_auth	the raised exception
 	 */
 	void	check_auth();
+
 };
 
 #endif // USE_THRIFT

@@ -97,14 +97,14 @@ Domain::Domain(Config* c) {
 		throw e;
 	}
 
-	std::cout << "Planning duration is: " << this->planning_duration << " seconds" << std::endl;
+	INFO << "Planning duration is: " << this->planning_duration << " seconds";
 
 	start = this->config->get_param("day_start_time")->begin();
 	end = this->config->get_param("day_start_time")->end();
 
 	if ( boost::regex_search(start, end, what, time_matching) ) {
 		this->initial_planning_start_time = boost::lexical_cast<int>(what[1]) * 3600 + boost::lexical_cast<int>(what[2]) * 60;
-		std::cout << "Initial planning start time is: " << boost::lexical_cast<int>(what[1]) << ":" << boost::lexical_cast<int>(what[2]) << " -> " << this->initial_planning_start_time << std::endl;
+		INFO << "Initial planning start time is: " << boost::lexical_cast<int>(what[1]) << ":" << boost::lexical_cast<int>(what[2]) << " -> " << this->initial_planning_start_time;
 	}
 
 	/*
@@ -134,7 +134,7 @@ Domain::Domain(Config* c) {
 		throw e;
 	}
 
-	std::cout << "First start time is: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time) << std::endl;
+	INFO << "First start time is: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time);
 }
 
 Domain::~Domain() {
@@ -173,10 +173,10 @@ bool	Domain::set_next_planning(time_t& _return) {
 			return false;
 		}
 
-		std::cout << "result -> " << result.at(0) << std::endl;
+		DEBUG << "result -> " << result.at(0);
 
 		if ( result.at(0).compare("1") == 0 ) {
-			std::cout << "The schema already exists, skiping domain init..." << std::endl;
+			INFO << "The schema already exists, skiping domain init...";
 			return true;
 		}
 
@@ -184,7 +184,7 @@ bool	Domain::set_next_planning(time_t& _return) {
 			return true;
 		}
 	} catch ( const rpc::ex_processing& e) {
-		std::cerr << e.msg << std::endl;
+		ERROR << e.msg;
 		return false;
 	}
 
@@ -204,14 +204,14 @@ bool	Domain::set_next_planning(time_t& _return) {
 
 bool	Domain::switch_planning() {
 	time_t	result;
-	std::cout << "Old planning start time: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time) << std::endl;
+	INFO << "Old planning start time: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time);
 
 	if ( this->set_next_planning(result) == false )
 		return false;
 
 	this->planning_start_time = result;
 
-	std::cout << "New planning start time: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time) << std::endl;
+	INFO << "New planning start time: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time);
 
 	return true;
 }
@@ -616,7 +616,7 @@ bool	Domain::update_job_state(const char* domain_name, const rpc::t_job& j) {
 
 bool	Domain::update_job_state(const char* domain_name, const Job* j, const rpc::e_job_state::type js) {
 	if ( j == NULL ) {
-		std::cerr << "Error: j is NULL" << std::endl;
+		ERROR << "Error: j is NULL";
 		return false;
 	}
 
@@ -631,7 +631,7 @@ bool	Domain::update_job_state(const char* domain_name, const std::string& runnin
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
 
 	if ( running_node.empty() == true or boost::regex_match(query, empty_string) == true ) {
-		std::cerr << "Error: running_node is empty" << std::endl;
+		ERROR << "Error: running_node is empty";
 		return false;
 	}
 
@@ -663,7 +663,7 @@ bool	Domain::update_job_state(const char* domain_name, const std::string& runnin
 	boost::regex	empty_string("^\\s+$", boost::regex::perl);
 
 	if ( running_node.empty() == true or boost::regex_match(query, empty_string) == true ) {
-		std::cerr << "Error: running_node is empty" << std::endl;
+		ERROR << "Error: running_node is empty";
 		return false;
 	}
 
@@ -850,7 +850,7 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 		this->get_time_constraints(domain_name, job->time_constraints, job->name);
 
 		if ( job_row[5].size() > 0 && job_row[5].compare("NULL") != 0 ) {
-			std::cout << job_row[5] << std::endl;
+			DEBUG << job_row[5];
 			this->get_recovery_type(domain_name, job->recovery_type, boost::lexical_cast<int>(job_row[5].c_str()));
 		}
 
@@ -1026,11 +1026,11 @@ void	Domain::get_time_constraints(const char* domain_name, rpc::v_time_constrain
 		delete time_constraint;
 		time_constraint = new rpc::t_time_constraint();
 
-		std::cout << "job_name -> " << time_constraint_row[0].c_str() << std::endl;
+		DEBUG << "job_name -> " << time_constraint_row[0].c_str();
 		time_constraint->job_name	= time_constraint_row[0].c_str();
-		std::cout << "type -> " << build_time_constraint_type_from_string(time_constraint_row[1].c_str()) << std::endl;
+		DEBUG << "type -> " << build_time_constraint_type_from_string(time_constraint_row[1].c_str());
 		time_constraint->type		= build_time_constraint_type_from_string(time_constraint_row[1].c_str());
-		std::cout << "value -> " << time_constraint_row[2] << std::endl;
+		DEBUG << "value -> " << time_constraint_row[2];
 		time_constraint->value		= boost::lexical_cast<rpc::integer>(time_constraint_row[2]);
 
 		_return.push_back(*time_constraint);
@@ -1139,7 +1139,7 @@ void	Domain::get_nodes(const char* domain_name, rpc::v_nodes& _return) {
 		try {
 			node->weight	= boost::lexical_cast<rpc::integer>(node_row[1]);
 		} catch ( ... ) {
-			std::cerr << "Error while casting int: " << node_row[1] << std::endl;
+			ERROR << "Error while casting int: " << node_row[1];
 		}
 
 		this->get_node(domain_name, *node, node_row[0].c_str());

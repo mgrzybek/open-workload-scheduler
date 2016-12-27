@@ -245,6 +245,13 @@ private:
 	 * @return	the translated string
 	 */
 	std::string	translate_into_prog(const std::string*);
+
+        /**
+         * root_logger
+         *
+         * This is a reference to the root logger
+         */
+        log4cpp::Category&      root_logger = log4cpp::Category::getRoot();
 };
 
 #endif
@@ -427,6 +434,13 @@ private:
 
 		return 0;
 	}
+
+        /**
+         * root_logger
+         *
+         * This is a reference to the root logger
+         */
+        log4cpp::Category&      root_logger = log4cpp::Category::getRoot();
 };
 
 #endif // USE_SQLITE
