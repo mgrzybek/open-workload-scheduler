@@ -5,6 +5,7 @@
 		/usr/local/lib/mysql/libmysqld.a \
 		-L/usr/lib \
 		-L/usr/local/lib \
+		/usr/local/lib/libboost_program_options.a \
 		/usr/local/lib/libboost_regex.a \
 		/usr/local/lib/libboost_thread.a \
 		/usr/local/lib/libboost_filesystem.a \

@@ -31,6 +31,7 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/program_options.hpp>
 
 // Common stuff
 #include "common.h"
@@ -88,6 +89,7 @@ int	main (int argc, char * const argv[]) {
 	//	bool		check_mode	= false;
 	Config	conf_params;
 	Router	router(&conf_params);
+	boost::program_options::variables_map	opts_variables;
 
 	/*
 	 * Initialisation
@@ -98,40 +100,32 @@ int	main (int argc, char * const argv[]) {
 	 * - data_path (default: /var/lib/ows)
 	 * - etc_path (default: /etc/ows)
 	 */
-	if ( argc < 3 ) {
-		usage();
-		return EXIT_FAILURE;
+	boost::program_options::options_description usage("Allowed options");
+	usage.add_options()
+			("check,c", "check the configuration and exit")
+			("config,f", boost::program_options::value<std::string>(), "the main configuration file")
+			("daemon,d,", "daemon mode")
+			("help,h", "produce help")
+			("verbose,v", "set verbosity on")
+	;
+
+	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, usage), opts_variables);
+	boost::program_options::notify(opts_variables);
+
+	if ( opts_variables.count("help") ) {
+		std::cout << usage << std::endl;
+		return EXIT_SUCCESS;
 	}
 
-	for ( int i = 1 ; i < argc ; i++ ) {
-		if ( strcmp(argv[i], "-c" ) == 0 ) {
-			config_check = true;
-			continue;
+	if ( ! opts_variables.count("config") ) {
+		std::cerr << "config file not given" << std::endl;
+		std::cout << usage << std::endl;
+		exit(EXIT_FAILURE);
+	} else {
+		if ( conf_params.parse_file(opts_variables["config"].as<std::string>().c_str()) == false ) {
+			std::cerr << "Cannot parse " << opts_variables["config"].as<std::string>() << std::endl;
+			exit(EXIT_FAILURE);
 		}
-		if ( strcmp(argv[i], "-f" ) == 0 && i < argc ) {
-			config_file = argv[i+1];
-			continue;
-		}
-		if ( strcmp(argv[i], "-v" ) == 0 ) {
-			debug_mode = true;
-			continue;
-		}
-		if ( strcmp(argv[i], "-d" ) == 0 ) {
-			daemon_mode = true;
-			continue;
-		}
-	}
-
-	if ( config_file == NULL ) {
-		EMERG << "No config file given";
-		usage();
-		return EXIT_FAILURE;
-	}
-
-	// TODO: dael with "-c" argument to check the config file
-	if ( conf_params.parse_file(config_file) == false ) {
-		EMERG << "Cannot parse " << config_file;
-		return EXIT_FAILURE;
 	}
 
 	/*

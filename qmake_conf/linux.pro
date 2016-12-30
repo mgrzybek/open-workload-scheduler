@@ -4,6 +4,7 @@ linux {
 		/usr/lib/libmysqld.a \
 		-L/usr/lib \
 		-L/usr/local/lib \
+		/usr/lib/libboost_program_options.a \
 		/usr/lib/libboost_regex.a \
 		/usr/lib/libboost_thread.a \
 		/usr/lib/libboost_filesystem.a \
