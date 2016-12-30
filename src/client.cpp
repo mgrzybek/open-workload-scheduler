@@ -36,7 +36,7 @@
 #include "common.h"
 
 // Config and routing stuff
-#include "cfg.h"
+//#include "cfg.h"
 #include "router.h"
 #include "rpc_server.h"
 
@@ -48,19 +48,46 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief usage
+ *
+ * Prints the available options of the program to stdout.
+ */
 void	usage();
+
+/**
+ * @brief signal_handler
+ *
+ * Deals with the received signals when daemonized.
+ *
+ * @param	the signal received
+ */
 void	signal_handler(const int);
+
+/**
+ * @brief daemonnize
+ *
+ * Makes a clean fork :
+ * - Forks cleanly
+ * - Closes the file descriptors
+ * - Writes the new PID to the given pid file
+ * - Handles signals
+ *
+ * @param the PID file
+ */
 void	daemonnize(const char*);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int		main (int argc, char * const argv[]) {
-	char*		config_file		= NULL;
-//	bool		debug_mode		= false;
-//	bool		daemon_mode		= false;
-//	bool		check_mode		= false;
-	Config		conf_params;
-	Router		router(&conf_params);
+int	main (int argc, char * const argv[]) {
+	char*	config_file	= NULL;
+	bool	config_check	= false;
+	bool	debug_mode	= false;
+	bool	daemon_mode	= false;
+	//	bool		check_mode	= false;
+	Config	conf_params;
+	Router	router(&conf_params);
 
 	/*
 	 * Initialisation
@@ -77,11 +104,15 @@ int		main (int argc, char * const argv[]) {
 	}
 
 	for ( int i = 1 ; i < argc ; i++ ) {
+		if ( strcmp(argv[i], "-c" ) == 0 ) {
+			config_check = true;
+			continue;
+		}
 		if ( strcmp(argv[i], "-f" ) == 0 && i < argc ) {
 			config_file = argv[i+1];
 			continue;
 		}
-/*		if ( strcmp(argv[i], "-v" ) == 0 ) {
+		if ( strcmp(argv[i], "-v" ) == 0 ) {
 			debug_mode = true;
 			continue;
 		}
@@ -89,18 +120,27 @@ int		main (int argc, char * const argv[]) {
 			daemon_mode = true;
 			continue;
 		}
-*/	}
+	}
 
 	if ( config_file == NULL ) {
-		std::cerr << "No config file given" << std::endl;
+		EMERG << "No config file given";
 		usage();
 		return EXIT_FAILURE;
 	}
 
+	// TODO: dael with "-c" argument to check the config file
 	if ( conf_params.parse_file(config_file) == false ) {
-		std::cout << "Cannot parse " << config_file << std::endl;
+		EMERG << "Cannot parse " << config_file;
 		return EXIT_FAILURE;
 	}
+
+	/*
+	 * Logging stuff
+	 *
+	 * We use macros to send messages. See common.h (INFO, NOTICE...)
+	 */
+	log4cpp::PropertyConfigurator::configure(conf_params.get_param("log4cpp_properties")->c_str());
+	log4cpp::Category& root_logger = log4cpp::Category::getRoot();
 
 //	if (daemon_mode == true)
 //		daemonize();
@@ -114,13 +154,13 @@ int		main (int argc, char * const argv[]) {
 	 */
 	router.update_peers_list();
 	while ( router.get_reachable_peers_number() < 1 ) {
-		std::cout << "Cannot reach any peer" << std::endl;
+		WARN << "Cannot reach any peer" << std::endl;
 		router.update_peers_list();
 		sleep(30);
 	}
 
 	while ( router.reach_master() == false ) {
-		std::cout << "Cannot reach the master" << std::endl;
+		WARN << "Cannot reach the master";
 		sleep(30);
 	}
 
@@ -151,7 +191,7 @@ int		main (int argc, char * const argv[]) {
 						break;
 				}
 				if ( domain.add_node(conf_params.get_param("domain_name")->c_str(), node) == false ) {
-					std::cerr << "Cannot load the planning" << std::endl;
+					EMERG << "Cannot load the planning";
 					return EXIT_FAILURE;
 				}
 			}
@@ -159,11 +199,11 @@ int		main (int argc, char * const argv[]) {
 		}
 		case ACTIVE: {
 			while ( router.get_node(conf_params.get_param("domain_name")->c_str(), node, router.get_master_node()->c_str()) == false ) {
-				std::cout << "Cannot get the planning" << std::endl;
+				WARN << "Cannot get the planning";
 				sleep(30);
 			}
 			if ( domain.add_node(conf_params.get_param("domain_name")->c_str(), node) == false ) {
-				std::cerr << "Cannot load the planning" << std::endl;
+				EMERG << "Cannot load the planning";
 				return EXIT_FAILURE;
 			}
 			break;
@@ -205,7 +245,7 @@ int		main (int argc, char * const argv[]) {
 		case (ACTIVE): {
 			while (1) {
 				domain.get_ready_jobs(jobs, conf_params.get_param("node_name")->c_str());
-				std::cout << "jobs size: " << jobs.size() << std::endl; // TODO: remove it
+				DEBUG << "jobs size: " << jobs.size();
 				BOOST_FOREACH(Job j, jobs) {
 					running_jobs.create_thread(boost::bind(&Job::run, &j));
 				}
@@ -221,6 +261,8 @@ int		main (int argc, char * const argv[]) {
 	running_jobs.join_all();
 	server_thread.join();
 
+	INFO << "Clean shutdown";
+	log4cpp::Category::shutdown();
 	return EXIT_SUCCESS;
 }
 
@@ -233,42 +275,28 @@ int		main (int argc, char * const argv[]) {
  *
  */
 void	usage() {
-	std::cout << "Usage: client -f <config_file> [ -d || -v ]" << std::endl;
-	std::cout << "	<config_file>	: the main configuration file" << std::endl;
-	std::cout << "	-d		: daemon mode" << std::endl;
-	std::cout << "	-c		: check the configuration and exit" << std::endl;
-	std::cout << "	-v		: verbose mode" << std::endl;
+	std::cout << "Usage: client -f <config_file> [ -d || -v ]" << std::endl
+		<< "	<config_file>	: the main configuration file" << std::endl
+		<< "	-d		: daemon mode" << std::endl
+		<< "	-c		: check the configuration and exit" << std::endl
+		<< "	-v		: verbose mode" << std::endl;
 }
 
-/*
- * signal_handler
- *
- * Handles kill signals
- *
- * @arg sig : the recieved signal
- */
 void	signal_handler(const int sig) {
+	log4cpp::Category& root_logger = log4cpp::Category::getRoot();
+
 	switch(sig) {
 		case SIGHUP:
+			INFO << "received SIGHUP, nothing done.";
 			break;
 		case SIGTERM:
-			exit(0);
+			INFO << "received SIGTERM, shutting down.";
+			log4cpp::Category::shutdown();
+			exit(EXIT_SUCCESS);
 			break;
 	}
 }
 
-/*
- * daemonize
- *
- * Makes a clean fork :
- * - Forks cleanly
- * - Closes the file descriptors
- * - Writes the new PID to the given pid file
- * - Handles signals
- *
- * @arg	lock_file : typically /var/run/process.pid
- *
- */
 void	daemonize(const char* lock_file) {
 	int			result;
 	std::ofstream	f;

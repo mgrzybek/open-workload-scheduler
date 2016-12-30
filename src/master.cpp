@@ -48,8 +48,33 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief usage
+ *
+ * Prints the available options of the program to stdout.
+ */
 void	usage();
+
+/**
+ * @brief signal_handler
+ *
+ * Deals with the received signals when daemonized.
+ *
+ * @param	the signal received
+ */
 void	signal_handler(const int);
+
+/**
+ * @brief daemonnize
+ *
+ * Makes a clean fork :
+ * - Forks cleanly
+ * - Closes the file descriptors
+ * - Writes the new PID to the given pid file
+ * - Handles signals
+ *
+ * @param the PID file
+ */
 void	daemonnize(const char*);
 
 class Config;
@@ -99,14 +124,14 @@ int	main (int argc, char * const argv[]) {
 	}
 
 	if ( config_file == NULL ) {
-		std::cerr << "No config file given" << std::endl;
+		EMERG << "No config file given";
 		usage();
 		return EXIT_FAILURE;
 	}
 
 	// TODO: dael with "-c" argument to check the config file
 	if ( conf_params.parse_file(config_file) == false ) {
-		std::cout << "Cannot parse " << config_file << std::endl;
+		EMERG << "Cannot parse " << config_file;
 		return EXIT_FAILURE;
 	}
 
@@ -233,20 +258,13 @@ int	main (int argc, char * const argv[]) {
  *
  */
 void	usage() {
-	std::cout << "Usage: master -f <config_file> [ -d || -v || -c ]" << std::endl;
-	std::cout << "	<config_file>	: the main configuration file" << std::endl;
-	std::cout << "	-d		: daemon mode" << std::endl;
-	std::cout << "	-c		: check the configuration and exit" << std::endl;
-	std::cout << "	-v		: verbose mode" << std::endl;
+	std::cout << "Usage: master -f <config_file> [ -d || -v || -c ]" << std::endl
+		<< "	<config_file>	: the main configuration file" << std::endl
+		<< "	-d		: daemon mode" << std::endl
+		<< "	-c		: check the configuration and exit" << std::endl
+		<< "	-v		: verbose mode" << std::endl;
 }
 
-/*
- * signal_handler
- *
- * Handles kill signals
- *
- * @arg sig : the recieved signal
- */
 void	signal_handler(const int sig) {
 	log4cpp::Category& root_logger = log4cpp::Category::getRoot();
 
@@ -257,23 +275,11 @@ void	signal_handler(const int sig) {
 		case SIGTERM:
 			INFO << "received SIGTERM, shutting down.";
 			log4cpp::Category::shutdown();
-			exit(0);
+			exit(EXIT_SUCCESS);
 			break;
 	}
 }
 
-/*
- * daemonize
- *
- * Makes a clean fork :
- * - Forks cleanly
- * - Closes the file descriptors
- * - Writes the new PID to the given pid file
- * - Handles signals
- *
- * @arg	lock_file : typically /var/run/process.pid
- *
- */
 void	daemonize(const char* lock_file) {
 	int			result;
 	std::ofstream	f;
