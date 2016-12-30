@@ -87,7 +87,7 @@ public:
 	bool	get_planning(rpc::t_planning& _return, const char* domain_name, const char* node_name);
 
 	/**
-	 * set_planning
+	 * set_next_planning
 	 *
 	 * Sets the planning according to the template
 	 * TODO: make private

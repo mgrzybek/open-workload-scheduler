@@ -40,7 +40,7 @@ Domain::Domain(Config* c) {
 
 	this->config	= c;
 
-	boost::regex	duration_hour_matching("^([[:digit:]]+)h?", boost::regex::perl);
+	boost::regex	duration_hour_matching("^([[:digit:]]+)h", boost::regex::perl);
 	boost::regex	duration_minute_matching("([[:digit:]]+)min$", boost::regex::perl);
 	boost::regex	time_matching("^([[:digit:]]{2}):([[:digit:]]{2})$", boost::regex::perl);
 
@@ -97,14 +97,14 @@ Domain::Domain(Config* c) {
 		throw e;
 	}
 
-	INFO << "Planning duration is: " << this->planning_duration << " seconds";
+	INFO << "Planning duration is " << this->planning_duration << " seconds";
 
 	start = this->config->get_param("day_start_time")->begin();
 	end = this->config->get_param("day_start_time")->end();
 
 	if ( boost::regex_search(start, end, what, time_matching) ) {
 		this->initial_planning_start_time = boost::lexical_cast<int>(what[1]) * 3600 + boost::lexical_cast<int>(what[2]) * 60;
-		INFO << "Initial planning start time is: " << boost::lexical_cast<int>(what[1]) << ":" << boost::lexical_cast<int>(what[2]) << " -> " << this->initial_planning_start_time;
+		INFO << "Initial planning start time is " << boost::lexical_cast<int>(what[1]) << ":" << boost::lexical_cast<int>(what[2]) << " (" << this->initial_planning_start_time << ")";
 	}
 
 	/*
@@ -139,7 +139,7 @@ Domain::Domain(Config* c) {
 		ALERT << e.msg;
 	}
 
-	INFO << "First start time is: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time);
+	INFO << "First start time is " << this->planning_start_time << " ("  << build_human_readable_time(this->planning_start_time) << ")";
 }
 
 Domain::~Domain() {
@@ -171,10 +171,15 @@ bool	Domain::set_next_planning(time_t& _return) {
 	next_planning_name += "_";
 	next_planning_name += boost::lexical_cast<std::string>(_return);
 
+	DEBUG << "next planning is " << next_planning_name << ", starting at " << _return << " (" << build_human_readable_time(_return) << ")";
+
 	try {
 		v_row result;
+		std::string	query;
 
-		if ( this->database.query_one_row(result, "SELECT IF('database_name' IN(SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA), 1, 0) AS found;", NULL) == false ) {
+		query ="SELECT IF('" + next_planning_name + "' IN(SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA), 1, 0) AS found;";
+
+		if ( this->database.query_one_row(result, query.c_str(), NULL) == false ) {
 			ERROR << "cannot query the DB to find if the next planning alread exists";
 			return false;
 		}
@@ -210,14 +215,14 @@ bool	Domain::set_next_planning(time_t& _return) {
 
 bool	Domain::switch_planning() {
 	time_t	result;
-	INFO << "Old planning start time: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time);
+	INFO << "old planning start time is " << this->planning_start_time << " (" << build_human_readable_time(this->planning_start_time) << ")";
 
 	if ( this->set_next_planning(result) == false )
 		return false;
 
 	this->planning_start_time = result;
 
-	INFO << "New planning start time: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time);
+	INFO << "new planning start time is " << this->planning_start_time << " (" << build_human_readable_time(this->planning_start_time) << ")";
 
 	return true;
 }
@@ -263,8 +268,12 @@ std::string	Domain::dump_planning(const char* planning_name) {
 
 time_t	Domain::get_next_planning_start_time() {
 	time_t	now = time(NULL);
+	time_t	result;
 
-	return now + this->planning_duration - ( now - this->initial_planning_start_time) % this->planning_duration;
+	result = now + this->planning_duration - ( now - this->initial_planning_start_time) % this->planning_duration;
+	DEBUG << "next planning start time is " << result << " (" << build_human_readable_time(result) << ")";
+
+	return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -677,11 +686,11 @@ bool	Domain::update_job_state(const char* domain_name, const std::string& runnin
 
 	query = "UPDATE job SET job_state = '";
 	query += build_string_from_job_state(js);
-	query += "', job_start_time = '";
+	query += "', job_start_time = FROM_UNIXTIME(";
 	query += boost::lexical_cast<std::string>(start_time);
-	query += "', job_stop_time = '";
+	query += "), job_stop_time = FROM_UNIXTIME(";
 	query += boost::lexical_cast<std::string>(stop_time);
-	query += "' WHERE job_name = '";
+	query += ") WHERE job_name = '";
 	query += j_name;
 	query += "';";
 
@@ -735,7 +744,20 @@ void	Domain::get_ready_jobs(v_jobs& _return, const char* running_node) {
 		rpc_j->name		= job_row[0];
 		rpc_j->cmd_line	= job_row[1];
 		rpc_j->node_name	= job_row[2];
-		rpc_j->weight	= boost::lexical_cast<int>(job_row[3]);
+		try {
+			rpc_j->weight	= boost::lexical_cast<int>(job_row[3]);
+		} catch (const std::exception& lc_e) {
+			rpc::ex_processing e;
+			e.msg = "cannot cast value ";
+			e.msg += job_row[3];
+			e.msg += " to integer. Query is ";
+			e.msg += query;
+			e.msg += ". Exception is ";
+			e.msg += lc_e.what();
+			ERROR << e.msg;
+			throw e;
+		}
+
 		rpc_j->state		= build_job_state_from_string(job_row[4].c_str());
 
 		rpc_j->domain	= this->get_current_planning_name();
@@ -802,10 +824,34 @@ void	Domain::get_ready_jobs(rpc::v_jobs& _return, const char* running_node) {
 		job->name		= job_row[0];
 		job->node_name	= job_row[2];
 		job->cmd_line	= job_row[1];
-		job->weight		= boost::lexical_cast<int>(job_row[3]);
+		try {
+			job->weight		= boost::lexical_cast<int>(job_row[3]);
+		} catch (const std::exception& lc_e) {
+			rpc::ex_processing e;
+			e.msg = "cannot cast value ";
+			e.msg += job_row[3];
+			e.msg += " to integer. Query is ";
+			e.msg += query;
+			e.msg += ". Exception is ";
+			e.msg += lc_e.what();
+			ERROR << e.msg;
+			throw e;
+		}
 		job->state		= build_job_state_from_string(job_row[4].c_str());
 
-		this->get_recovery_type(this->get_current_planning_name().c_str(), job->recovery_type, boost::lexical_cast<int>(job_row[5].c_str()));
+		try {
+			this->get_recovery_type(this->get_current_planning_name().c_str(), job->recovery_type, boost::lexical_cast<int>(job_row[5].c_str()));
+		} catch (const std::exception& lc_e) {
+			rpc::ex_processing e;
+			e.msg = "cannot cast value ";
+			e.msg += job_row[5];
+			e.msg += " to integer. Query is ";
+			e.msg += query;
+			e.msg += ". Exception is ";
+			e.msg += lc_e.what();
+			ERROR << e.msg;
+			throw e;
+		}
 
 		_return.push_back(*job);
 	}
@@ -844,7 +890,19 @@ void	Domain::get_jobs(const char* domain_name, rpc::v_jobs& _return, const char*
 		job->name		= job_row[0];
 		job->node_name	= job_row[2];
 		job->cmd_line	= job_row[1];
-		job->weight		= boost::lexical_cast<int>(job_row[3]);
+		try {
+			job->weight		= boost::lexical_cast<int>(job_row[3]);
+		} catch (const std::exception& lc_e) {
+			rpc::ex_processing e;
+			e.msg = "cannot cast value ";
+			e.msg += job_row[3];
+			e.msg += " to integer. Query is ";
+			e.msg += query;
+			e.msg += ". Exception is ";
+			e.msg += lc_e.what();
+			ERROR << e.msg;
+			throw e;
+		}
 		job->state		= build_job_state_from_string(job_row[4].c_str());
 
 		if ( job_row[6].size() > 0 && job_row[6].compare("NULL") != 0 )

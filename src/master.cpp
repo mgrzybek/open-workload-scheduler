@@ -184,6 +184,11 @@ int	main (int argc, char * const argv[]) {
 			time_t	now = time(NULL);
 
 			try {
+				DEBUG << "planning start time: "
+					  << domain.get_planning_start_time()
+					  << " (" << build_human_readable_time(domain.get_planning_start_time()) << ")";
+				DEBUG << "now: " << now << " (" << build_human_readable_time(now) << ")";
+
 				if ( domain.get_planning_start_time() <= now ) {
 					if ( conf_params.get_running_mode() == PASSIVE )
 						domain.get_ready_jobs(jobs, NULL);
@@ -211,9 +216,11 @@ int	main (int argc, char * const argv[]) {
 								if ( conf_params.get_running_mode() == PASSIVE )
 									NOTICE << "TODO: send the job to the target node";
 							}
-							break;
 						}
 					}
+
+			} else {
+				DEBUG << "planning start time > now. " << domain.get_planning_start_time() - now << " seconds left";
 			}
 			// This prevents the previous jobs to be run again
 			jobs.clear();

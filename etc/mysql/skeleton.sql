@@ -56,8 +56,8 @@ CREATE TABLE IF NOT EXISTS `job` (
 	`job_cmd_line` VARCHAR(45) NOT NULL ,
 	`job_node_name` VARCHAR(45) NOT NULL ,
 	`job_weight` INT(11) NOT NULL DEFAULT '1' ,
-	`job_start_time` TIME DEFAULT NULL ,
-	`job_stop_time` TIME DEFAULT NULL ,
+	`job_start_time` DATETIME ,
+	`job_stop_time` DATETIME ,
 	`job_state` ENUM('waiting','running','succeded','failed') NULL DEFAULT 'waiting' ,
 	`job_rectype_id` INT(11) NULL DEFAULT NULL ,
 	`job_macro_job_id` INT(11) ,
@@ -200,7 +200,7 @@ DROP TABLE IF EXISTS `get_ready_time`;
 CREATE OR REPLACE ALGORITHM=UNDEFINED
 	VIEW `get_ready_time` AS select job_name from job j
 	where
-j.job_name not in (select time_c_job_name from time_constraint)
+	j.job_name not in (select time_c_job_name from time_constraint)
 	xor (
 			j.job_name in (select time_c_job_name from time_constraint where (time_c_type = 'at' and time_format(time_c_value,'%H %i') = time_format(now(),'%H %i')))
 			or j.job_name in (select time_c_job_name from time_constraint where (time_c_type = 'before' and time_format(time_c_value,'%H %i') >= time_format(now(),'%H %i')))
