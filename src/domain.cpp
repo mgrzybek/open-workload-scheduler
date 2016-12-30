@@ -128,10 +128,15 @@ Domain::Domain(Config* c) {
 	/*
 	 * Let's prepare and populate the next planning to start
 	 */
-	if ( this->set_next_planning(this->planning_start_time) == false ) {
-		rpc::ex_processing e;
-		e.msg = "Error: cannot prepare the next planning";
-		throw e;
+	try {
+		if ( this->set_next_planning(this->planning_start_time) == false ) {
+			rpc::ex_processing e;
+			e.msg = "Error: cannot prepare the next planning";
+			ALERT << e.msg;
+			throw e;
+		}
+	} catch (rpc::ex_processing& e) {
+		ALERT << e.msg;
 	}
 
 	INFO << "First start time is: " << this->planning_start_time << " : " << build_human_readable_time(this->planning_start_time);
@@ -158,7 +163,7 @@ bool	Domain::get_planning(rpc::t_planning& _return, const char* domain_name, con
 
 bool	Domain::set_next_planning(time_t& _return) {
 	rpc::v_nodes	nodes;
-	std::string	next_planning_name;
+	std::string		next_planning_name;
 
 	_return = this->get_next_planning_start_time();
 
@@ -170,13 +175,12 @@ bool	Domain::set_next_planning(time_t& _return) {
 		v_row result;
 
 		if ( this->database.query_one_row(result, "SELECT IF('database_name' IN(SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA), 1, 0) AS found;", NULL) == false ) {
+			ERROR << "cannot query the DB to find if the next planning alread exists";
 			return false;
 		}
 
-		DEBUG << "result -> " << result.at(0);
-
 		if ( result.at(0).compare("1") == 0 ) {
-			INFO << "The schema already exists, skiping domain init...";
+			INFO << "The schema already exists, skipping domain init...";
 			return true;
 		}
 
@@ -193,10 +197,12 @@ bool	Domain::set_next_planning(time_t& _return) {
 	// We could use a method called "add_nodes" as well
 	BOOST_FOREACH(rpc::t_node node, nodes) {
 		if ( this->add_node(next_planning_name.c_str(), node) == false ) {
+			ERROR << "failed to add node " << node.name << " into planning " << next_planning_name;
 			return false;
 		}
 	}
 
+	INFO << "added " << nodes.size() << " nodes to " << next_planning_name;
 	return true;
 }
 

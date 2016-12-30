@@ -127,8 +127,13 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 #endif
 
 	if ( mysql_query(m, query.c_str()) != 0 ) {
-		ERROR << query.c_str()  << mysql_error(m);
-		return false;
+		rpc::ex_processing e;
+		e.msg = "query: ";
+		e.msg += query.c_str();
+		e.msg += " error: ";
+		e.msg += mysql_error(m);
+		ERROR << e.msg;
+		throw e;
 	}
 
 #ifndef QT_NO_DEBUG
@@ -156,34 +161,34 @@ bool	Mysql::atomic_execute(const std::string& query, MYSQL* m) {
 bool	Mysql::standalone_execute(const v_queries& queries, const char* database_name) {
 	MYSQL*		local_mysql	= this->init(database_name);
 	std::string	query		= "START TRANSACTION;";
+	rpc::ex_processing		e;
 
 	if ( local_mysql == NULL ) {
-		ERROR << "Error: local_mysql is null";
-		return false;
+		e.msg = "cannot init the DB connection";
+		throw e;
 	}
 
 	if ( this->atomic_execute(query, local_mysql) == false ) {
 		this->end(local_mysql);
 
-		#ifndef QT_NO_DEBUG
-			std::cout << "standalone_execute:: start transaction failed";
-		#endif
-
-		return false;
+		e.msg = "standalone_execute:: start transaction failed - ";
+		e.msg +=  mysql_error(local_mysql);
+		throw e;
 	}
 
-	BOOST_FOREACH(std::string q, queries) {
-		if ( this->atomic_execute(q, local_mysql) == false ) {
-			query = "ROLLBACK;";
-			this->atomic_execute(query, local_mysql);
-			this->end(local_mysql);
+	try {
+		BOOST_FOREACH(std::string q, queries) {
+			if ( this->atomic_execute(q, local_mysql) == false ) {
+				query = "ROLLBACK;";
+				this->atomic_execute(query, local_mysql);
+				this->end(local_mysql);
 
-			#ifndef QT_NO_DEBUG
-				std::cout << "standalone_execute:: rollback";
-			#endif
-
-			return false;
+				return false;
+			}
 		}
+	} catch (rpc::ex_processing& e) {
+		this->end(local_mysql);
+		throw e;
 	}
 
 	query = "COMMIT;";
@@ -191,11 +196,9 @@ bool	Mysql::standalone_execute(const v_queries& queries, const char* database_na
 	if ( this->atomic_execute(query, local_mysql) == false ) {
 		this->end(local_mysql);
 
-		#ifndef QT_NO_DEBUG
-			std::cout << "standalone_execute:: commit failed";
-		#endif
-
-		return false;
+		e.msg = "standalone_execute:: commit failed - ";
+		e.msg +=  mysql_error(local_mysql);
+		throw e;
 	}
 
 	this->end(local_mysql);
@@ -213,12 +216,12 @@ bool	Mysql::query_one_row(v_row& _return, const char* query, const char* databas
 		return false;
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
-		ERROR << query  << mysql_error(local_mysql);
+		ERROR << query << mysql_error(local_mysql);
 		return false;
 	}
 
 	#ifndef QT_NO_DEBUG
-		std::cout << "query_one_row:: " << query;
+		DEBUG << "query_one_row:: " << query;
 	#endif
 
 	res = mysql_store_result(local_mysql);
@@ -232,7 +235,7 @@ bool	Mysql::query_one_row(v_row& _return, const char* query, const char* databas
 			}
 	} else {
 		if ( mysql_field_count(local_mysql) != 0 ) {
-			ERROR << "Erreur : " << mysql_error(local_mysql);
+			ERROR << mysql_error(local_mysql);
 			mysql_free_result(res);
 			this->end(local_mysql);
 			return false;
@@ -261,7 +264,7 @@ bool	Mysql::query_full_result(v_v_row& _return, const char* query, const char* d
 		return false;
 
 	if ( mysql_query(local_mysql, query) != 0 ) {
-		ERROR << "Error: " << query << mysql_error(local_mysql);
+		ERROR << query << mysql_error(local_mysql);
 		return false;
 	}
 
