@@ -468,6 +468,17 @@ bool	Domain::add_job(const char* domain_name, const rpc::t_job& j) {
 	}
 
 	BOOST_FOREACH(rpc::t_time_constraint tc, j.time_constraints) {
+		if ( this->planning_duration < tc.value ) {
+			rpc::ex_processing e;
+			e.msg = "the given value of the time_constraint is higher than the planning's duration (";
+			e.msg += tc.value;
+			e.msg += " > ";
+			e.msg += this->planning_duration;
+			e.msg += ")";
+
+			throw e;
+		}
+
 		query = "INSERT INTO time_constraint (time_c_job_name, time_c_type, time_c_value) VALUES ('";
 		query += j.name;
 		query += "','";
@@ -1059,8 +1070,28 @@ void	Domain::get_resources(const char* domain_name, rpc::v_resources& _return) {
 
 		resource->name		= resource_row[1];
 //		resource->node_name	= resource_row[2];
-		resource->current_value		= boost::lexical_cast<int>(resource_row[2]);
-		resource->initial_value		= boost::lexical_cast<int>(resource_row[3]);
+
+		if ( resource_row[2].size() > 0 && resource_row[2].compare("NULL") > 0 )
+			resource->current_value		= boost::lexical_cast<int>(resource_row[2]);
+		else {
+			rpc::ex_processing	e;
+			e.msg = "cannot cast ";
+			e.msg += resource_row[2];
+			e.msg += " to integer";
+
+			throw e;
+		}
+
+		if ( resource_row[3].size() > 0 && resource_row[3].compare("NULL") > 0 )
+			resource->initial_value		= boost::lexical_cast<int>(resource_row[3]);
+		else {
+			rpc::ex_processing	e;
+			e.msg = "cannot cast ";
+			e.msg += resource_row[3];
+			e.msg += " to integer";
+
+			throw e;
+		}
 
 		_return.push_back(*resource);
 	}
@@ -1092,10 +1123,20 @@ void	Domain::get_time_constraints(const char* domain_name, rpc::v_time_constrain
 
 		DEBUG << "job_name -> " << time_constraint_row[0].c_str();
 		time_constraint->job_name	= time_constraint_row[0].c_str();
+
 		DEBUG << "type -> " << build_time_constraint_type_from_string(time_constraint_row[1].c_str());
 		time_constraint->type		= build_time_constraint_type_from_string(time_constraint_row[1].c_str());
-		DEBUG << "value -> " << time_constraint_row[2];
-		time_constraint->value		= boost::lexical_cast<rpc::integer>(time_constraint_row[2]);
+
+		try {
+			DEBUG << "value -> " << time_constraint_row[2];
+			time_constraint->value		= boost::lexical_cast<rpc::integer>(time_constraint_row[2]);
+		} catch (std::exception& lc_e) {
+			rpc::ex_processing	e;
+			e.msg = "cannot cast ";
+			e.msg += time_constraint_row[2];
+			e.msg += " to integer - ";
+			e.msg += lc_e.what();
+		}
 
 		_return.push_back(*time_constraint);
 	}
@@ -1121,7 +1162,18 @@ void	Domain::get_recovery_types(const char* domain_name, rpc::v_recovery_types& 
 	BOOST_FOREACH(v_row recovery_row, recoveries_matrix) {
 		delete recovery;
 
-		recovery->id		= boost::lexical_cast<int>(recovery_row[0]);
+		try {
+			recovery->id		= boost::lexical_cast<int>(recovery_row[0]);
+		} catch (const std::exception& lc_e) {
+			rpc::ex_processing e;
+			e.msg = "cannot cast ";
+			e.msg += recovery_row[0];
+			e.msg += " to integer - ";
+			e.msg += e.what();
+
+			throw e;
+		}
+
 		recovery->short_label	= recovery_row[1];
 		recovery->label		= recovery_row[2];
 		recovery->action	= build_rectype_action_from_string(recovery_row[3].c_str());
@@ -1149,7 +1201,18 @@ void	Domain::get_recovery_type(const char* domain_name, rpc::t_recovery_type& _r
 		throw e;
 	}
 #endif
-	_return.id		= boost::lexical_cast<int>(recovery_row[0]);
+	try {
+		_return.id		= boost::lexical_cast<int>(recovery_row[0]);
+	} catch (const std::exception& lc_e) {
+		rpc::ex_processing e;
+		e.msg = "cannot cast ";
+		e.msg += recovery_row[0];
+		e.msg += " to integer - ";
+		e.msg += e.what();
+
+		throw e;
+	}
+
 	_return.short_label	= recovery_row[1];
 	_return.label		= recovery_row[2];
 	_return.action		= build_rectype_action_from_string(recovery_row[3].c_str());
