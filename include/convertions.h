@@ -25,9 +25,12 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+#ifndef CONVERTIONS_H
+#define CONVERTIONS_H
 
 #include <time.h>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 
 #include "model_types.h"
 
@@ -117,3 +120,5 @@ std::string	build_human_readable_time(const time_t& time);
  * @return	the converted time
  */
 time_t	build_unix_time_from_hhmm_time(const std::string& time);
+
+#endif // CONVERTIONS_H

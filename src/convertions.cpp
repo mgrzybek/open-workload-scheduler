@@ -157,14 +157,41 @@ std::string	build_human_readable_time(const time_t& time) {
 }
 
 time_t	build_unix_time_from_hhmm_time(const std::string& time) {
-	time_t	result = 0;
+	time_t			result = 0;
 
-	// hours
-	result += boost::lexical_cast<time_t>(time.at(0)) * 36000;
-	result += boost::lexical_cast<time_t>(time.at(1)) * 3600;
-	// minutes
-	result += boost::lexical_cast<time_t>(time.at(2)) * 600;
-	result += boost::lexical_cast<time_t>(time.at(3)) * 60;
+	boost::regex	duration_hour_matching("^([[:digit:]]+)h", boost::regex::perl);
+	boost::regex	duration_minute_matching("([[:digit:]]+)min$", boost::regex::perl);
+
+	boost::smatch	what_hour;
+	boost::smatch	what_minute;
+
+	std::string::const_iterator	start = time.begin();
+	std::string::const_iterator	end = time.end();
+
+	/*
+	 * Let's calculate the duration and the start time
+	 */
+	if ( boost::regex_search(start, end, what_hour, duration_hour_matching) ) {
+		try {
+			result += boost::lexical_cast<time_t>(what_hour[1]) * 3600;
+		} catch (const std::exception& l) {
+			rpc::ex_processing e;
+			e.msg = "cannot compute time_constraint value. Cannot cast ";
+			e.msg += what_hour[1];
+			throw e;
+		}
+	}
+
+	if ( boost::regex_search(start, end, what_minute, duration_minute_matching) ) {
+		try {
+			result += boost::lexical_cast<time_t>(what_minute[1]) * 60;
+		} catch (const std::exception& l) {
+			rpc::ex_processing e;
+			e.msg = "cannot compute time_constraint value. Cannot cast ";
+			e.msg += what_minute[1];
+			throw e;
+		}
+	}
 
 	return result;
 }
