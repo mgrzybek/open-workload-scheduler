@@ -258,7 +258,7 @@ private:
 	 */
 	void	check_master_node(const std::string& calling_node_name, const std::string& job_node_name);
 
-		/**
+	/**
 	 * check_routing_args
 	 *
 	 * Used to check if the args are empty or usable
