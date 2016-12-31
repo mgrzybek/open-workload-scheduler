@@ -176,7 +176,7 @@ bool	Job::update_state(const rpc::e_job_state::type js) {
 
 // TODO: fix it
 bool	Job::update_state(const rpc::e_job_state::type js, time_t start_time, time_t stop_time) {
-	DEBUG << "Job::update_state - state: " << js << "start_time: " << start_time << " stop_time: " << stop_time;
+	DEBUG << "Job::update_state - state: " << js << " start_time: " << start_time << " stop_time: " << stop_time;
 	return this->domain->update_job_state(this->job.domain.c_str(), this, js, start_time, stop_time);
 }
 
